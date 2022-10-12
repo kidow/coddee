@@ -29,7 +29,12 @@ class MyApp extends App<Props, {}, State> {
           const {
             data: { user }
           } = await supabase.auth.getUser()
-          set(userState, user)
+          const { data } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user?.id)
+            .single()
+          if (data) set(userState, data)
         }}
       >
         <Auth>
