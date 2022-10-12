@@ -3,7 +3,7 @@ import type { NextPage } from 'next'
 interface State {}
 
 const HomePage: NextPage = () => {
-  return <>HomePage</>
+  return <div className="container mx-auto">HomePage</div>
 }
 
 export default HomePage
