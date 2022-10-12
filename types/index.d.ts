@@ -54,6 +54,9 @@ namespace NTable {
     user_id: string
     room_id: string
     content: string
+    code_block: string
+    language: string
     created_at: string
   }
+  interface Languages {}
 }

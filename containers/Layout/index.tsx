@@ -2,8 +2,8 @@ import Image from 'next/image'
 import type { FC } from 'react'
 import classnames from 'classnames'
 import Link from 'next/link'
-import { useObjectState } from 'services'
-import Modal from 'containers/Modal'
+import { supabase, useObjectState, useUser } from 'services'
+import { Modal } from 'containers'
 
 export interface Props extends ReactProps {}
 interface State {
@@ -14,9 +14,18 @@ const Layout: FC<Props> = ({ children }) => {
   const [{ isProfileOpen }, setState] = useObjectState<State>({
     isProfileOpen: false
   })
+  const [user] = useUser()
+  console.log('user', user)
+
+  const onLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: { redirectTo: process.env.NEXT_PUBLIC_REDIRECT_TO }
+    })
+  }
   return (
     <>
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-6xl">
         <div className="flex gap-5">
           <div className="flex h-screen w-80 flex-col divide-y border-x border-neutral-200 bg-white">
             <header className="flex h-12 items-center justify-between px-5">
@@ -25,13 +34,19 @@ const Layout: FC<Props> = ({ children }) => {
                   <img src="/coddee-black.svg" alt="" className="h-5" />
                 </a>
               </Link>
-              <button onClick={() => setState({ isProfileOpen: true })}>
-                <img
-                  src="https://i.pravatar.cc"
-                  alt=""
-                  className="h-8 w-8 rounded-full"
-                />
-              </button>
+              {user ? (
+                <button onClick={() => setState({ isProfileOpen: true })}>
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt=""
+                    className="h-8 w-8 rounded-full"
+                  />
+                </button>
+              ) : (
+                <button className="text-sm" onClick={onLogin}>
+                  로그인
+                </button>
+              )}
             </header>
             <menu className="flex-1 overflow-auto">
               <ul>

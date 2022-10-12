@@ -7,7 +7,7 @@ const HomePage: NextPage = () => {
   return (
     <>
       <SEO />
-      <div className="container mx-auto">asd</div>
+      <div className="container mx-auto"></div>
     </>
   )
 }

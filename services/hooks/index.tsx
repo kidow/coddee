@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
+import { EventListener, userState } from 'services'
+import { useRecoilState } from 'recoil'
+import type { SetterOrUpdater } from 'recoil'
+import type { User } from '@supabase/supabase-js'
 
 export function useObjectState<T>(
   initialObject: T
@@ -52,4 +56,12 @@ export function useObjectState<T>(
   }, [state])
 
   return [state, onChange, onEventChange, resetState]
+}
+
+export const useBackdrop = () => (open: boolean) =>
+  EventListener.emit('backdrop', { detail: { open } })
+
+export const useUser = (): [User | null, SetterOrUpdater<User | null>] => {
+  const [user, setUser] = useRecoilState(userState)
+  return [user, setUser]
 }

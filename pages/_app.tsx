@@ -1,7 +1,9 @@
 import 'styles/globals.css'
 import App from 'next/app'
 import { ErrorInfo } from 'react'
-import { Layout } from 'containers'
+import { Layout, Auth } from 'containers'
+import { RecoilRoot } from 'recoil'
+import { supabase, userState } from 'services'
 
 interface Props {}
 interface State {
@@ -22,9 +24,20 @@ class MyApp extends App<Props, {}, State> {
     const {} = this.state
     const { Component, pageProps } = this.props
     return (
-      <Layout>
-        <Component {...pageProps} />
-      </Layout>
+      <RecoilRoot
+        initializeState={async ({ set }) => {
+          const {
+            data: { user }
+          } = await supabase.auth.getUser()
+          set(userState, user)
+        }}
+      >
+        <Auth>
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        </Auth>
+      </RecoilRoot>
     )
   }
 }
