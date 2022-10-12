@@ -15,8 +15,17 @@ const Auth: FC<Props> = ({ children }) => {
       data: { user },
       error
     } = await supabase.auth.getUser()
-    if (error) console.error(error)
-    setUser(user)
+    if (error) {
+      console.error(error)
+      return
+    }
+    if (!user) return
+    const { data } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+    if (data) setUser(data)
   }
 
   useEffect(() => {

@@ -3,7 +3,6 @@ import type { ChangeEvent } from 'react'
 import { EventListener, userState } from 'services'
 import { useRecoilState } from 'recoil'
 import type { SetterOrUpdater } from 'recoil'
-import type { User } from '@supabase/supabase-js'
 
 export function useObjectState<T>(
   initialObject: T
@@ -61,7 +60,10 @@ export function useObjectState<T>(
 export const useBackdrop = () => (open: boolean) =>
   EventListener.emit('backdrop', { detail: { open } })
 
-export const useUser = (): [User | null, SetterOrUpdater<User | null>] => {
+export const useUser = (): [
+  NTable.Users | null,
+  SetterOrUpdater<NTable.Users | null>
+] => {
   const [user, setUser] = useRecoilState(userState)
   return [user, setUser]
 }

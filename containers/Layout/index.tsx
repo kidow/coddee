@@ -7,12 +7,12 @@ import { Modal } from 'containers'
 
 export interface Props extends ReactProps {}
 interface State {
-  isProfileOpen: boolean
+  isMyInfoOpen: boolean
 }
 
 const Layout: FC<Props> = ({ children }) => {
-  const [{ isProfileOpen }, setState] = useObjectState<State>({
-    isProfileOpen: false
+  const [{ isMyInfoOpen }, setState] = useObjectState<State>({
+    isMyInfoOpen: false
   })
   const [user] = useUser()
   console.log('user', user)
@@ -35,9 +35,9 @@ const Layout: FC<Props> = ({ children }) => {
                 </a>
               </Link>
               {user ? (
-                <button onClick={() => setState({ isProfileOpen: true })}>
+                <button onClick={() => setState({ isMyInfoOpen: true })}>
                   <img
-                    src={user.user_metadata.avatar_url}
+                    src={user.avatar_url}
                     alt=""
                     className="h-8 w-8 rounded-full"
                   />
@@ -77,9 +77,9 @@ const Layout: FC<Props> = ({ children }) => {
           </div>
         </div>
       </div>
-      <Modal.Profile
-        isOpen={isProfileOpen}
-        onClose={() => setState({ isProfileOpen: false })}
+      <Modal.MyInfo
+        isOpen={isMyInfoOpen}
+        onClose={() => setState({ isMyInfoOpen: false })}
       />
     </>
   )

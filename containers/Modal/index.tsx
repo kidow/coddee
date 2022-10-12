@@ -3,8 +3,8 @@ import { XMarkIcon } from '@heroicons/react/24/solid'
 import classnames from 'classnames'
 import { createPortal } from 'react-dom'
 
-import ProfileModal from './Profile'
 import CodeEditorModal from './CodeEditor'
+import MyInfoModal from './MyInfo'
 
 interface Props extends ReactProps, ModalProps {}
 interface State {}
@@ -86,6 +86,6 @@ const Modal: FC<Props> = ({
 }
 
 export default Object.assign(Modal, {
-  Profile: ProfileModal,
+  MyInfo: MyInfoModal,
   CodeEditor: CodeEditorModal
 })
