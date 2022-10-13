@@ -5,7 +5,7 @@ interface ReactProps {
 interface ModalProps {
   isOpen: boolean
   onClose: () => void
-  title?: string
+  title?: ReactNode
   maxWidth?:
     | 'max-w-screen-2xl'
     | 'max-w-screen-xl'
@@ -33,6 +33,7 @@ namespace NTable {
   interface Users {
     id: string
     email: string
+    nickname: string
     avatar_url: string
     introduction: string
     github_url: string
@@ -58,5 +59,11 @@ namespace NTable {
     language: string
     created_at: string
   }
-  interface Languages {}
+  interface Languages {
+    id: number
+    label: string
+    value: string
+    template: string
+    created_at: string
+  }
 }

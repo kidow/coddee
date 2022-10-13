@@ -1,9 +1,10 @@
 import 'styles/globals.css'
 import App from 'next/app'
 import { ErrorInfo } from 'react'
-import { Layout, Auth } from 'containers'
+import { Layout, Auth, Backdrop } from 'containers'
 import { RecoilRoot } from 'recoil'
 import { supabase, userState } from 'services'
+import 'dayjs/locale/ko'
 
 interface Props {}
 interface State {
@@ -24,25 +25,28 @@ class MyApp extends App<Props, {}, State> {
     const {} = this.state
     const { Component, pageProps } = this.props
     return (
-      <RecoilRoot
-        initializeState={async ({ set }) => {
-          const {
-            data: { user }
-          } = await supabase.auth.getUser()
-          const { data } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', user?.id)
-            .single()
-          if (data) set(userState, data)
-        }}
-      >
-        <Auth>
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
-        </Auth>
-      </RecoilRoot>
+      <>
+        <RecoilRoot
+          initializeState={async ({ set }) => {
+            const {
+              data: { user }
+            } = await supabase.auth.getUser()
+            const { data } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', user?.id)
+              .single()
+            if (data) set(userState, data)
+          }}
+        >
+          <Auth>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          </Auth>
+        </RecoilRoot>
+        <Backdrop />
+      </>
     )
   }
 }

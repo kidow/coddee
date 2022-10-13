@@ -1,13 +1,11 @@
 import { useEffect } from 'react'
 import type { FC } from 'react'
-import { supabase, useBackdrop, useUser } from 'services'
-import { Backdrop } from 'containers'
+import { supabase, useUser } from 'services'
 
 export interface Props extends ReactProps {}
 interface State {}
 
 const Auth: FC<Props> = ({ children }) => {
-  const backdrop = useBackdrop()
   const [_, setUser] = useUser()
 
   const get = async () => {
@@ -35,7 +33,6 @@ const Auth: FC<Props> = ({ children }) => {
       data: { subscription }
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN') {
-        backdrop(true)
         const { data, error } = await supabase
           .from('users')
           .select('*')
@@ -48,23 +45,19 @@ const Auth: FC<Props> = ({ children }) => {
             .insert({
               id: session?.user.id,
               email: session?.user.email,
-              avatar_url: session?.user.user_metadata.avatar_url
+              avatar_url: session?.user.user_metadata.avatar_url,
+              nickname: session?.user.user_metadata.user_name,
+              github_url: `https://github.com/${session?.user.user_metadata.user_name}`
             })
             .single()
           if (error) console.error(error)
         }
-        backdrop(false)
       }
     })
 
     return () => subscription.unsubscribe()
   }, [])
-  return (
-    <>
-      <Backdrop />
-      {children}
-    </>
-  )
+  return <>{children}</>
 }
 
 export default Auth

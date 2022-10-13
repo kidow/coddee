@@ -58,7 +58,7 @@ export function useObjectState<T>(
 }
 
 export const useBackdrop = () => (open: boolean) =>
-  EventListener.emit('backdrop', { detail: { open } })
+  EventListener.emit('backdrop', { open })
 
 export const useUser = (): [
   NTable.Users | null,

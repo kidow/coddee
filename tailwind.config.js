@@ -8,5 +8,8 @@ module.exports = {
   theme: {
     extend: {}
   },
-  plugins: [require('prettier-plugin-tailwindcss')]
+  plugins: [
+    require('@tailwindcss/typography'),
+    require('prettier-plugin-tailwindcss')
+  ]
 }

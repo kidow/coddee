@@ -5,6 +5,9 @@ import { createPortal } from 'react-dom'
 
 import CodeEditorModal from './CodeEditor'
 import MyInfoModal from './MyInfo'
+import ProfileModal from './Profile'
+import LoginModal from './Login'
+import SearchModal from './Search'
 
 interface Props extends ReactProps, ModalProps {}
 interface State {}
@@ -87,5 +90,8 @@ const Modal: FC<Props> = ({
 
 export default Object.assign(Modal, {
   MyInfo: MyInfoModal,
-  CodeEditor: CodeEditorModal
+  CodeEditor: CodeEditorModal,
+  Profile: ProfileModal,
+  Login: LoginModal,
+  Search: SearchModal
 })

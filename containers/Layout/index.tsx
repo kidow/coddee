@@ -1,28 +1,37 @@
-import Image from 'next/image'
+import { useEffect } from 'react'
 import type { FC } from 'react'
 import classnames from 'classnames'
 import Link from 'next/link'
 import { supabase, useObjectState, useUser } from 'services'
 import { Modal } from 'containers'
+import { useRouter } from 'next/router'
 
 export interface Props extends ReactProps {}
 interface State {
   isMyInfoOpen: boolean
+  roomList: NTable.Rooms[]
+  isLoginOpen: boolean
 }
 
 const Layout: FC<Props> = ({ children }) => {
-  const [{ isMyInfoOpen }, setState] = useObjectState<State>({
-    isMyInfoOpen: false
-  })
-  const [user] = useUser()
-  console.log('user', user)
-
-  const onLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: { redirectTo: process.env.NEXT_PUBLIC_REDIRECT_TO }
+  const [{ isMyInfoOpen, roomList, isLoginOpen }, setState] =
+    useObjectState<State>({
+      isMyInfoOpen: false,
+      roomList: [],
+      isLoginOpen: false
     })
+  const [user] = useUser()
+  const { query } = useRouter()
+
+  const get = async () => {
+    const { data, error } = await supabase.from('rooms').select()
+    if (error) console.error(error)
+    setState({ roomList: data || [] })
   }
+
+  useEffect(() => {
+    get()
+  }, [])
   return (
     <>
       <div className="mx-auto max-w-6xl">
@@ -43,28 +52,35 @@ const Layout: FC<Props> = ({ children }) => {
                   />
                 </button>
               ) : (
-                <button className="text-sm" onClick={onLogin}>
+                <button
+                  className="text-sm"
+                  onClick={() => setState({ isLoginOpen: true })}
+                >
                   로그인
                 </button>
               )}
             </header>
             <menu className="flex-1 overflow-auto">
               <ul>
-                {Array.from({ length: 30 }).map((_, key) => (
+                {roomList.map((item, key) => (
                   <li key={key}>
-                    <Link href="/rooms/1">
+                    <Link href={`/rooms/${item.id}`}>
                       <a
                         className={classnames(
-                          'flex h-12 items-center gap-4 px-5 hover:bg-blue-50'
+                          'flex h-12 items-center gap-4 px-5',
+                          query.id === item.id
+                            ? 'bg-blue-100'
+                            : 'hover:bg-blue-50'
                         )}
                       >
-                        <Image
-                          src="https://i.pravatar.cc"
-                          alt=""
-                          height={24}
-                          width={24}
-                        />
-                        <span className="font-semibold">Javascript</span>
+                        <img src={item.logo_url} alt="" className="h-6 w-6" />
+                        <span
+                          className={classnames({
+                            'font-semibold': query.id === item.id
+                          })}
+                        >
+                          {item.name}
+                        </span>
                       </a>
                     </Link>
                   </li>
@@ -80,6 +96,10 @@ const Layout: FC<Props> = ({ children }) => {
       <Modal.MyInfo
         isOpen={isMyInfoOpen}
         onClose={() => setState({ isMyInfoOpen: false })}
+      />
+      <Modal.Login
+        isOpen={isLoginOpen}
+        onClose={() => setState({ isLoginOpen: false })}
       />
     </>
   )

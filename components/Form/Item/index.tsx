@@ -9,7 +9,7 @@ interface State {}
 
 const FormItem: FC<Props> = ({ label, children, required }) => {
   return (
-    <label className="block">
+    <div>
       {!!label && (
         <span
           className={classnames(
@@ -21,7 +21,7 @@ const FormItem: FC<Props> = ({ label, children, required }) => {
         </span>
       )}
       <div className="mt-1">{children}</div>
-    </label>
+    </div>
   )
 }
 
