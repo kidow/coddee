@@ -13,6 +13,7 @@ const HomePage: NextPage = () => {
         <p>
           커디는 <strong>개발자 채팅방</strong>입니다.
         </p>
+
         <p>커디는 다음과 같은 목적으로 만들어졌습니다.</p>
         <ul>
           <li>

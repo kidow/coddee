@@ -140,7 +140,7 @@ const RoomIdPage: NextPage = () => {
   return (
     <>
       <SEO title="Javascript" />
-      <div className="flex flex-col">
+      <div className="flex h-full flex-col">
         <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b bg-white px-5">
           <span className="font-semibold">{name}</span>
           {/* <div className="relative">
@@ -157,7 +157,7 @@ const RoomIdPage: NextPage = () => {
             )}
           </div> */}
         </header>
-        <main className="py-3">
+        <main className="flex-1 py-3">
           {isLoading && (
             <div className="flex items-center justify-center">
               <Spinner className="h-5 w-5 text-neutral-200" />

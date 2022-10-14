@@ -44,7 +44,9 @@ const LoginModal: FC<Props> = ({ isOpen, onClose }) => {
         </div>
       }
     >
-      <div>Coddee(커디)는 </div>
+      <p className="text-center text-sm text-neutral-400">
+        로그인은 개인 정보 보호 정책 및 서비스 약관에 동의하는 것을 의미합니다.
+      </p>
     </Modal>
   )
 }
