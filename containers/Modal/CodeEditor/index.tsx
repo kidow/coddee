@@ -124,6 +124,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
             defaultValue={props.codeBlock}
             value={codeBlock}
             theme="vs-dark"
+            options={{ fontSize: 14 }}
           />
         </div>
         <div>

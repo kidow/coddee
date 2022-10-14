@@ -41,8 +41,7 @@ const Button: FC<Props> = ({
           'gap-3 py-3 px-5 text-lg': size === 'lg',
           'bg-neutral-900 text-white': !theme && shape === 'contained',
           'bg-red-600 text-white': theme === 'danger' && shape === 'contained',
-          'bg-blue-500 text-white':
-            theme === 'primary' && shape === 'contained',
+          'bg-primary text-white': theme === 'primary' && shape === 'contained',
           'bg-emerald-500 text-white':
             theme === 'success' && shape === 'contained',
           'disabled:bg-neutral-300 disabled:text-white':
@@ -52,14 +51,14 @@ const Button: FC<Props> = ({
           'hover:bg-neutral-200': !theme && shape === 'text',
           'text-red-600 hover:bg-red-100':
             theme === 'danger' && shape === 'text',
-          'text-blue-500 hover:bg-blue-100':
+          'text-primary hover:bg-orange-100':
             theme === 'primary' && shape === 'text',
           'text-emerald-500 hover:bg-emerald-100':
             theme === 'success' && shape === 'text',
           'hover:text-white': shape === 'outlined',
           'border-neutral-500 text-neutral-500 hover:bg-neutral-900':
             !theme && shape === 'outlined',
-          'border-blue-500 text-blue-500 hover:bg-blue-500':
+          'border-primary text-primary hover:bg-primary':
             theme === 'primary' && shape === 'outlined',
           'border-red-500 text-red-500 hover:bg-red-500':
             theme === 'danger' && shape === 'outlined',
@@ -82,7 +81,7 @@ const Button: FC<Props> = ({
             'group-hover:text-white': shape === 'outlined',
             'text-neutral-900':
               (shape !== 'contained' && !theme) || shape === 'text',
-            'text-blue-500': shape !== 'contained' && theme === 'primary',
+            'text-primary': shape !== 'contained' && theme === 'primary',
             'text-red-500': shape !== 'contained' && theme === 'danger',
             'text-emerald-500': shape !== 'contained' && theme === 'success'
           })}

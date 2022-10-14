@@ -1,6 +1,10 @@
 import { CodePreview, SEO, Spinner } from 'components'
 import type { NextPage } from 'next'
-import { ArrowSmallUpIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
+import {
+  ArrowSmallUpIcon,
+  CodeBracketIcon,
+  EllipsisVerticalIcon
+} from '@heroicons/react/24/outline'
 import { supabase, useObjectState, useUser } from 'services'
 import TextareaAutosize from 'react-textarea-autosize'
 import { Fragment, useEffect, useRef } from 'react'
@@ -20,6 +24,7 @@ interface State {
   isProfileOpen: boolean
   userId: string
   total: number
+  isDropdownOpen: boolean
 }
 
 const RoomIdPage: NextPage = () => {
@@ -34,7 +39,8 @@ const RoomIdPage: NextPage = () => {
       isSubmitting,
       isProfileOpen,
       userId,
-      total
+      total,
+      isDropdownOpen
     },
     setState,
     onChange
@@ -48,7 +54,8 @@ const RoomIdPage: NextPage = () => {
     isSubmitting: false,
     isProfileOpen: false,
     userId: '',
-    total: 0
+    total: 0,
+    isDropdownOpen: false
   })
   const { query } = useRouter()
   const [user] = useUser()
@@ -134,8 +141,21 @@ const RoomIdPage: NextPage = () => {
     <>
       <SEO title="Javascript" />
       <div className="flex flex-col">
-        <header className="sticky top-0 z-20 flex h-12 items-center border-b bg-white px-5">
+        <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b bg-white px-5">
           <span className="font-semibold">{name}</span>
+          {/* <div className="relative">
+            <button
+              onClick={() => setState({ isDropdownOpen: !isDropdownOpen })}
+              className="text-neutral-400 hover:text-neutral-700"
+            >
+              <EllipsisVerticalIcon className="h-5 w-5" />
+            </button>
+            {isDropdownOpen && (
+              <div className="absolute top-6 right-0 z-30 rounded border bg-white p-1">
+                asd
+              </div>
+            )}
+          </div> */}
         </header>
         <main className="py-3">
           {isLoading && (
@@ -177,7 +197,7 @@ const RoomIdPage: NextPage = () => {
                     ? 'justify-end gap-2'
                     : 'items-center gap-4 text-sm',
                   window.location.hash === `#${item.id}`
-                    ? 'animate-bounce bg-blue-50'
+                    ? 'animate-bounce bg-orange-50'
                     : 'hover:bg-neutral-50'
                 )}
               >
@@ -212,7 +232,7 @@ const RoomIdPage: NextPage = () => {
                       <div className="text-xs text-neutral-400">
                         {dayjs(item.created_at).format('HH:mm')}
                       </div>
-                      <div className="rounded bg-blue-100 p-2">
+                      <div className="rounded bg-orange-100 p-2">
                         {item.content}
                       </div>
                     </div>
@@ -235,7 +255,7 @@ const RoomIdPage: NextPage = () => {
             disabled={isSubmitting}
             ref={ref}
             placeholder="서로를 존중하는 매너를 보여주세요 :)"
-            className="flex-1 resize-none placeholder:text-sm"
+            className="flex-1 resize-none"
             spellCheck={false}
             onKeyDown={(e) => {
               if (!e.shiftKey && e.key === 'Enter') {
@@ -251,7 +271,7 @@ const RoomIdPage: NextPage = () => {
             <CodeBracketIcon className="h-5 w-5 text-neutral-400 group-hover:text-neutral-700" />
           </button>
           <button
-            className="rounded-full bg-blue-500 p-1.5 duration-150 hover:bg-blue-400 active:bg-blue-600 disabled:bg-neutral-400"
+            className="rounded-full bg-orange-500 p-1.5 duration-150 hover:bg-orange-400 active:bg-orange-600 disabled:bg-neutral-400"
             disabled={isSubmitting || !content || !user}
             onClick={create}
           >

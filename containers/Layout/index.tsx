@@ -69,8 +69,8 @@ const Layout: FC<Props> = ({ children }) => {
                         className={classnames(
                           'flex h-12 items-center gap-4 px-5',
                           query.id === item.id
-                            ? 'bg-blue-100'
-                            : 'hover:bg-blue-50'
+                            ? 'bg-orange-100'
+                            : 'hover:bg-orange-50'
                         )}
                       >
                         <img src={item.logo_url} alt="" className="h-6 w-6" />
