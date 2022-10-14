@@ -1,24 +1,21 @@
 import type { FC } from 'react'
 import { Modal } from 'containers'
 import { supabase } from 'services'
-import { useRouter } from 'next/router'
 
 export interface Props extends ModalProps {}
 interface State {}
 
 const LoginModal: FC<Props> = ({ isOpen, onClose }) => {
   if (!isOpen) return null
-  const { asPath } = useRouter()
 
   const onLogin = async () => {
-    console.log(`${process.env.NEXT_PUBLIC_REDIRECT_TO}${asPath}`)
-    // await supabase.auth.signInWithOAuth({
-    //   provider: 'github',
-    //   options: {
-    //     redirectTo: `${process.env.NEXT_PUBLIC_REDIRECT_TO}${asPath}`,
-    //     scopes: 'user'
-    //   }
-    // })
+    await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: process.env.NEXT_PUBLIC_REDIRECT_TO,
+        scopes: 'user'
+      }
+    })
   }
   return (
     <Modal
