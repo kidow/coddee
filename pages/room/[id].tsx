@@ -1,4 +1,4 @@
-import { SEO, Spinner } from 'components'
+import { CodePreview, SEO, Spinner } from 'components'
 import type { NextPage } from 'next'
 import { ArrowSmallUpIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
 import { supabase, useObjectState, useUser } from 'services'
@@ -19,6 +19,7 @@ interface State {
   isSubmitting: boolean
   isProfileOpen: boolean
   userId: string
+  total: number
 }
 
 const RoomIdPage: NextPage = () => {
@@ -32,20 +33,22 @@ const RoomIdPage: NextPage = () => {
       page,
       isSubmitting,
       isProfileOpen,
-      userId
+      userId,
+      total
     },
     setState,
     onChange
   ] = useObjectState<State>({
     content: '',
-    isLoading: false,
+    isLoading: true,
     isCodeEditorOpen: false,
     chatList: [],
     name: '',
     page: 1,
     isSubmitting: false,
     isProfileOpen: false,
-    userId: ''
+    userId: '',
+    total: 0
   })
   const { query } = useRouter()
   const [user] = useUser()
@@ -65,7 +68,7 @@ const RoomIdPage: NextPage = () => {
     if (!query.id || typeof query.id !== 'string') return
     if (page === 1) setState({ isLoading: true, chatList: [] })
     else setState({ isLoading: true })
-    const { data } = await supabase
+    const { data, count } = await supabase
       .from('chats')
       .select(
         `
@@ -73,6 +76,8 @@ const RoomIdPage: NextPage = () => {
         content,
         created_at,
         user_id,
+        language,
+        code_block,
         user:user_id(
           id,
           avatar_url,
@@ -85,7 +90,9 @@ const RoomIdPage: NextPage = () => {
       .range((page - 1) * 20, page * 20 - 1)
     setState({
       isLoading: false,
-      chatList: (data as Array<NTable.Chats & { user: NTable.Users }>) || []
+      chatList: (data as Array<NTable.Chats & { user: NTable.Users }>) || [],
+      page,
+      total: count || 0
     })
   }
 
@@ -97,10 +104,7 @@ const RoomIdPage: NextPage = () => {
       .insert({ user_id: user.id, room_id: query.id, content })
     setState({ isSubmitting: false })
     if (error) console.error(error)
-    else {
-      setState({ content: '' })
-      ref.current?.focus()
-    }
+    else setState({ content: '' })
   }
 
   useEffect(() => {
@@ -114,7 +118,12 @@ const RoomIdPage: NextPage = () => {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'chats' },
-        (payload) => setState({ chatList: [...chatList, payload.new as any] })
+        (payload: any) => {
+          setState({ chatList: [...chatList, payload.new as any] }, () => {
+            if (payload.new.user_id === user?.id)
+              window.scrollTo(0, window.scrollY)
+          })
+        }
       )
       .subscribe()
     return () => {
@@ -124,80 +133,101 @@ const RoomIdPage: NextPage = () => {
   return (
     <>
       <SEO title="Javascript" />
-      <div className="divide-y">
-        <header className="flex h-12 items-center px-5">
+      <div className="flex flex-col">
+        <header className="sticky top-0 z-20 flex h-12 items-center border-b bg-white px-5">
           <span className="font-semibold">{name}</span>
         </header>
-        <main className="h-[calc(100vh-107px)] flex-1 overflow-auto py-3">
-          {!!chatList.length ? (
-            chatList.map((item, key, arr) => (
-              <Fragment key={key}>
-                {(!!dayjs(item.created_at).diff(
-                  arr[key - 1]?.created_at,
-                  'day'
-                ) ||
-                  key === 0) && (
-                  <div className="relative z-10 mx-5 flex items-center justify-center py-3 text-xs before:absolute before:h-px before:w-full before:bg-neutral-200">
-                    <div className="absolute bottom-1/2 left-1/2 z-10 translate-y-[calc(50%-2px)] -translate-x-[46px] select-none bg-white px-5 text-neutral-400">
-                      {dayjs(item.created_at).format('MM월 DD일')}
-                    </div>
+        <main className="py-3">
+          {isLoading && (
+            <div className="flex items-center justify-center">
+              <Spinner className="h-5 w-5 text-neutral-200" />
+            </div>
+          )}
+          {chatList.map((item, key, arr) => (
+            <Fragment key={key}>
+              {(!!dayjs(dayjs(item.created_at).format('YYYY-MM-DD')).diff(
+                dayjs(arr[key - 1]?.created_at).format('YYYY-MM-DD'),
+                'day'
+              ) ||
+                key === 0) && (
+                <div className="relative z-10 mx-5 flex items-center justify-center py-3 text-xs before:absolute before:h-px before:w-full before:bg-neutral-200">
+                  <div className="absolute bottom-1/2 left-1/2 z-10 translate-y-[calc(50%-2px)] -translate-x-[46px] select-none bg-white px-5 text-neutral-400">
+                    {dayjs(item.created_at).format('MM월 DD일')}
                   </div>
-                )}
+                </div>
+              )}
+              {!!item.code_block && (
                 <div
-                  id={String(item.id)}
                   className={classnames(
-                    'flex py-1 px-5 hover:bg-neutral-50',
-                    item.user_id === user?.id
-                      ? 'justify-end gap-2'
-                      : 'items-center gap-4 text-sm',
-                    window.location.hash === `#${item.id}`
-                      ? 'animate-bounce bg-blue-50'
-                      : 'hover:bg-neutral-50'
+                    'pr-5',
+                    item.user_id === user?.id ? 'pl-5' : 'pl-16'
                   )}
                 >
-                  {item.user_id !== user?.id ? (
-                    <>
-                      <img
-                        src={item.user?.avatar_url || ''}
-                        alt=""
-                        className="h-8 w-8 cursor-pointer"
-                        onClick={() =>
-                          setState({
-                            isProfileOpen: true,
-                            userId: item.user_id
-                          })
-                        }
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="cursor-pointer font-medium">
-                            {item.user.nickname}
-                          </span>
-                          <span className="text-xs text-neutral-400">
-                            {dayjs(item.created_at).format('HH:mm')}
-                          </span>
-                        </div>
-                        <div>{item.content}</div>
+                  <CodePreview
+                    original={item.code_block}
+                    language={item.language}
+                  />
+                </div>
+              )}
+              <div
+                id={String(item.id)}
+                className={classnames(
+                  'flex py-1 px-5 hover:bg-neutral-50',
+                  item.user_id === user?.id
+                    ? 'justify-end gap-2'
+                    : 'items-center gap-4 text-sm',
+                  window.location.hash === `#${item.id}`
+                    ? 'animate-bounce bg-blue-50'
+                    : 'hover:bg-neutral-50'
+                )}
+              >
+                {item.user_id !== user?.id ? (
+                  <>
+                    <img
+                      src={item.user?.avatar_url || ''}
+                      alt=""
+                      className="h-8 w-8 cursor-pointer rounded"
+                      onClick={() =>
+                        setState({
+                          isProfileOpen: true,
+                          userId: item.user_id
+                        })
+                      }
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="cursor-pointer font-medium">
+                          {item.user.nickname}
+                        </span>
+                        <span className="text-xs text-neutral-400">
+                          {dayjs(item.created_at).format('HH:mm')}
+                        </span>
                       </div>
-                    </>
-                  ) : (
-                    <>
+                      <div>{item.content}</div>
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <div className="flex gap-2">
                       <div className="text-xs text-neutral-400">
                         {dayjs(item.created_at).format('HH:mm')}
                       </div>
                       <div className="rounded bg-blue-100 p-2">
                         {item.content}
                       </div>
-                    </>
-                  )}
-                </div>
-              </Fragment>
-            ))
-          ) : (
-            <div className="flex h-full items-center justify-center">asd</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Fragment>
+          ))}
+          {!isLoading && !chatList.length && (
+            <div className="flex h-full items-center justify-center text-xs text-neutral-400">
+              아직 채팅이 없습니다. 첫 채팅의 주인공이 되어 보시겠어요? :)
+            </div>
           )}
         </main>
-        <footer className="flex items-center gap-3 py-3 px-5">
+        <footer className="sticky bottom-0 z-20 flex min-h-[59px] w-full items-center gap-3 border-t bg-white py-3 px-5">
           <TextareaAutosize
             value={content}
             name="content"
@@ -205,7 +235,7 @@ const RoomIdPage: NextPage = () => {
             disabled={isSubmitting}
             ref={ref}
             placeholder="서로를 존중하는 매너를 보여주세요 :)"
-            className="flex-1 resize-none rounded-lg border border-neutral-200 px-2 py-1 placeholder:text-sm focus:border-neutral-600"
+            className="flex-1 resize-none placeholder:text-sm"
             spellCheck={false}
             onKeyDown={(e) => {
               if (!e.shiftKey && e.key === 'Enter') {
@@ -236,6 +266,7 @@ const RoomIdPage: NextPage = () => {
       <Modal.CodeEditor
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}
+        content={content}
       />
       <Modal.Profile
         isOpen={isProfileOpen}

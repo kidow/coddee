@@ -120,6 +120,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
             height="300px"
             defaultLanguage={props.language}
             language={language}
+            onChange={(codeBlock) => setState({ codeBlock })}
             defaultValue={props.codeBlock}
             value={codeBlock}
             theme="vs-dark"
@@ -130,6 +131,8 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
             className="w-full resize-none border p-2 focus:border-neutral-600"
             value={content}
             name="content"
+            placeholder="서로를 존중하는 매너를 보여주세요 :)"
+            spellCheck={false}
             onChange={onChange}
           />
         </div>

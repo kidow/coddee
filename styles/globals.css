@@ -8,11 +8,12 @@
 }
 
 @layer base {
-  html,
+  html {
+    @apply max-h-screen overflow-auto;
+  }
   body {
     @apply bg-neutral-100;
   }
-
   input,
   select,
   textarea {

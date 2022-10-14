@@ -36,7 +36,7 @@ const Layout: FC<Props> = ({ children }) => {
     <>
       <div className="mx-auto max-w-6xl">
         <div className="flex gap-5">
-          <div className="flex h-screen w-80 flex-col divide-y border-x border-neutral-200 bg-white">
+          <div className="sticky top-0 flex h-screen w-80 flex-col divide-y border-x border-neutral-200 bg-white">
             <header className="flex h-12 items-center justify-between px-5">
               <Link href="/">
                 <a>
@@ -64,7 +64,7 @@ const Layout: FC<Props> = ({ children }) => {
               <ul>
                 {roomList.map((item, key) => (
                   <li key={key}>
-                    <Link href={`/rooms/${item.id}`}>
+                    <Link href={`/room/${item.id}`}>
                       <a
                         className={classnames(
                           'flex h-12 items-center gap-4 px-5',
@@ -88,7 +88,7 @@ const Layout: FC<Props> = ({ children }) => {
               </ul>
             </menu>
           </div>
-          <div className="flex-1 border-x border-neutral-200 bg-white">
+          <div id="div" className="flex-1 border-x border-neutral-200 bg-white">
             {children}
           </div>
         </div>
