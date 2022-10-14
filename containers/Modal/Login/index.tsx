@@ -11,13 +11,14 @@ const LoginModal: FC<Props> = ({ isOpen, onClose }) => {
   const { asPath } = useRouter()
 
   const onLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_REDIRECT_TO}${asPath}`,
-        scopes: 'user'
-      }
-    })
+    console.log(`${process.env.NEXT_PUBLIC_REDIRECT_TO}${asPath}`)
+    // await supabase.auth.signInWithOAuth({
+    //   provider: 'github',
+    //   options: {
+    //     redirectTo: `${process.env.NEXT_PUBLIC_REDIRECT_TO}${asPath}`,
+    //     scopes: 'user'
+    //   }
+    // })
   }
   return (
     <Modal
