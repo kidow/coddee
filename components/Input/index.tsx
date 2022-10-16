@@ -91,7 +91,7 @@ const Input: FC<Props> = ({
             },
             !!error
               ? 'border-red-500'
-              : 'border-neutral-300 focus:border-orange-500',
+              : 'border-neutral-300 focus:border-blue-500',
             className
           )}
           onKeyDown={onKeyDown}

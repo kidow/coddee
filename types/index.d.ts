@@ -58,6 +58,7 @@ namespace NTable {
     code_block: string
     language: string
     created_at: string
+    deleted_at: string
   }
   interface Languages {
     id: number

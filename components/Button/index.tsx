@@ -51,7 +51,7 @@ const Button: FC<Props> = ({
           'hover:bg-neutral-200': !theme && shape === 'text',
           'text-red-600 hover:bg-red-100':
             theme === 'danger' && shape === 'text',
-          'text-primary hover:bg-orange-100':
+          'text-primary hover:bg-blue-100':
             theme === 'primary' && shape === 'text',
           'text-emerald-500 hover:bg-emerald-100':
             theme === 'success' && shape === 'text',

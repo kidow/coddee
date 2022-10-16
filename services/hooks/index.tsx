@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, RefObject } from 'react'
 import { EventListener, userState } from 'services'
 import { useRecoilState } from 'recoil'
 import type { SetterOrUpdater } from 'recoil'
@@ -66,4 +66,20 @@ export const useUser = (): [
 ] => {
   const [user, setUser] = useRecoilState(userState)
   return [user, setUser]
+}
+
+export function useIntersectionObserver<T extends HTMLElement>(): [
+  RefObject<T>,
+  boolean
+] {
+  const ref = useRef<T>(null)
+  const [entry, setEntry] = useState<IntersectionObserverEntry>()
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => setEntry(entry))
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [ref.current])
+
+  return [ref, entry?.isIntersecting || false]
 }
