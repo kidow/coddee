@@ -35,10 +35,10 @@ namespace NTable {
     email: string
     nickname: string
     avatar_url: string
-    introduction: string
+    intro: string
     github_url: string
     blog_url: string
-    field: string
+    job_category: string
     created_at: string
     updated_at: string
   }
@@ -58,6 +58,7 @@ namespace NTable {
     code_block: string
     language: string
     created_at: string
+    updated_at: string
     deleted_at: string
   }
   interface Languages {

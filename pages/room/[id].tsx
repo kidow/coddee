@@ -6,30 +6,31 @@ import {
   EllipsisVerticalIcon
 } from '@heroicons/react/24/outline'
 import {
-  roomState,
   supabase,
   useObjectState,
   useUser,
   useIntersectionObserver
 } from 'services'
 import TextareaAutosize from 'react-textarea-autosize'
-import { Fragment, useEffect, useMemo, useRef } from 'react'
+import { Fragment, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { Modal } from 'containers'
 import classnames from 'classnames'
 import dayjs from 'dayjs'
-import { useRecoilState } from 'recoil'
 
 interface State {
   content: string
   isLoading: boolean
   isCodeEditorOpen: boolean
-  page: number
   isSubmitting: boolean
   isProfileOpen: boolean
   userId: string
   total: number
   isDropdownOpen: boolean
+  chatList: Array<NTable.Chats & { user: NTable.Users }>
+  name: string
+  page: number
+  count: number
 }
 
 const RoomIdPage: NextPage = () => {
@@ -38,78 +39,106 @@ const RoomIdPage: NextPage = () => {
       content,
       isLoading,
       isCodeEditorOpen,
-      page,
       isSubmitting,
       isProfileOpen,
       userId,
       total,
-      isDropdownOpen
+      isDropdownOpen,
+      chatList,
+      name,
+      page,
+      count
     },
     setState,
-    onChange
+    onChange,
+    resetState
   ] = useObjectState<State>({
     content: '',
-    isLoading: false,
+    isLoading: true,
     isCodeEditorOpen: false,
-    page: 1,
     isSubmitting: false,
     isProfileOpen: false,
     userId: '',
     total: 0,
-    isDropdownOpen: false
+    isDropdownOpen: false,
+    chatList: [],
+    name: '',
+    page: 1,
+    count: 0
   })
   const { query } = useRouter()
-  const [user] = useUser()
-  const [roomList, setRoomList] = useRecoilState(roomState)
+  const [user, setUser] = useUser()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
 
   const getChatList = async (page: number = 1) => {
     if (!query.id || typeof query.id !== 'string') return
-    setState({ isLoading: true })
-    const { data, count, error } = await supabase
+    if (!isLoading) setState({ isLoading: true })
+    if (page === 1) setState({ chatList: [] })
+    const {
+      data,
+      error,
+      count: total
+    } = await supabase
       .from('chats')
       .select(
         `
-        id,
-        content,
-        created_at,
-        user_id,
-        language,
-        code_block,
-        user:user_id(
-          id,
-          avatar_url,
-          nickname
-        )
-      `,
+      id,
+      content,
+      language,
+      code_block,
+      created_at,
+      user_id,
+      user:user_id (
+        nickname,
+        avatar_url
+      )
+    `,
         { count: 'exact' }
       )
       .eq('room_id', query.id)
       .order('created_at', { ascending: false })
-      .range((page - 1) * 100, page * 100 - 1)
+      .range((page - 1) * 100 + count, page * 100 - 1 + count)
     if (error) {
       console.error(error)
       return
     }
-    setState({
-      isLoading: false,
-      page,
-      total: count || 0
-    })
-    const index = roomList.findIndex((item) => item.id === query.id)
-    if (index !== -1)
-      setRoomList([
-        ...roomList.slice(0, index),
-        {
-          ...roomList[index],
-          chats: [...roomList[index].chats, ...(data as any)]
-        },
-        ...roomList.slice(index + 1)
-      ])
+    setState(
+      {
+        isLoading: false,
+        chatList: (page === 1 ? data : [...chatList, ...(data as any[])]) || [],
+        page,
+        total: total || 0
+      },
+      () => {
+        if (page === 1) window.scrollTo(0, document.body.scrollHeight)
+      }
+    )
+  }
+
+  const getRoom = async () => {
+    if (!query.id) return
+    const { data, error } = await supabase
+      .from('rooms')
+      .select('name')
+      .eq('id', query.id)
+      .single()
+    if (error) {
+      console.error(error)
+      return
+    }
+    setState({ name: data.name })
   }
 
   const create = async () => {
-    if (!content.trim() || !user) return
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+    if (!user) {
+      setUser(null)
+      alert('세션이 만료되었습니다. 다시 로그인을 해주세요.')
+      return
+    }
+    if (!content.trim()) return
     setState({ isSubmitting: true })
     const { error } = await supabase
       .from('chats')
@@ -119,44 +148,56 @@ const RoomIdPage: NextPage = () => {
     else setState({ content: '' })
   }
 
-  const room:
-    | (NTable.Rooms & { chats: Array<NTable.Chats & { user: NTable.Users }> })
-    | null = useMemo(() => {
-    if (!query.id) return null
-    return roomList.find((item) => item.id === query.id) || null
-  }, [roomList, query.id])
-
-  const chatList: Array<NTable.Chats & { user: NTable.Users }> = useMemo(() => {
-    if (!room) return []
-    return room.chats || []
-  }, [room, query.id])
-
   const isBringMore: boolean = useMemo(() => {
     if (chatList.length < 100) return false
     return page * 100 < total
-  }, [chatList, page, total])
+  }, [page, total, chatList.length, count])
 
   useEffect(() => {
-    window.scrollTo(0, document.body.scrollHeight)
+    getChatList()
+    getRoom()
     return () => {
-      const index = roomList.findIndex((item) => item.id === query.id)
-      setRoomList([
-        ...roomList.slice(0, index),
-        { ...roomList[index], chats: chatList.slice(0, 100) },
-        ...roomList.slice(index + 1)
-      ])
+      resetState()
     }
   }, [query.id])
 
   useEffect(() => {
-    if (!chatList.length) return
-  }, [chatList.length])
+    const channel = supabase
+      .channel('public:chats')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'chats' },
+        async (payload: any) => {
+          if (payload.new.room_id !== query.id) return
+          const { data, error } = await supabase
+            .from('users')
+            .select('id, nickname, avatar_url')
+            .eq('id', payload.new.user_id)
+            .single()
+          if (error) {
+            console.error(error)
+            return
+          }
+          if (data)
+            setState({
+              chatList: [{ ...payload.new, user: data }, ...chatList],
+              count: count + 1
+            })
+          if (payload.new.user_id === user?.id)
+            window.scrollTo(0, document.body.scrollHeight)
+        }
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [chatList, query.id, count])
   return (
     <>
       <SEO title="Javascript" />
       <div className="flex h-full flex-col">
         <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b bg-white px-5">
-          <span className="font-semibold">{room?.name}</span>
+          <span className="font-semibold">{name}</span>
           {/* <div className="relative">
             <button
               onClick={() => setState({ isDropdownOpen: !isDropdownOpen })}
@@ -174,70 +215,68 @@ const RoomIdPage: NextPage = () => {
         <main className="flex flex-1 flex-col-reverse py-3">
           {chatList.map((item, key, arr) => (
             <Fragment key={key}>
-              {!!item.code_block && (
-                <div
-                  className={classnames(
-                    'pr-5',
-                    item.user_id === user?.id ? 'pl-5' : 'pl-16'
-                  )}
-                >
-                  <CodePreview
-                    original={item.code_block}
-                    language={item.language}
-                  />
-                </div>
-              )}
               <div
                 id={String(item.id)}
                 className={classnames(
-                  'flex py-1 px-5 hover:bg-neutral-50',
-                  item.user_id === user?.id
-                    ? 'justify-end gap-2'
-                    : 'items-center gap-4 text-sm',
-                  window.location.hash === `#${item.id}`
-                    ? 'animate-bounce bg-blue-50'
-                    : 'hover:bg-neutral-50'
+                  'group flex gap-3 py-1 px-5 hover:bg-neutral-50',
+                  {
+                    'animate-bounce bg-blue-50':
+                      window.location.href === `#${item.id}`
+                  }
                 )}
               >
-                {item.user_id !== user?.id ? (
-                  <>
+                <div className="flex w-8 items-start justify-center">
+                  {item.user_id !== arr[key + 1]?.user_id ? (
                     <img
-                      src={item.user?.avatar_url || ''}
+                      src={item.user.avatar_url}
                       alt=""
-                      className="h-8 w-8 cursor-pointer rounded"
+                      className="mt-1 h-8 w-8 cursor-pointer rounded-full"
                       onClick={() =>
-                        setState({
-                          isProfileOpen: true,
-                          userId: item.user_id
-                        })
+                        setState({ isProfileOpen: true, userId: item.user_id })
                       }
                     />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="cursor-pointer font-medium">
-                          {item.user.nickname}
-                        </span>
+                  ) : (
+                    <span className="mt-[5px] text-2xs text-neutral-400 opacity-0 group-hover:opacity-100">
+                      {dayjs(item.created_at).locale('ko').format('H:mm')}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1">
+                  {item.user_id !== arr[key + 1]?.user_id && (
+                    <div className="flex items-center gap-2">
+                      <span className="flex cursor-pointer items-center text-sm font-medium">
+                        {item.user?.nickname}
+                        {item.user_id === user?.id && (
+                          <span className="ml-1 text-xs text-neutral-400">
+                            (나)
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-xs text-neutral-400">
+                        {dayjs(item.created_at).locale('ko').format('A H:mm')}
+                      </span>
+                      {!!item.updated_at && (
                         <span className="text-xs text-neutral-400">
-                          {dayjs(item.created_at).format('HH:mm')}
+                          (수정됨)
                         </span>
-                      </div>
-                      <div>{item.content}</div>
+                      )}
                     </div>
-                  </>
-                ) : (
+                  )}
                   <div>
-                    <div className="flex gap-2">
-                      <div className="text-xs text-neutral-400">
-                        {dayjs(item.created_at).format('HH:mm')}
-                      </div>
-                      <div className="rounded bg-blue-100 p-2">
-                        {item.content}
-                      </div>
-                    </div>
+                    {item.content.split('\n').map((v, i) => (
+                      <div key={i}>{v}</div>
+                    ))}
                   </div>
-                )}
+                  {!!item.code_block && (
+                    <div className="border">
+                      <CodePreview
+                        original={item.code_block}
+                        defaultLanguage={item.language}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-
               {(!!dayjs(dayjs(item.created_at).format('YYYY-MM-DD')).diff(
                 dayjs(arr[key + 1]?.created_at).format('YYYY-MM-DD'),
                 'day'
@@ -251,7 +290,7 @@ const RoomIdPage: NextPage = () => {
               )}
             </Fragment>
           ))}
-          {!chatList.length && (
+          {!isLoading && !chatList.length && (
             <div className="flex h-full items-center justify-center text-xs text-neutral-400">
               아직 채팅이 없습니다. 첫 채팅의 주인공이 되어 보시겠어요? :)
             </div>

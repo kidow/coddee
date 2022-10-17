@@ -28,7 +28,7 @@ const CodePreview: FC<Props> = ({ original, ...props }) => {
     <Editor
       {...props}
       onMount={onMount}
-      theme="vs-dark"
+      theme="light"
       options={{
         readOnly: true,
         scrollbar: { vertical: 'hidden' },

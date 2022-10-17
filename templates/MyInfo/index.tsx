@@ -3,7 +3,6 @@ import type { FC } from 'react'
 import { useObjectState, useUser } from 'services'
 import classnames from 'classnames'
 
-import MyInfoResign from './Resign'
 import MyInfoRoomList from './RoomList'
 import MyInfoLanguageList from './LanguageList'
 
@@ -49,7 +48,6 @@ const MyInfo: FC<Props> = () => {
 }
 
 export default Object.assign(MyInfo, {
-  Resign: MyInfoResign,
   RoomList: MyInfoRoomList,
   LanguageList: MyInfoLanguageList
 })

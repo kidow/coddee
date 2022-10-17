@@ -2,47 +2,88 @@ import { useEffect, useMemo } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
 import classnames from 'classnames'
-import { fileToBase64, supabase, useObjectState, useUser } from 'services'
+import { supabase, useObjectState, useUser } from 'services'
 import { Button, Form, Input } from 'components'
 import { MyInfo } from 'templates'
 
 export interface Props extends ModalProps {}
 interface State {
   tab: number
-  introduction: string
+  intro: string
   isUpdating: boolean
   avatarUrl: string
+  jobCategory: string
+  nickname: string
+  message: string
+  blogUrl: string
 }
 
 const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
   if (!isOpen) return null
-  const [{ tab, introduction, isUpdating, avatarUrl }, setState, onChange] =
-    useObjectState<State>({
-      tab: 0,
-      introduction: '',
-      isUpdating: false,
-      avatarUrl: ''
-    })
+  const [
+    {
+      tab,
+      intro,
+      isUpdating,
+      avatarUrl,
+      jobCategory,
+      nickname,
+      message,
+      blogUrl
+    },
+    setState,
+    onChange
+  ] = useObjectState<State>({
+    tab: 0,
+    intro: '',
+    isUpdating: false,
+    avatarUrl: '',
+    jobCategory: '',
+    nickname: '',
+    message: '',
+    blogUrl: ''
+  })
   const [user, setUser] = useUser()
 
-  const update = async () => {
+  const get = async () => {
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+    if (!user) {
+      alert('세션이 만료되었습니다. 다시 로그인을 해주세요.')
+      onLogout()
+      return
+    }
     const { data } = await supabase
       .from('users')
-      .update({ introduction, avatar_url: avatarUrl })
+      .select('*')
+      .eq('id', user.id)
       .single()
+    setState({
+      intro: data.intro,
+      avatarUrl: data.avatar_url,
+      nickname: data.nickname,
+      jobCategory: data.job_category,
+      blogUrl: data.blog_url
+    })
   }
 
-  const onUploadAvatar = () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.onchange = async () => {
-      if (!input.files) return
-      const file = input.files[0]
-      const base64 = await fileToBase64(file)
-      setState({ avatarUrl: base64 })
+  const update = async () => {
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+    if (!user) {
+      alert('세션이 만료되었습니다. 다시 로그인을 해주세요.')
+      onLogout()
+      return
     }
-    input.click()
+    const { error } = await supabase
+      .from('users')
+      .update({ intro, job_category: jobCategory, blog_url: blogUrl })
+      .eq('id', user.id)
+      .single()
+    if (error) console.error(error)
+    else alert('변경되었습니다.')
   }
 
   const onLogout = async () => {
@@ -66,9 +107,28 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     [user]
   )
 
+  const onResign = async () => {
+    if (!window.confirm('정말 탈퇴하시겠습니까?')) return
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+    if (!user) {
+      alert('세션이 만료되었습니다. 다시 로그인을 해주세요.')
+      onLogout()
+      return
+    }
+
+    const { error } = await supabase.from('users').delete().eq('id', user.id)
+    if (error) {
+      console.error(error)
+      return
+    }
+    await supabase.auth.signOut()
+  }
+
   useEffect(() => {
-    if (!avatarUrl) setState({ avatarUrl: user?.avatar_url || '' })
-  }, [user])
+    get()
+  }, [])
   return (
     <Modal
       maxWidth="max-w-5xl"
@@ -100,35 +160,39 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
 
         <section className="h-[40rem] flex-1 overflow-auto p-6">
           {PROFILE_TABS[tab] === '내 정보' && (
-            <div className="space-y-8">
+            <div className="space-y-6">
               <Form.Item label="이메일">{user?.email}</Form.Item>
               <Form.Item label="아바타 이미지">
-                <div className="inline-block">
-                  <div className="inline-flex items-center gap-3">
-                    <img
-                      src={avatarUrl}
-                      alt=""
-                      className="h-10 w-10 cursor-pointer"
-                    />
-                    <Button
-                      type="button"
-                      size="xs"
-                      shape="outlined"
-                      onClick={onUploadAvatar}
-                    >
-                      변경
-                    </Button>
-                  </div>
-                  <p className="mt-1 text-xs italic text-neutral-400">
-                    5MB 이하의 이미지만 가능합니다.
-                  </p>
-                </div>
+                <img
+                  src={avatarUrl}
+                  alt=""
+                  className="h-16 w-16 rounded-full"
+                />
+              </Form.Item>
+              <Form.Item label="닉네임">{nickname}</Form.Item>
+              <Form.Item label="직무 및 분야">
+                <Input
+                  value={jobCategory}
+                  name="jobCategory"
+                  onChange={onChange}
+                  placeholder="프론트엔드 개발자"
+                  float={false}
+                />
+              </Form.Item>
+              <Form.Item label="블로그 URL">
+                <Input
+                  value={blogUrl}
+                  name="blogUrl"
+                  onChange={onChange}
+                  type="url"
+                  className="w-64"
+                />
               </Form.Item>
               <Form.Item label="한 줄 소개">
                 <Input
                   fullWidth
-                  value={introduction}
-                  name="introduction"
+                  value={intro}
+                  name="intro"
                   onChange={onChange}
                 />
               </Form.Item>
@@ -144,7 +208,31 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
               </div>
             </div>
           )}
-          {PROFILE_TABS[tab] === '탈퇴' && <MyInfo.Resign />}
+          {PROFILE_TABS[tab] === '탈퇴' && (
+            <div className="space-y-4">
+              <p className="text-sm text-red-500">
+                탈퇴하면 유저 정보와 활동 내역은 모두 사라집니다.
+              </p>
+              <div>
+                <Input
+                  value={message}
+                  name="message"
+                  onChange={onChange}
+                  placeholder="탈퇴합니다"
+                  float={false}
+                  info='"탈퇴합니다"를 입력해주세요.'
+                />
+              </div>
+              <Button
+                disabled={message !== '탈퇴합니다'}
+                theme="danger"
+                size="sm"
+                onClick={onResign}
+              >
+                탈퇴
+              </Button>
+            </div>
+          )}
           {PROFILE_TABS[tab] === '채팅방' && <MyInfo.RoomList />}
           {PROFILE_TABS[tab] === '언어' && <MyInfo.LanguageList />}
         </section>

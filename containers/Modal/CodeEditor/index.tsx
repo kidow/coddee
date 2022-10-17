@@ -33,7 +33,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
     isSubmitting: false,
     languageList: []
   })
-  const [user] = useUser()
+  const [user, setUser] = useUser()
   const { query } = useRouter()
 
   const getLanguages = async () => {
@@ -42,7 +42,17 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
   }
 
   const create = async () => {
-    if (!user || !content) return
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+    if (!user) {
+      setUser(null)
+      alert('세션이 만료되었습니다. 로그인을 다시 해주세요.')
+      onClose()
+      return
+    }
+
+    if (!codeBlock && !content) return
     setState({ isSubmitting: true })
     const { error } = await supabase.from('chats').insert({
       content,
@@ -105,7 +115,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
             </Button>
             <Button
               theme="primary"
-              disabled={isSubmitting || !user}
+              disabled={isSubmitting || !user || (!content && !codeBlock)}
               onClick={create}
             >
               등록
