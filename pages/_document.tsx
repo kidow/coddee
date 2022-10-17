@@ -21,24 +21,30 @@ export default class MyDocument extends Document {
             rel="apple-touch-icon"
             sizes="180x180"
             href="favicons/apple-icon-180x180.png"
-          />
+          /> */}
           <link
             rel="icon"
             type="image/png"
             sizes="32x32"
-            href="favicons/favicon-32x32.png"
+            href="favicon-32x32.png"
           />
           <link
             rel="icon"
             type="image/png"
             sizes="16x16"
-            href="favicons/favicon-16x16.png"
+            href="favicon-16x16.png"
           />
-          <link rel="manifest" href="/manifest.json" /> */}
+          {/* <link rel="manifest" href="/manifest.json" /> */}
           <link
             rel="stylesheet"
             type="text/css"
             href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
+          />
+          <script
+            defer
+            src="https://cdn.feedbank.app/plugin.js"
+            plugin-key="fa46598f-aa5e-46fc-be63-2d3e339383c5"
+            data-fb-position="middle-right"
           />
           <meta name="msapplication-TileColor" content="#000" />
         </Head>

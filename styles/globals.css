@@ -1,3 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+* {
+  font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    Pretendard, Roboto, 'Noto Sans KR', 'Segoe UI', 'Malgun Gothic', sans-serif;
+}
+
+@layer base {
+  html {
+    @apply max-h-screen overflow-auto;
+  }
+  body {
+    @apply bg-neutral-100;
+  }
+  input,
+  select,
+  textarea {
+    @apply focus:outline-none;
+  }
+  button {
+    @apply disabled:cursor-not-allowed;
+  }
+}
