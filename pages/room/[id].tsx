@@ -33,6 +33,7 @@ interface State {
   name: string
   page: number
   count: number
+  isSpamming: boolean
 }
 
 const RoomIdPage: NextPage = () => {
@@ -49,7 +50,8 @@ const RoomIdPage: NextPage = () => {
       chatList,
       name,
       page,
-      count
+      count,
+      isSpamming
     },
     setState,
     onChange,
@@ -66,7 +68,8 @@ const RoomIdPage: NextPage = () => {
     chatList: [],
     name: '',
     page: 1,
-    count: 0
+    count: 0,
+    isSpamming: false
   })
   const { query } = useRouter()
   const [user, setUser] = useUser()
@@ -132,6 +135,7 @@ const RoomIdPage: NextPage = () => {
   }
 
   const create = async () => {
+    if (isSpamming) return
     const {
       data: { user }
     } = await supabase.auth.getUser()
@@ -146,7 +150,7 @@ const RoomIdPage: NextPage = () => {
     const { error } = await supabase
       .from('chats')
       .insert({ user_id: user.id, room_id: query.id, content })
-    setState({ isSubmitting: false })
+    setState({ isSubmitting: false, isSpamming: true })
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
@@ -197,6 +201,10 @@ const RoomIdPage: NextPage = () => {
       supabase.removeChannel(channel)
     }
   }, [chatList, query.id, count])
+
+  useEffect(() => {
+    if (isSpamming) setTimeout(() => setState({ isSpamming: false }), 3000)
+  }, [isSpamming])
   return (
     <>
       <SEO title="Javascript" />
