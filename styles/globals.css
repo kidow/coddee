@@ -19,4 +19,7 @@
   textarea {
     @apply focus:outline-none;
   }
+  button {
+    @apply disabled:cursor-not-allowed;
+  }
 }

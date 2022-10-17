@@ -1,3 +1,5 @@
+import { EventListener } from 'services'
+
 export const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     let reader = new FileReader()
@@ -16,4 +18,15 @@ export const base64ToFile = (base64: string) => {
 
   while (n--) u8arr[n] = bstr.charCodeAt(n)
   return new File([u8arr], new Date().getTime().toString(), { type: mime })
+}
+
+export const toast = {
+  success: (message: string) =>
+    EventListener.emit<NToast.Emit>('toast', { message, type: 'success' }),
+  info: (message: string) =>
+    EventListener.emit<NToast.Emit>('toast', { message, type: 'info' }),
+  warn: (message: string) =>
+    EventListener.emit<NToast.Emit>('toast', { message, type: 'warn' }),
+  error: (message: string) =>
+    EventListener.emit<NToast.Emit>('toast', { message, type: 'error' })
 }

@@ -6,7 +6,7 @@ export interface Props extends ReactProps {}
 interface State {}
 
 const Auth: FC<Props> = ({ children }) => {
-  const [_, setUser] = useUser()
+  const [user, setUser] = useUser()
 
   const get = async () => {
     const {
@@ -51,6 +51,26 @@ const Auth: FC<Props> = ({ children }) => {
             })
             .single()
           if (error) console.error(error)
+        } else if (
+          user?.avatar_url !== session?.user.user_metadata.avatar_url ||
+          user?.nickname !== session?.user.user_metadata.user_name
+        ) {
+          const { error } = await supabase
+            .from('users')
+            .update({
+              avatar_url: session?.user.user_metadata.avatar_url,
+              nickname: session?.user.user_metadata.user_name
+            })
+            .eq('id', session?.user.id)
+          if (error) {
+            console.error(error)
+            return
+          }
+          setUser({
+            ...user!,
+            avatar_url: session?.user.user_metadata.avatar_url,
+            nickname: session?.user.user_metadata.user_name
+          })
         }
       }
     })

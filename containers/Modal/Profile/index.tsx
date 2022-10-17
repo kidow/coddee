@@ -58,8 +58,10 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
     <Modal isOpen={isOpen} onClose={onClose} padding={false}>
       <div className="relative h-16 bg-neutral-800">
         <div className="absolute left-4 top-4 rounded-full bg-white p-2">
-          {!!avatarUrl && (
+          {!!avatarUrl ? (
             <img src={avatarUrl} alt="" className="h-20 w-20 rounded-full" />
+          ) : (
+            <div className="h-20 w-20 rounded-full" />
           )}
         </div>
       </div>
@@ -73,10 +75,18 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
         <hr className="my-2" />
         <div className="space-y-4">
           <Form.Item label="이메일">
-            <span>{email}</span>
+            <a href={`mailto:${email}`} className="hover:underline">
+              {email}
+            </a>
           </Form.Item>
           <Form.Item label="직무 및 분야">{jobCategory}</Form.Item>
-          <Form.Item label="블로그 URL">{blogUrl}</Form.Item>
+          <Form.Item label="블로그 URL">
+            {!!blogUrl && (
+              <a href={blogUrl} target="_blank" className="hover:underline">
+                {blogUrl}
+              </a>
+            )}
+          </Form.Item>
           <Form.Item label="한 줄 소개">{intro}</Form.Item>
         </div>
       </div>

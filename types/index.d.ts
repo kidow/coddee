@@ -27,6 +27,7 @@ interface ModalProps {
   description?: ReactNode
   padding?: boolean
   footer?: ReactNode
+  error?: boolean
 }
 
 namespace NTable {
@@ -67,5 +68,13 @@ namespace NTable {
     value: string
     template: string
     created_at: string
+  }
+}
+
+namespace NToast {
+  type Type = 'success' | 'info' | 'warn' | 'error'
+  interface Emit {
+    message: string
+    type: NToast.Type
   }
 }

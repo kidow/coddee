@@ -20,7 +20,8 @@ const Modal: FC<Props> = ({
   title,
   description,
   padding = true,
-  footer
+  footer,
+  error = false
 }) => {
   if (!isOpen) return null
   return createPortal(
@@ -48,7 +49,12 @@ const Modal: FC<Props> = ({
             maxWidth
           )}
         >
-          <header className="border-t-4 border-neutral-800">
+          <header
+            className={classnames(
+              'border-t-4',
+              error ? 'border-red-600' : 'border-neutral-800'
+            )}
+          >
             {!!title && (
               <div
                 className={classnames(

@@ -9,7 +9,9 @@ import {
   supabase,
   useObjectState,
   useUser,
-  useIntersectionObserver
+  useIntersectionObserver,
+  toast,
+  TOAST_MESSAGE
 } from 'services'
 import TextareaAutosize from 'react-textarea-autosize'
 import { Fragment, useEffect, useMemo } from 'react'
@@ -134,8 +136,9 @@ const RoomIdPage: NextPage = () => {
       data: { user }
     } = await supabase.auth.getUser()
     if (!user) {
+      await supabase.auth.signOut()
       setUser(null)
-      alert('세션이 만료되었습니다. 다시 로그인을 해주세요.')
+      toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
     if (!content.trim()) return
@@ -144,8 +147,10 @@ const RoomIdPage: NextPage = () => {
       .from('chats')
       .insert({ user_id: user.id, room_id: query.id, content })
     setState({ isSubmitting: false })
-    if (error) console.error(error)
-    else setState({ content: '' })
+    if (error) {
+      console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
+    } else setState({ content: '' })
   }
 
   const isBringMore: boolean = useMemo(() => {

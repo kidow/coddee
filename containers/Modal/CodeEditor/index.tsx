@@ -3,7 +3,13 @@ import type { FC } from 'react'
 import Editor from '@monaco-editor/react'
 import TextareaAutosize from 'react-textarea-autosize'
 import { Modal } from 'containers'
-import { supabase, useObjectState, useUser } from 'services'
+import {
+  supabase,
+  toast,
+  TOAST_MESSAGE,
+  useObjectState,
+  useUser
+} from 'services'
 import { Button, Select } from 'components'
 import { useRouter } from 'next/router'
 
@@ -46,8 +52,9 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
       data: { user }
     } = await supabase.auth.getUser()
     if (!user) {
+      await supabase.auth.signOut()
       setUser(null)
-      alert('세션이 만료되었습니다. 로그인을 다시 해주세요.')
+      toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       onClose()
       return
     }
@@ -62,8 +69,10 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
       room_id: query.id
     })
     setState({ isSubmitting: false })
-    if (error) console.error(error)
-    else onClose()
+    if (error) {
+      console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
+    } else onClose()
   }
 
   useEffect(() => {
