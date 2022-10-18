@@ -51,6 +51,13 @@ const Auth: FC<Props> = ({ children }) => {
             })
             .single()
           if (error) console.error(error)
+          else {
+            await fetch('/api/register', {
+              method: 'POST',
+              headers: new Headers({ 'Content-Type': 'application/json' }),
+              body: JSON.stringify({ email: session?.user.email })
+            }).catch((err) => console.error(err))
+          }
         } else if (
           user?.avatar_url !== session?.user.user_metadata.avatar_url ||
           user?.nickname !== session?.user.user_metadata.user_name
