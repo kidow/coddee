@@ -14,7 +14,7 @@ import {
   TOAST_MESSAGE
 } from 'services'
 import TextareaAutosize from 'react-textarea-autosize'
-import { Fragment, useEffect, useMemo } from 'react'
+import { Fragment, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { Modal } from 'containers'
 import classnames from 'classnames'
@@ -74,6 +74,7 @@ const RoomIdPage: NextPage = () => {
   const { query } = useRouter()
   const [user, setUser] = useUser()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const getChatList = async (page: number = 1) => {
     if (!query.id || typeof query.id !== 'string') return
@@ -132,6 +133,7 @@ const RoomIdPage: NextPage = () => {
       return
     }
     setState({ name: data.name })
+    textareaRef.current?.focus()
   }
 
   const create = async () => {
@@ -192,8 +194,10 @@ const RoomIdPage: NextPage = () => {
               chatList: [{ ...payload.new, user: data }, ...chatList],
               count: count + 1
             })
-          if (payload.new.user_id === user?.id)
+          if (payload.new.user_id === user?.id) {
             window.scrollTo(0, document.body.scrollHeight)
+            textareaRef.current?.focus()
+          }
         }
       )
       .subscribe()
@@ -205,6 +209,10 @@ const RoomIdPage: NextPage = () => {
   useEffect(() => {
     if (isSpamming) setTimeout(() => setState({ isSpamming: false }), 3000)
   }, [isSpamming])
+
+  useEffect(() => {
+    if (isIntersecting && page * 100 < total) getChatList(page + 1)
+  }, [isIntersecting])
   return (
     <>
       <SEO title="Javascript" />
@@ -336,22 +344,24 @@ const RoomIdPage: NextPage = () => {
             className="flex-1 resize-none"
             spellCheck={false}
             onKeyDown={(e) => {
-              if (!e.shiftKey && e.key === 'Enter') {
+              if (!e.shiftKey && e.keyCode === 13) {
                 e.preventDefault()
                 create()
               }
             }}
+            ref={textareaRef}
           />
           <button
+            type="button"
             onClick={() => setState({ isCodeEditorOpen: true })}
             className="group rounded-full border bg-white p-1.5 hover:border-neutral-600"
           >
             <CodeBracketIcon className="h-5 w-5 text-neutral-400 group-hover:text-neutral-700" />
           </button>
           <button
+            type="submit"
             className="rounded-full bg-blue-500 p-1.5 duration-150 hover:bg-blue-400 active:bg-blue-600 disabled:bg-neutral-400"
             disabled={isSubmitting || !content || !user}
-            onClick={create}
           >
             {isSubmitting ? (
               <Spinner className="h-5 w-5 text-neutral-50" />

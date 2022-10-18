@@ -119,7 +119,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
   const PROFILE_TABS: string[] = useMemo(
     () => [
       '내 정보',
-      '탈퇴',
       ...(user?.email === process.env.NEXT_PUBLIC_ADMIN_ID
         ? ['채팅방', '언어']
         : [])
@@ -198,11 +197,13 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
                 <section className="space-y-4 p-6">
                   <Form.Item label="이메일">{email}</Form.Item>
                   <Form.Item label="아바타 이미지">
-                    <img
-                      src={avatarUrl}
-                      alt=""
-                      className="h-16 w-16 rounded-full"
-                    />
+                    {!!avatarUrl && (
+                      <img
+                        src={avatarUrl}
+                        alt=""
+                        className="h-16 w-16 rounded-full"
+                      />
+                    )}
                   </Form.Item>
                   <Form.Item label="닉네임">{nickname}</Form.Item>
                   <Form.Item label="직무 및 분야">
