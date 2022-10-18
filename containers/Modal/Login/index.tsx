@@ -12,8 +12,7 @@ const LoginModal: FC<Props> = ({ isOpen, onClose }) => {
     await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: process.env.NEXT_PUBLIC_REDIRECT_TO,
-        scopes: 'user'
+        redirectTo: process.env.NEXT_PUBLIC_REDIRECT_TO
       }
     })
   }
