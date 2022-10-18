@@ -15,7 +15,7 @@ import { MyInfo } from 'templates'
 
 export interface Props extends ModalProps {}
 interface State {
-  tab: number
+  tab: string
   intro: string
   isUpdating: boolean
   avatarUrl: string
@@ -45,7 +45,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     setState,
     onChange
   ] = useObjectState<State>({
-    tab: 0,
+    tab: '내 정보',
     intro: '',
     isUpdating: false,
     avatarUrl: '',
@@ -172,9 +172,9 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
                 <li
                   key={key}
                   className={classnames('cursor-pointer py-3 px-5', {
-                    'bg-neutral-200 font-semibold': tab === key
+                    'bg-neutral-200 font-semibold': tab === item
                   })}
-                  onClick={() => setState({ tab: key })}
+                  onClick={() => setState({ tab: item })}
                 >
                   {item}
                 </li>
@@ -188,7 +188,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
           </menu>
 
           <section className="h-[40rem] flex-1 overflow-auto">
-            {PROFILE_TABS[tab] === '내 정보' && (
+            {tab === '내 정보' && (
               <div className="divide-y">
                 <p className="px-6 py-3 text-xs italic text-neutral-400">
                   Github 프로필을 업데이트하면 자동으로 이미지와 닉네임이
@@ -254,8 +254,8 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
                 </section>
               </div>
             )}
-            {PROFILE_TABS[tab] === '채팅방' && <MyInfo.RoomList />}
-            {PROFILE_TABS[tab] === '언어' && <MyInfo.LanguageList />}
+            {tab === '채팅방' && <MyInfo.RoomList />}
+            {tab === '언어' && <MyInfo.LanguageList />}
           </section>
         </div>
       </Modal>

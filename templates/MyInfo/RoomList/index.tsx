@@ -102,7 +102,7 @@ const MyInfoRoomList: FC<Props> = () => {
     get()
   }, [])
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       <div className="flex items-center justify-end gap-4">
         <span
           onClick={() => onUploadLogo()}
