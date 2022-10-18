@@ -75,7 +75,7 @@ const MyInfoLanguageList: FC<Props> = () => {
     get()
   }, [])
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       <div className="mb-5 flex items-center justify-between">
         <div className="flex gap-2">
           <Input
