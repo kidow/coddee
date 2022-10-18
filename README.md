@@ -9,6 +9,7 @@ Link: [https://coddee.dev](https://coddee.dev)
 - Next.js
 - Typescript
 - TailwindCSS
+- Supabase
 - Monaco Editor
 - dayjs
 - classnames
