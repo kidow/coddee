@@ -352,16 +352,15 @@ const RoomIdPage: NextPage = () => {
             ref={textareaRef}
           />
           <button
-            type="button"
             onClick={() => setState({ isCodeEditorOpen: true })}
             className="group rounded-full border bg-white p-1.5 hover:border-neutral-600"
           >
             <CodeBracketIcon className="h-5 w-5 text-neutral-400 group-hover:text-neutral-700" />
           </button>
           <button
-            type="submit"
             className="rounded-full bg-blue-500 p-1.5 duration-150 hover:bg-blue-400 active:bg-blue-600 disabled:bg-neutral-400"
             disabled={isSubmitting || !content || !user}
+            onClick={create}
           >
             {isSubmitting ? (
               <Spinner className="h-5 w-5 text-neutral-50" />
