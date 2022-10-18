@@ -8,5 +8,6 @@ declare namespace NodeJS {
     NEXT_PUBLIC_SUPABASE_KEY: string
     NEXT_PUBLIC_REDIRECT_TO: string
     NEXT_PUBLIC_ADMIN_ID: string
+    NEXT_PUBLIC_SLACK_TOKEN: string
   }
 }
