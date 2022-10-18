@@ -55,19 +55,21 @@ const Auth: FC<Props> = ({ children }) => {
           user?.avatar_url !== session?.user.user_metadata.avatar_url ||
           user?.nickname !== session?.user.user_metadata.user_name
         ) {
-          const { error } = await supabase
+          const { data, error } = await supabase
             .from('users')
             .update({
               avatar_url: session?.user.user_metadata.avatar_url,
               nickname: session?.user.user_metadata.user_name
             })
             .eq('id', session?.user.id)
+            .select('*')
+            .single()
           if (error) {
             console.error(error)
             return
           }
           setUser({
-            ...user!,
+            ...data,
             avatar_url: session?.user.user_metadata.avatar_url,
             nickname: session?.user.user_metadata.user_name
           })
