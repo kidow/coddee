@@ -1,14 +1,25 @@
 import { SEO } from 'components'
 import type { NextPage } from 'next'
 import Link from 'next/link'
+import Script from 'next/script'
+import { useEffect } from 'react'
 
 interface State {}
 
 const HomePage: NextPage = () => {
+  const getGithubStars = async () => {
+    const res = await fetch('https://api.github.com/repos/kidow/coddee')
+    const data = await res.json()
+    console.log('data', data)
+  }
+
+  useEffect(() => {
+    getGithubStars()
+  }, [])
   return (
     <>
       <SEO />
-      <article className="prose prose-neutral p-4 text-neutral-500 dark:prose-invert">
+      <article className="prose prose-neutral p-4 dark:prose-invert">
         <h2>안녕하세요! 커디입니다.</h2>
         <p>
           커디는 <strong>개발자 채팅방</strong>입니다.
@@ -60,6 +71,19 @@ const HomePage: NextPage = () => {
           <a>개인정보처리방침</a>
         </Link>
       </div>
+      <div className="mt-4 px-4">
+        <a
+          className="github-button"
+          href="https://github.com/kidow/coddee"
+          data-color-scheme="no-preference: light; light: light; dark: light;"
+          data-size="large"
+          data-show-count="true"
+          aria-label="Star kidow/coddee on GitHub"
+        >
+          Star
+        </a>
+      </div>
+      <Script src="https://buttons.github.io/buttons.js" async defer />
     </>
   )
 }
