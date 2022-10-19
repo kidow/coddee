@@ -27,10 +27,21 @@ module.exports = {
           to: {
             transform: 'none'
           }
+        },
+        'fade-in-right': {
+          from: {
+            opacity: 0,
+            transform: 'translateX(-100%)'
+          },
+          to: {
+            opacity: 1,
+            transform: 'none'
+          }
         }
       },
       animation: {
-        'fade-up': 'fade-up 0.2s linear'
+        'fade-up': 'fade-up 0.2s linear',
+        'fade-in-right': 'fade-in-right 0.1s linear'
       }
     }
   },

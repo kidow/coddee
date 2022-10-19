@@ -138,20 +138,22 @@ const RoomIdPage: NextPage = () => {
 
   const create = async () => {
     if (isSpamming) return
-    const {
-      data: { user }
-    } = await supabase.auth.getUser()
-    if (!user) {
+    const { data } = await supabase.auth.getUser()
+    if (!!user && !data.user) {
       await supabase.auth.signOut()
       setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
     if (!content.trim()) return
+    if (content.length > 300) {
+      toast.info('300자 이상은 너무 깁니다.')
+      return
+    }
     setState({ isSubmitting: true })
     const { error } = await supabase
       .from('chats')
-      .insert({ user_id: user.id, room_id: query.id, content })
+      .insert({ user_id: user?.id, room_id: query.id, content })
     setState({ isSubmitting: false, isSpamming: true })
     if (error) {
       console.error(error)

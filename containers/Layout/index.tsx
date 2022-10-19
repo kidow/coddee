@@ -27,7 +27,7 @@ const Layout: FC<Props> = ({ children }) => {
       roomList: []
     })
   const [user] = useUser()
-  const { query } = useRouter()
+  const { query, pathname } = useRouter()
 
   const getRoomList = async () => {
     const { data, error } = await supabase
@@ -100,7 +100,12 @@ const Layout: FC<Props> = ({ children }) => {
     <>
       <div className="mx-auto max-w-6xl">
         <div className="flex gap-5">
-          <div className="sticky top-0 flex h-screen w-80 flex-col divide-y border-x border-neutral-200 bg-white">
+          <div
+            className={classnames(
+              'sticky top-0 h-screen w-full flex-col divide-y border-x border-neutral-200 bg-white sm:w-80',
+              pathname === '/' ? 'flex' : 'hidden sm:block'
+            )}
+          >
             <header className="flex h-12 items-center justify-between px-5">
               <Link href="/">
                 <a>
@@ -181,7 +186,12 @@ const Layout: FC<Props> = ({ children }) => {
               </ul>
             </menu>
           </div>
-          <div id="div" className="flex-1 border-x border-neutral-200 bg-white">
+          <div
+            className={classnames(
+              'flex-1 border-x border-neutral-200 bg-white',
+              { 'hidden sm:block': pathname === '/' }
+            )}
+          >
             {children}
           </div>
         </div>

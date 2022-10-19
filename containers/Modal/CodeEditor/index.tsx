@@ -48,10 +48,8 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
   }
 
   const create = async () => {
-    const {
-      data: { user }
-    } = await supabase.auth.getUser()
-    if (!user) {
+    const { data } = await supabase.auth.getUser()
+    if (!!user && !data.user) {
       await supabase.auth.signOut()
       setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
@@ -65,7 +63,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
       content,
       language,
       code_block: codeBlock,
-      user_id: user.id,
+      user_id: user?.id,
       room_id: query.id
     })
     setState({ isSubmitting: false })
@@ -142,7 +140,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
             onChange={(codeBlock) => setState({ codeBlock })}
             defaultValue={props.codeBlock}
             value={codeBlock}
-            theme="vs-dark"
+            theme="light"
             options={{ fontSize: 14 }}
           />
         </div>
