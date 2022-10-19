@@ -79,6 +79,7 @@ const Layout: FC<Props> = ({ children }) => {
           const index = roomList.findIndex(
             (item) => item.id === payload.new.room_id
           )
+          if (index === -1) return
           setState({
             roomList: [
               ...roomList.slice(0, index),
