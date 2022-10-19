@@ -24,15 +24,8 @@ class MyApp extends App<Props, {}, State> {
     return { hasError: true }
   }
   componentDidMount() {
-    if (
-      localStorage.theme === 'dark' ||
-      (!('theme' in localStorage) &&
-        window.matchMedia('(prefers-color-scheme: dark)').matches)
-    ) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
+    const theme = window.localStorage.getItem('theme')
+    if (theme === 'dark') document.documentElement.classList.add('dark')
   }
   render() {
     const { isValidated } = this.state
