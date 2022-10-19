@@ -14,3 +14,4 @@ Link: [https://coddee.dev](https://coddee.dev)
 - dayjs
 - classnames
 - recoil
+- heroicons

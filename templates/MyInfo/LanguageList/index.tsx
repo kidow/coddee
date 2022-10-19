@@ -117,7 +117,11 @@ const MyInfoLanguageList: FC<Props> = () => {
         <Editor
           height="300px"
           value={template}
-          theme="vs-dark"
+          theme={
+            window.localStorage.getItem('theme') === 'dark'
+              ? 'vs-dark'
+              : 'light'
+          }
           language={value}
           className="text-lg"
           onChange={(template) => setState({ template })}

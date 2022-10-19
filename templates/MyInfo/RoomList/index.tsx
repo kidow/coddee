@@ -106,7 +106,7 @@ const MyInfoRoomList: FC<Props> = () => {
       <div className="flex items-center justify-end gap-4">
         <span
           onClick={() => onUploadLogo()}
-          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded border border-neutral-200"
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded border border-neutral-200 dark:border-neutral-700"
         >
           {logoUrl ? (
             <img src={logoUrl} className="h-full w-full" alt="" />
@@ -149,7 +149,7 @@ const MyInfoRoomList: FC<Props> = () => {
                     ]
                   })
                 }
-                className="rounded border py-1 px-2"
+                className="rounded border py-1 px-2 dark:border-neutral-700 dark:bg-neutral-900"
               />
             </div>
             <button className="text-sm" onClick={() => update(key)}>

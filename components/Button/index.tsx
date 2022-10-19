@@ -44,7 +44,7 @@ const Button: FC<Props> = ({
           'bg-primary text-white': theme === 'primary' && shape === 'contained',
           'bg-emerald-500 text-white':
             theme === 'success' && shape === 'contained',
-          'disabled:bg-neutral-300 disabled:text-white':
+          'disabled:bg-neutral-300 disabled:text-white dark:bg-neutral-400':
             shape === 'contained' && (loading || disabled),
           'bg-transparent disabled:hover:bg-neutral-200 disabled:hover:text-white':
             shape === 'text',
@@ -55,7 +55,7 @@ const Button: FC<Props> = ({
             theme === 'primary' && shape === 'text',
           'text-emerald-500 hover:bg-emerald-100':
             theme === 'success' && shape === 'text',
-          'hover:text-white': shape === 'outlined',
+          'hover:text-white dark:bg-transparent': shape === 'outlined',
           'border-neutral-500 text-neutral-500 hover:bg-neutral-900':
             !theme && shape === 'outlined',
           'border-primary text-primary hover:bg-primary':

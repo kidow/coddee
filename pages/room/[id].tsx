@@ -138,20 +138,22 @@ const RoomIdPage: NextPage = () => {
 
   const create = async () => {
     if (isSpamming) return
-    const {
-      data: { user }
-    } = await supabase.auth.getUser()
-    if (!user) {
+    const { data } = await supabase.auth.getUser()
+    if (!!user && !data.user) {
       await supabase.auth.signOut()
       setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
     if (!content.trim()) return
+    if (content.length > 300) {
+      toast.info('300자 이상은 너무 길어요 :(')
+      return
+    }
     setState({ isSubmitting: true })
     const { error } = await supabase
       .from('chats')
-      .insert({ user_id: user.id, room_id: query.id, content })
+      .insert({ user_id: user?.id, room_id: query.id, content })
     setState({ isSubmitting: false, isSpamming: true })
     if (error) {
       console.error(error)
@@ -217,7 +219,7 @@ const RoomIdPage: NextPage = () => {
     <>
       <SEO title="Javascript" />
       <div className="flex h-full flex-col">
-        <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b bg-white px-5">
+        <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b bg-white px-5 dark:border-neutral-700 dark:bg-neutral-800">
           <span className="font-semibold">{name}</span>
           {/* <div className="relative">
             <button
@@ -239,7 +241,7 @@ const RoomIdPage: NextPage = () => {
               <div
                 id={String(item.id)}
                 className={classnames(
-                  'group flex gap-3 py-1 px-5 hover:bg-neutral-50',
+                  'group flex gap-3 py-1 px-5 hover:bg-neutral-50 dark:hover:bg-neutral-700',
                   {
                     'animate-bounce bg-blue-50':
                       window.location.href === `#${item.id}`
@@ -289,7 +291,7 @@ const RoomIdPage: NextPage = () => {
                     ))}
                   </div>
                   {!!item.code_block && (
-                    <div className="border">
+                    <div className="border dark:border-none">
                       <CodePreview
                         original={item.code_block}
                         defaultLanguage={item.language}
@@ -303,8 +305,8 @@ const RoomIdPage: NextPage = () => {
                 'day'
               ) ||
                 key === arr.length - 1) && (
-                <div className="relative z-10 mx-5 flex items-center justify-center py-5 text-xs before:absolute before:h-px before:w-full before:bg-neutral-200">
-                  <div className="absolute bottom-1/2 left-1/2 z-10 translate-y-[calc(50%-1px)] -translate-x-[46px] select-none bg-white px-5 text-neutral-400">
+                <div className="relative z-10 mx-5 flex items-center justify-center py-5 text-xs before:absolute before:h-px before:w-full before:bg-neutral-200 dark:before:bg-neutral-700">
+                  <div className="absolute bottom-1/2 left-1/2 z-10 translate-y-[calc(50%-1px)] -translate-x-[46px] select-none bg-white px-5 text-neutral-400 dark:bg-neutral-800">
                     {dayjs(item.created_at).format('MM월 DD일')}
                   </div>
                 </div>
@@ -318,7 +320,7 @@ const RoomIdPage: NextPage = () => {
           )}
           {isLoading ? (
             <div className="mb-4 flex items-center justify-center">
-              <Spinner className="h-5 w-5 text-neutral-200" />
+              <Spinner className="h-5 w-5 text-neutral-200 dark:text-neutral-400" />
             </div>
           ) : (
             isBringMore && (
@@ -334,14 +336,14 @@ const RoomIdPage: NextPage = () => {
           )}
           <div ref={ref} />
         </main>
-        <footer className="sticky bottom-0 z-20 flex min-h-[59px] w-full items-center gap-3 border-t bg-white py-3 px-5">
+        <footer className="sticky bottom-0 z-20 flex min-h-[59px] w-full items-center gap-3 border-t bg-white py-3 px-5 dark:border-neutral-700 dark:bg-neutral-800">
           <TextareaAutosize
             value={content}
             name="content"
             onChange={onChange}
             disabled={isSubmitting}
             placeholder="서로를 존중하는 매너를 보여주세요 :)"
-            className="flex-1 resize-none"
+            className="flex-1 resize-none dark:bg-transparent"
             spellCheck={false}
             onKeyDown={(e) => {
               if (!e.shiftKey && e.keyCode === 13) {
@@ -353,9 +355,9 @@ const RoomIdPage: NextPage = () => {
           />
           <button
             onClick={() => setState({ isCodeEditorOpen: true })}
-            className="group rounded-full border bg-white p-1.5 hover:border-neutral-600"
+            className="group rounded-full border bg-white p-1.5 hover:border-neutral-600 dark:border-neutral-600 dark:bg-transparent dark:hover:border-neutral-500"
           >
-            <CodeBracketIcon className="h-5 w-5 text-neutral-400 group-hover:text-neutral-700" />
+            <CodeBracketIcon className="h-5 w-5 text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-300" />
           </button>
           <button
             className="rounded-full bg-blue-500 p-1.5 duration-150 hover:bg-blue-400 active:bg-blue-600 disabled:bg-neutral-400"

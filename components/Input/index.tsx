@@ -53,7 +53,9 @@ const Input: FC<Props> = ({
           isBaseWord
             ? 'inline-flex items-center justify-between gap-1 rounded border'
             : 'inline-block',
-          !!error && isBaseWord ? 'border-red-500' : 'border-neutral-300',
+          !!error && isBaseWord
+            ? 'border-red-500'
+            : 'border-neutral-300 dark:border-neutral-700',
           {
             'w-full': fullWidth,
             relative: !!placeholder,
@@ -71,7 +73,7 @@ const Input: FC<Props> = ({
           {...props}
           id={props.id || id}
           className={classnames(
-            'bg-white focus:outline-none',
+            'bg-white focus:outline-none dark:bg-neutral-900',
             isBaseWord
               ? 'mx-1 w-full flex-1 border-0'
               : 'block border border-neutral-500',
@@ -91,7 +93,7 @@ const Input: FC<Props> = ({
             },
             !!error
               ? 'border-red-500'
-              : 'border-neutral-300 focus:border-blue-500',
+              : 'border-neutral-300 focus:border-blue-500 dark:border-neutral-700 dark:placeholder:text-neutral-700 dark:focus:border-blue-500',
             className
           )}
           onKeyDown={onKeyDown}

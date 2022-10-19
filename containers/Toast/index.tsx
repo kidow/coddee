@@ -48,7 +48,7 @@ const Toast: FC<Props> = () => {
       <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 space-y-4">
         {list.map((item) => (
           <div
-            className="w-72 animate-fade-up cursor-pointer rounded bg-white py-2 px-4"
+            className="w-72 animate-fade-up cursor-pointer rounded bg-white py-2 px-4 dark:bg-black"
             id={item.id}
             key={item.id}
             onClick={() => EventListener.emit('toast', { id: item.id })}

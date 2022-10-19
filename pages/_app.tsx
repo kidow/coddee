@@ -23,6 +23,10 @@ class MyApp extends App<Props, {}, State> {
   static getDerivedStateFromError() {
     return { hasError: true }
   }
+  componentDidMount() {
+    const theme = window.localStorage.getItem('theme')
+    if (theme === 'dark') document.documentElement.classList.add('dark')
+  }
   render() {
     const { isValidated } = this.state
     const { Component, pageProps } = this.props
