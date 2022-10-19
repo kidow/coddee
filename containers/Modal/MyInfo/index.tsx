@@ -274,6 +274,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
             value={message}
             name="message"
             onChange={onChange}
+            className="dark:bg-white dark:text-neutral-900"
           />
           <div>
             <Button

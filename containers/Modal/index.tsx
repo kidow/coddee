@@ -52,9 +52,7 @@ const Modal: FC<Props> = ({
           <header
             className={classnames(
               'border-t-4',
-              error
-                ? 'border-red-600'
-                : 'border-neutral-800 dark:border-neutral-500'
+              error ? 'border-red-600' : 'border-neutral-800 dark:border-black'
             )}
           >
             {!!title && (

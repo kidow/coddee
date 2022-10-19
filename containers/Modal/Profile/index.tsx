@@ -56,8 +56,8 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
   }, [])
   return (
     <Modal isOpen={isOpen} onClose={onClose} padding={false}>
-      <div className="relative h-16 bg-neutral-800">
-        <div className="absolute left-4 top-4 rounded-full bg-white p-2">
+      <div className="relative h-16 bg-neutral-800 dark:bg-black">
+        <div className="absolute left-4 top-4 rounded-full bg-white p-2 dark:bg-black">
           {!!avatarUrl ? (
             <img src={avatarUrl} alt="" className="h-20 w-20 rounded-full" />
           ) : (
@@ -72,7 +72,7 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
             <ArrowTopRightOnSquareIcon className="h-5 w-5 text-neutral-400 hover:text-neutral-700" />
           </a>
         </div>
-        <hr className="my-2" />
+        <hr className="my-2 dark:border-neutral-600" />
         <div className="space-y-4">
           <Form.Item label="이메일">
             <a href={`mailto:${email}`} className="hover:underline">
