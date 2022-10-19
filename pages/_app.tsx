@@ -23,6 +23,17 @@ class MyApp extends App<Props, {}, State> {
   static getDerivedStateFromError() {
     return { hasError: true }
   }
+  componentDidMount() {
+    if (
+      localStorage.theme === 'dark' ||
+      (!('theme' in localStorage) &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches)
+    ) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }
   render() {
     const { isValidated } = this.state
     const { Component, pageProps } = this.props

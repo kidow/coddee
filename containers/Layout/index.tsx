@@ -7,6 +7,7 @@ import { Modal } from 'containers'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { Logo } from 'components'
 
 dayjs.extend(relativeTime)
 
@@ -102,14 +103,14 @@ const Layout: FC<Props> = ({ children }) => {
         <div className="flex gap-5">
           <div
             className={classnames(
-              'sticky top-0 h-screen w-full flex-col divide-y border-x border-neutral-200 bg-white sm:w-80',
+              'sticky top-0 h-screen w-full flex-col divide-y border-x border-neutral-200 bg-white dark:divide-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 sm:w-80',
               pathname === '/' ? 'flex' : 'hidden sm:block'
             )}
           >
             <header className="flex h-12 items-center justify-between px-5">
               <Link href="/">
                 <a>
-                  <img src="/coddee-black.svg" alt="" className="h-5" />
+                  <Logo />
                 </a>
               </Link>
               {user ? (
@@ -138,8 +139,8 @@ const Layout: FC<Props> = ({ children }) => {
                         className={classnames(
                           'flex h-16 items-center justify-between gap-4 px-5',
                           query.id === item.id
-                            ? 'bg-blue-100'
-                            : 'hover:bg-blue-50',
+                            ? 'bg-blue-100 dark:bg-neutral-700'
+                            : 'hover:bg-blue-50 dark:hover:bg-neutral-700',
                           { 'pointer-events-none': query.id === item.id }
                         )}
                         onClick={() => {
@@ -154,29 +155,31 @@ const Layout: FC<Props> = ({ children }) => {
                         }}
                       >
                         <img src={item.logo_url} alt="" className="h-8 w-8" />
-                        <div className="flex-1">
-                          <div
-                            className={classnames({
-                              'font-semibold': query.id === item.id
-                            })}
-                          >
-                            {item.name}
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <div
+                              className={classnames({
+                                'font-semibold': query.id === item.id
+                              })}
+                            >
+                              {item.name}
+                            </div>
+                            <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                              {!!item.newDate &&
+                                dayjs(item.newDate).locale('ko').fromNow()}
+                            </div>
                           </div>
-                          <div className="w-40 truncate text-xs text-neutral-500">
-                            {item.newChat}
-                          </div>
-                        </div>
-                        <div className="space-y-1 text-right">
-                          <div className="text-xs text-neutral-500">
-                            {!!item.newDate &&
-                              dayjs(item.newDate).locale('ko').fromNow()}
-                          </div>
-                          <div className="flex h-4 justify-end">
-                            {item.newCount > 0 && (
-                              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-2xs text-white">
-                                {item.newCount}
-                              </div>
-                            )}
+                          <div className="flex items-center justify-between">
+                            <div className="w-56 truncate text-xs text-neutral-500 dark:text-neutral-400 sm:w-40">
+                              {item.newChat}
+                            </div>
+                            <div className="flex h-4 justify-end">
+                              {item.newCount > 0 && (
+                                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-2xs text-white">
+                                  {item.newCount}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </a>
@@ -188,7 +191,7 @@ const Layout: FC<Props> = ({ children }) => {
           </div>
           <div
             className={classnames(
-              'flex-1 border-x border-neutral-200 bg-white',
+              'flex-1 border-x border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800',
               { 'hidden sm:block': pathname === '/' }
             )}
           >

@@ -32,7 +32,7 @@ const Select: FC<Props> = ({
         <select
           {...props}
           className={classnames(
-            'w-full cursor-pointer select-none appearance-none rounded border bg-white pr-8 disabled:cursor-not-allowed disabled:bg-neutral-200',
+            'w-full cursor-pointer select-none appearance-none rounded border bg-white pr-8 disabled:cursor-not-allowed disabled:bg-neutral-200 dark:border-neutral-700 dark:bg-black',
             !!error ? 'border-red-500' : 'border-neutral-300',
             !!props.value ? 'text-neutral-800' : 'text-neutral-400',
             {

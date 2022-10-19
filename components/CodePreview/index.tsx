@@ -28,7 +28,9 @@ const CodePreview: FC<Props> = ({ original, ...props }) => {
     <Editor
       {...props}
       onMount={onMount}
-      theme="light"
+      theme={
+        window.localStorage.getItem('theme') === 'dark' ? 'vs-dark' : 'light'
+      }
       options={{
         readOnly: true,
         scrollbar: { vertical: 'hidden' },

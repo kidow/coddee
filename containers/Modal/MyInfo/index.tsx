@@ -115,6 +115,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
   const PROFILE_TABS: string[] = useMemo(
     () => [
       '내 정보',
+      '내 설정',
       ...(user?.email === process.env.NEXT_PUBLIC_ADMIN_ID
         ? ['채팅방', '언어']
         : [])
@@ -161,14 +162,15 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
         onClose={onClose}
         padding={false}
       >
-        <div className="flex divide-x divide-neutral-200">
-          <menu className="flex w-48 flex-col bg-neutral-100">
+        <div className="flex">
+          <menu className="flex w-48 flex-col bg-neutral-100 dark:bg-neutral-700">
             <ul className="flex-1">
               {PROFILE_TABS.map((item, key) => (
                 <li
                   key={key}
                   className={classnames('cursor-pointer py-3 px-5', {
-                    'bg-neutral-200 font-semibold': tab === item
+                    'bg-neutral-200 font-semibold dark:bg-neutral-600':
+                      tab === item
                   })}
                   onClick={() => setState({ tab: item })}
                 >
@@ -185,7 +187,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
 
           <section className="h-[40rem] flex-1 overflow-auto">
             {tab === '내 정보' && (
-              <div className="divide-y">
+              <div className="divide-y dark:divide-neutral-700">
                 <p className="px-6 py-3 text-xs italic text-neutral-400">
                   Github 프로필을 업데이트하면 자동으로 이미지와 닉네임이
                   갱신됩니다.
@@ -252,6 +254,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
             )}
             {tab === '채팅방' && <MyInfo.RoomList />}
             {tab === '언어' && <MyInfo.LanguageList />}
+            {tab === '내 설정' && <MyInfo.Setting />}
           </section>
         </div>
       </Modal>

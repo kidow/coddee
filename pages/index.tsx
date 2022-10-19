@@ -8,7 +8,7 @@ const HomePage: NextPage = () => {
   return (
     <>
       <SEO />
-      <article className="prose prose-neutral p-4 text-neutral-500">
+      <article className="prose prose-neutral p-4 text-neutral-500 dark:prose-invert">
         <h2>안녕하세요! 커디입니다.</h2>
         <p>
           커디는 <strong>개발자 채팅방</strong>입니다.

@@ -140,13 +140,17 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
             onChange={(codeBlock) => setState({ codeBlock })}
             defaultValue={props.codeBlock}
             value={codeBlock}
-            theme="light"
+            theme={
+              window.localStorage.getItem('theme') === 'dark'
+                ? 'vs-dark'
+                : 'light'
+            }
             options={{ fontSize: 14 }}
           />
         </div>
         <div>
           <TextareaAutosize
-            className="w-full resize-none border p-2 focus:border-neutral-600"
+            className="w-full resize-none border p-2 focus:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900"
             value={content}
             name="content"
             placeholder="서로를 존중하는 매너를 보여주세요 :)"

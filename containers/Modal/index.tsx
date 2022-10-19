@@ -45,20 +45,22 @@ const Modal: FC<Props> = ({
         </span>
         <div
           className={classnames(
-            'my-8 inline-block w-full transform overflow-hidden rounded-lg bg-white text-left align-middle shadow-xl transition-all',
+            'my-8 inline-block w-full transform overflow-hidden rounded-lg bg-white text-left align-middle shadow-xl transition-all dark:bg-neutral-800',
             maxWidth
           )}
         >
           <header
             className={classnames(
               'border-t-4',
-              error ? 'border-red-600' : 'border-neutral-800'
+              error
+                ? 'border-red-600'
+                : 'border-neutral-800 dark:border-neutral-500'
             )}
           >
             {!!title && (
               <div
                 className={classnames(
-                  'flex border-b border-neutral-200 p-4',
+                  'flex border-b border-neutral-200 p-4 dark:border-neutral-700',
                   !!description ? 'items-start' : 'items-center'
                 )}
               >
@@ -72,9 +74,9 @@ const Modal: FC<Props> = ({
                 </div>
                 <button
                   onClick={onClose}
-                  className="rounded-full p-2 hover:bg-neutral-200"
+                  className="rounded-full p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700"
                 >
-                  <XMarkIcon className="h-5 w-5 text-neutral-800" />
+                  <XMarkIcon className="h-5 w-5 text-neutral-800 dark:text-neutral-400" />
                 </button>
               </div>
             )}
@@ -86,7 +88,11 @@ const Modal: FC<Props> = ({
           >
             {children}
           </div>
-          {footer && <footer className="border-t py-4 px-7">{footer}</footer>}
+          {footer && (
+            <footer className="border-t py-4 px-7 dark:border-neutral-700">
+              {footer}
+            </footer>
+          )}
         </div>
       </div>
     </div>,
