@@ -55,7 +55,7 @@ const HomePage: NextPage = () => {
         <Link href="/terms">
           <a>이용약관</a>
         </Link>
-        <div className="w-px bg-neutral-200" />
+        <div className="w-px bg-neutral-200 dark:bg-neutral-700" />
         <Link href="/privacy">
           <a>개인정보처리방침</a>
         </Link>
