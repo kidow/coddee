@@ -2,20 +2,10 @@ import { SEO } from 'components'
 import type { NextPage } from 'next'
 import Link from 'next/link'
 import Script from 'next/script'
-import { useEffect } from 'react'
 
 interface State {}
 
 const HomePage: NextPage = () => {
-  const getGithubStars = async () => {
-    const res = await fetch('https://api.github.com/repos/kidow/coddee')
-    const data = await res.json()
-    console.log('data', data)
-  }
-
-  useEffect(() => {
-    getGithubStars()
-  }, [])
   return (
     <>
       <SEO />

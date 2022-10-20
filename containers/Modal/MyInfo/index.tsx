@@ -53,7 +53,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     setState,
     onChange
   ] = useObjectState<State>({
-    tab: '내 정보',
+    tab: '정보',
     bio: '',
     isUpdating: false,
     avatarUrl: '',
@@ -136,8 +136,9 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
 
   const PROFILE_TABS: string[] = useMemo(
     () => [
-      '내 정보',
-      '내 설정',
+      '정보',
+      '활동',
+      '설정',
       ...(user?.email === process.env.NEXT_PUBLIC_ADMIN_ID
         ? ['채팅방', '언어']
         : [])
@@ -208,7 +209,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
           </menu>
 
           <section className="h-[40rem] flex-1 overflow-auto">
-            {tab === '내 정보' && (
+            {tab === '정보' && (
               <div className="divide-y dark:divide-neutral-700">
                 <section className="p-6">
                   <Form
@@ -274,7 +275,8 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
             )}
             {tab === '채팅방' && <MyInfo.RoomList />}
             {tab === '언어' && <MyInfo.LanguageList />}
-            {tab === '내 설정' && <MyInfo.Setting />}
+            {tab === '활동' && <MyInfo.History />}
+            {tab === '설정' && <MyInfo.Setting />}
           </section>
         </div>
       </Modal>
