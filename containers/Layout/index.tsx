@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import type { FC } from 'react'
 import classnames from 'classnames'
 import Link from 'next/link'
-import { supabase, useObjectState, useUser } from 'services'
+import { supabase, toast, useObjectState, useUser } from 'services'
 import { Modal } from 'containers'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
@@ -28,7 +28,7 @@ const Layout: FC<Props> = ({ children }) => {
       roomList: []
     })
   const [user] = useUser()
-  const { query, pathname } = useRouter()
+  const { query, pathname, replace } = useRouter()
 
   const getRoomList = async () => {
     const { data, error } = await supabase
@@ -73,27 +73,69 @@ const Layout: FC<Props> = ({ children }) => {
       .channel('*')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public' },
+        { event: '*', schema: 'public' },
         (payload: any) => {
-          if (payload.table !== 'chats') return
-          const index = roomList.findIndex(
-            (item) => item.id === payload.new.room_id
-          )
-          if (index === -1) return
-          setState({
-            roomList: [
-              ...roomList.slice(0, index),
-              {
-                ...roomList[index],
-                newChat: payload.new.code_block ? '코드' : payload.new.content,
-                newDate: payload.new.created_at,
-                ...(payload.new.room_id !== query.id
-                  ? { newCount: roomList[index].newCount + 1 }
-                  : {})
-              },
-              ...roomList.slice(index + 1)
-            ]
-          })
+          if (payload.table === 'chats') {
+            if (payload.eventType === 'INSERT') {
+              const index = roomList.findIndex(
+                (item) => item.id === payload.new.room_id
+              )
+              if (index === -1) return
+              setState({
+                roomList: [
+                  ...roomList.slice(0, index),
+                  {
+                    ...roomList[index],
+                    newChat: payload.new.code_block
+                      ? '코드'
+                      : payload.new.content,
+                    newDate: payload.new.created_at,
+                    ...(payload.new.room_id !== query.id
+                      ? { newCount: roomList[index].newCount + 1 }
+                      : {})
+                  },
+                  ...roomList.slice(index + 1)
+                ]
+              })
+            }
+          }
+
+          if (payload.table === 'rooms') {
+            if (payload.eventType === 'INSERT') {
+              setState({ roomList: [...roomList, payload.new] })
+              toast.info(`새로운 방이 생성되었습니다. ${payload.new?.name}`)
+            }
+            if (payload.eventType === 'UPDATE') {
+              const index = roomList.findIndex(
+                (item) => item.id === payload.new?.id
+              )
+              if (index === -1) return
+              setState({
+                roomList: [
+                  ...roomList.slice(0, index),
+                  { ...roomList[index], name: payload.new?.name },
+                  ...roomList.slice(index + 1)
+                ]
+              })
+              toast.info(`방 이름이 변경되었습니다. ${payload.new?.name}`)
+            }
+            if (payload.eventType === 'DELETE') {
+              const index = roomList.findIndex(
+                (item) => item.id === payload.old?.id
+              )
+              if (index === -1) return
+              setState({
+                roomList: [
+                  ...roomList.slice(0, index),
+                  ...roomList.slice(index + 1)
+                ]
+              })
+              if (query.id === payload.old?.id) {
+                toast.warn('현재 계신 방이 삭제되었습니다. 홈으로 이동합니다.')
+                replace('/')
+              } else toast.info('방이 삭제되었습니다.')
+            }
+          }
         }
       )
       .subscribe()

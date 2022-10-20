@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import type { FC } from 'react'
 import Editor from '@monaco-editor/react'
 import { Button, Input } from 'components'
-import { supabase, useBackdrop, useObjectState } from 'services'
+import { supabase, toast, useBackdrop, useObjectState } from 'services'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 
 export interface Props {}
@@ -39,6 +39,7 @@ const MyInfoLanguageList: FC<Props> = () => {
     backdrop(false)
     if (error) console.error(error)
     else {
+      toast.success('생성되었습니다.')
       setState({ label: '', value: '', template: '' })
       get()
     }
@@ -54,6 +55,7 @@ const MyInfoLanguageList: FC<Props> = () => {
     backdrop(false)
     if (error) console.error(error)
     else {
+      toast.success('수정되었습니다.')
       setState({ id: 0, label: '', value: '', template: '' })
       get()
     }
@@ -66,6 +68,7 @@ const MyInfoLanguageList: FC<Props> = () => {
     backdrop(false)
     if (error) console.log(error)
     else {
+      toast.error('삭제되었습니다.')
       setState({ id: 0 })
       get()
     }

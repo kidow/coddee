@@ -23,9 +23,9 @@ const Backdrop: FC = () => {
   if (!isOpen) return null
   return createPortal(
     <div role="progressbar">
-      <div className="fixed inset-0 z-50 cursor-progress bg-black opacity-30" />
+      <div className="fixed inset-0 z-[9999] cursor-progress bg-black opacity-30" />
       <span className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-progress">
-        <Spinner className="h-10 w-10" />
+        <Spinner className="h-10 w-10 dark:text-neutral-200" />
       </span>
     </div>,
     document.body
