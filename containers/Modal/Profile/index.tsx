@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { Fragment, useEffect } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
 import { supabase, useObjectState } from 'services'
@@ -107,38 +107,25 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
             </a>
           </div>
           <div className="flex items-center gap-1 text-xs">
-            <a
-              href={`https://github.com/${nickname}?tab=repositories`}
-              target="_blank"
-              className="group cursor-pointer text-neutral-400 hover:text-blue-500"
-            >
-              <span className="font-bold text-neutral-200 group-hover:text-blue-500">
-                {repository}
-              </span>{' '}
-              repositories
-            </a>
-            <span>·</span>
-            <a
-              href={`https://github.com/${nickname}?tab=followers`}
-              target="_blank"
-              className="group cursor-pointer text-neutral-400 hover:text-blue-500"
-            >
-              <span className="font-bold text-neutral-200 group-hover:text-blue-500">
-                {followers}
-              </span>{' '}
-              followers
-            </a>
-            <span>·</span>
-            <a
-              href={`https://github.com/${nickname}?tab=following`}
-              target="_blank"
-              className="group cursor-pointer text-neutral-400 hover:text-blue-500"
-            >
-              <span className="font-bold text-neutral-200 group-hover:text-blue-500">
-                {following}
-              </span>{' '}
-              following
-            </a>
+            {[
+              { tab: 'repositories', value: repository },
+              { tab: 'followers', value: followers },
+              { tab: 'following', value: following }
+            ].map((item, key) => (
+              <Fragment key={key}>
+                <a
+                  href={`https://github.com/${nickname}?tab=${item.tab}`}
+                  target="_blank"
+                  className="group cursor-pointer text-neutral-400 hover:text-blue-500"
+                >
+                  <span className="font-bold text-neutral-500 group-hover:text-blue-500 dark:text-neutral-200">
+                    {item.value}
+                  </span>
+                  {` ${item.tab}`}
+                </a>
+                {key !== 2 && <span>·</span>}
+              </Fragment>
+            ))}
           </div>
         </div>
         <hr className="my-2 dark:border-neutral-600" />
