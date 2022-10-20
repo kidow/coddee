@@ -16,7 +16,7 @@ import { MyInfo } from 'templates'
 export interface Props extends ModalProps {}
 interface State {
   tab: string
-  intro: string
+  bio: string
   isUpdating: boolean
   avatarUrl: string
   jobCategory: string
@@ -25,6 +25,10 @@ interface State {
   blogUrl: string
   email: string
   isResignOpen: boolean
+  location: string
+  followers: number
+  following: number
+  repository: number
 }
 
 const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
@@ -32,7 +36,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
   const [
     {
       tab,
-      intro,
+      bio,
       isUpdating,
       avatarUrl,
       jobCategory,
@@ -40,13 +44,17 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       message,
       blogUrl,
       email,
-      isResignOpen
+      isResignOpen,
+      location,
+      followers,
+      following,
+      repository
     },
     setState,
     onChange
   ] = useObjectState<State>({
     tab: '내 정보',
-    intro: '',
+    bio: '',
     isUpdating: false,
     avatarUrl: '',
     jobCategory: '',
@@ -54,7 +62,11 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     message: '',
     blogUrl: '',
     email: '',
-    isResignOpen: false
+    isResignOpen: false,
+    location: '',
+    followers: 0,
+    following: 0,
+    repository: 0
   })
   const [user, setUser] = useUser()
   const backdrop = useBackdrop()
@@ -68,18 +80,28 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       onClose()
       return
     }
-    const { data: userData } = await supabase
+    const { data: userData, error } = await supabase
       .from('users')
       .select('*')
       .eq('id', user?.id)
       .single()
+    if (error) {
+      console.error(error)
+      return
+    }
+    const res = await fetch(`https://api.github.com/users/${userData.nickname}`)
+    const json = await res.json()
     setState({
-      intro: userData.intro,
-      avatarUrl: userData.avatar_url,
+      bio: json.bio || '',
+      avatarUrl: json.avatar_url,
       nickname: userData.nickname,
       jobCategory: userData.job_category,
-      blogUrl: userData.blog_url,
-      email: userData.email
+      blogUrl: json.blog || '',
+      email: userData.email,
+      location: json.location || '',
+      followers: json.followers || 0,
+      following: json.following || 0,
+      repository: json.public_repos || 0
     })
   }
 
@@ -94,7 +116,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     }
     const { error } = await supabase
       .from('users')
-      .update({ intro, job_category: jobCategory, blog_url: blogUrl })
+      .update({ job_category: jobCategory })
       .eq('id', user?.id)
       .single()
     if (error) console.error(error)
@@ -188,58 +210,56 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
           <section className="h-[40rem] flex-1 overflow-auto">
             {tab === '내 정보' && (
               <div className="divide-y dark:divide-neutral-700">
-                <p className="px-6 py-3 text-xs italic text-neutral-400">
-                  Github 프로필을 업데이트하면 자동으로 이미지와 닉네임이
-                  갱신됩니다.
-                </p>
-                <section className="space-y-4 p-6">
-                  <Form.Item label="이메일">{email}</Form.Item>
-                  <Form.Item label="아바타 이미지">
-                    {!!avatarUrl && (
-                      <img
-                        src={avatarUrl}
-                        alt=""
-                        className="h-16 w-16 rounded-full"
+                <section className="p-6">
+                  <Form
+                    title="기본 정보"
+                    description="Github 프로필을 업데이트하면 자동으로 정보가 갱신됩니다."
+                  >
+                    <Form.Item label="이메일">{email}</Form.Item>
+                    <Form.Item label="아바타 이미지">
+                      {!!avatarUrl && (
+                        <img
+                          src={avatarUrl}
+                          alt=""
+                          className="h-16 w-16 rounded-full"
+                        />
+                      )}
+                    </Form.Item>
+                    <Form.Item label="닉네임">{nickname}</Form.Item>
+                    <Form.Item label="블로그 URL">{blogUrl}</Form.Item>
+                    <Form.Item label="위치">{location}</Form.Item>
+                    <Form.Item label="저장소 수 (공개)">{repository}</Form.Item>
+                    <Form.Item label="팔로워 수">{followers}</Form.Item>
+                    <Form.Item label="팔로잉 수">{following}</Form.Item>
+                    <Form.Item label="한 줄 소개">
+                      {bio.split('\n').map((v, i) => (
+                        <div key={i}>{v}</div>
+                      ))}
+                    </Form.Item>
+                  </Form>
+                </section>
+                <section className="p-6">
+                  <Form title="커디 정보">
+                    <Form.Item label="직무 및 분야">
+                      <Input
+                        value={jobCategory}
+                        name="jobCategory"
+                        onChange={onChange}
+                        placeholder="프론트엔드 개발자"
+                        float={false}
                       />
-                    )}
-                  </Form.Item>
-                  <Form.Item label="닉네임">{nickname}</Form.Item>
-                  <Form.Item label="직무 및 분야">
-                    <Input
-                      value={jobCategory}
-                      name="jobCategory"
-                      onChange={onChange}
-                      placeholder="프론트엔드 개발자"
-                      float={false}
-                    />
-                  </Form.Item>
-                  <Form.Item label="블로그 URL">
-                    <Input
-                      value={blogUrl}
-                      name="blogUrl"
-                      onChange={onChange}
-                      type="url"
-                      className="w-64"
-                    />
-                  </Form.Item>
-                  <Form.Item label="한 줄 소개">
-                    <Input
-                      fullWidth
-                      value={intro}
-                      name="intro"
-                      onChange={onChange}
-                    />
-                  </Form.Item>
-                  <div>
-                    <Button
-                      onClick={update}
-                      loading={isUpdating}
-                      shape="outlined"
-                      theme="primary"
-                    >
-                      변경
-                    </Button>
-                  </div>
+                    </Form.Item>
+                    <div>
+                      <Button
+                        onClick={update}
+                        loading={isUpdating}
+                        shape="outlined"
+                        theme="primary"
+                      >
+                        변경
+                      </Button>
+                    </div>
+                  </Form>
                 </section>
                 <section className="p-6">
                   <Button

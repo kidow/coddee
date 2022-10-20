@@ -36,9 +36,6 @@ namespace NTable {
     email: string
     nickname: string
     avatar_url: string
-    intro: string
-    github_url: string
-    blog_url: string
     job_category: string
     created_at: string
     updated_at: string
