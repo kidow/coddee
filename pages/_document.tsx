@@ -22,6 +22,14 @@ export default class MyDocument extends Document {
             sizes="180x180"
             href="favicons/apple-icon-180x180.png"
           /> */}
+          <meta
+            name="google-site-verification"
+            content="2R36y2-YBmRBsTj17QAXtE7GdzPcvmtoJN3_nyC3-cY"
+          />
+          <meta
+            name="naver-site-verification"
+            content="765241456c6b30f92b164c8a7b1f369bab47df98"
+          />
           <link
             rel="icon"
             type="image/png"
