@@ -23,18 +23,24 @@ const Form: FC<Props> = ({ title, description, children }) => {
         <div className="flex items-center gap-2 text-lg font-semibold">
           <span>{title}</span>
           <button
-            className="rounded-full p-1 hover:bg-neutral-100"
+            className="rounded-full p-1 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             onClick={() => setState({ isOpen: !isOpen })}
           >
             <ChevronDownIcon
-              className={classnames('h-5 w-5 text-neutral-700 duration-150', {
-                'rotate-180': !isOpen
-              })}
+              className={classnames(
+                'h-5 w-5 text-neutral-700 duration-150 dark:text-neutral-500',
+                {
+                  'rotate-180': !isOpen
+                }
+              )}
             />
           </button>
         </div>
         {!!description && (
-          <div ref={ref} className="mt-1">
+          <div
+            ref={ref}
+            className="mt-1 text-xs italic text-neutral-400 dark:text-neutral-500"
+          >
             {description}
           </div>
         )}

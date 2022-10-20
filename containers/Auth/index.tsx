@@ -45,9 +45,7 @@ const Auth: FC<Props> = ({ children }) => {
             .insert({
               id: session?.user.id,
               email: session?.user.email,
-              avatar_url: session?.user.user_metadata.avatar_url,
-              nickname: session?.user.user_metadata.user_name,
-              github_url: `https://github.com/${session?.user.user_metadata.user_name}`
+              nickname: session?.user.user_metadata.user_name
             })
             .single()
           if (error) console.error(error)
