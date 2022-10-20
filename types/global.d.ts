@@ -9,5 +9,6 @@ declare namespace NodeJS {
     NEXT_PUBLIC_REDIRECT_TO: string
     NEXT_PUBLIC_ADMIN_ID: string
     NEXT_PUBLIC_SLACK_TOKEN: string
+    NEXT_PUBLIC_SENTRY_DSN: string
   }
 }

@@ -36,9 +36,10 @@ const CodePreview: FC<Props> = ({ original, ...props }) => {
         scrollbar: { vertical: 'hidden' },
         scrollBeyondLastLine: false,
         minimap: { enabled: false },
-        fontSize: 14
+        fontSize: 14,
+        lineNumbers: 'off'
       }}
-      defaultValue={original}
+      value={original}
     />
   )
 }
