@@ -2,8 +2,15 @@ import { Fragment, useEffect } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
 import { supabase, useObjectState } from 'services'
-import { Form } from 'components'
-import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
+import { Divider, Form } from 'components'
+import {
+  ArrowTopRightOnSquareIcon,
+  BuildingOffice2Icon,
+  EnvelopeIcon,
+  LinkIcon,
+  MapPinIcon,
+  XMarkIcon
+} from '@heroicons/react/24/outline'
 
 export interface Props extends ModalProps {
   userId: string
@@ -97,6 +104,9 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
             <div className="h-20 w-20 rounded-full" />
           )}
         </div>
+        <button className="absolute top-3 right-4" onClick={onClose}>
+          <XMarkIcon className="h-5 w-5 text-neutral-100" />
+        </button>
       </div>
       <div className="px-5 pt-16 pb-5">
         <div className="flex items-center justify-between">
@@ -128,22 +138,23 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
             ))}
           </div>
         </div>
-        <hr className="my-2 dark:border-neutral-600" />
-        <div className="space-y-4">
-          <Form.Item label="이메일">
+        <Divider />
+        <div className="space-y-1.5">
+          <Form.Item icon={BuildingOffice2Icon}>{company}</Form.Item>
+          <Form.Item icon={MapPinIcon}>{location}</Form.Item>
+          <Form.Item icon={EnvelopeIcon}>
             <a href={`mailto:${email}`} className="hover:underline">
               {email}
             </a>
           </Form.Item>
-          <Form.Item label="직무 및 분야">{jobCategory}</Form.Item>
-          <Form.Item label="회사">{company}</Form.Item>
-          <Form.Item label="위치">{location}</Form.Item>
-          <Form.Item label="블로그 URL">{blogUrl}</Form.Item>
-          <Form.Item label="소개">
+          <Form.Item icon={LinkIcon}>{blogUrl}</Form.Item>
+          <div className="pt-2">
             {bio.split('\n').map((v, i) => (
               <div key={i}>{v}</div>
             ))}
-          </Form.Item>
+          </div>
+          <Divider />
+          <Form.Item label="직무 및 분야">{jobCategory}</Form.Item>
         </div>
       </div>
     </Modal>

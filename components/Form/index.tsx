@@ -18,20 +18,18 @@ const Form: FC<Props> = ({ title, description, children }) => {
   const [{ isOpen }, setState] = useObjectState<State>({ isOpen: true })
   const ref = useRef<HTMLDivElement>(null)
   return (
-    <div className="flex gap-10">
-      <div className="flex-1">
+    <div className="gap-10 sm:flex">
+      <div className="mb-4 sm:flex-1">
         <div className="flex items-center gap-2 text-lg font-semibold">
           <span>{title}</span>
           <button
-            className="rounded-full p-1 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            className="hidden rounded-full p-1 hover:bg-neutral-100 dark:hover:bg-neutral-700 sm:inline-block"
             onClick={() => setState({ isOpen: !isOpen })}
           >
             <ChevronDownIcon
               className={classnames(
                 'h-5 w-5 text-neutral-700 duration-150 dark:text-neutral-500',
-                {
-                  'rotate-180': !isOpen
-                }
+                { 'rotate-180': !isOpen }
               )}
             />
           </button>
@@ -46,7 +44,7 @@ const Form: FC<Props> = ({ title, description, children }) => {
         )}
       </div>
       <div
-        className={classnames('flex-1 space-y-4', {
+        className={classnames('space-y-4 sm:flex-1', {
           'overflow-hidden': !isOpen
         })}
         style={{

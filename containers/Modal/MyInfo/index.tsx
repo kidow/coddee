@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { Fragment, useEffect, useMemo } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
 import classnames from 'classnames'
@@ -12,6 +12,13 @@ import {
 } from 'services'
 import { Button, Form, Input } from 'components'
 import { MyInfo } from 'templates'
+import {
+  BuildingOffice2Icon,
+  EnvelopeIcon,
+  LinkIcon,
+  MapPinIcon,
+  XMarkIcon
+} from '@heroicons/react/24/outline'
 
 export interface Props extends ModalProps {}
 interface State {
@@ -29,6 +36,7 @@ interface State {
   followers: number
   following: number
   repository: number
+  company: string
 }
 
 const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
@@ -48,7 +56,8 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       location,
       followers,
       following,
-      repository
+      repository,
+      company
     },
     setState,
     onChange
@@ -66,7 +75,8 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     location: '',
     followers: 0,
     following: 0,
-    repository: 0
+    repository: 0,
+    company: ''
   })
   const [user, setUser] = useUser()
   const backdrop = useBackdrop()
@@ -101,7 +111,8 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       location: json.location || '',
       followers: json.followers || 0,
       following: json.following || 0,
-      repository: json.public_repos || 0
+      repository: json.public_repos || 0,
+      company: json.company || ''
     })
   }
 
@@ -185,9 +196,9 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
         onClose={onClose}
         padding={false}
       >
-        <div className="flex">
-          <menu className="flex w-48 flex-col bg-neutral-100 dark:bg-neutral-700">
-            <ul className="flex-1">
+        <div className="relative sm:flex">
+          <menu className="flex overflow-auto whitespace-nowrap bg-neutral-100 dark:bg-neutral-700 sm:w-48 sm:flex-col sm:overflow-visible sm:whitespace-normal">
+            <ul className="flex sm:block sm:flex-1">
               {PROFILE_TABS.map((item, key) => (
                 <li
                   key={key}
@@ -211,56 +222,74 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
           <section className="h-[40rem] flex-1 overflow-auto">
             {tab === '정보' && (
               <div className="divide-y dark:divide-neutral-700">
-                <section className="p-6">
-                  <Form
-                    title="기본 정보"
-                    description="Github 프로필을 업데이트하면 자동으로 정보가 갱신됩니다."
-                  >
-                    <Form.Item label="이메일">{email}</Form.Item>
-                    <Form.Item label="아바타 이미지">
-                      {!!avatarUrl && (
-                        <img
-                          src={avatarUrl}
-                          alt=""
-                          className="h-16 w-16 rounded-full"
-                        />
-                      )}
-                    </Form.Item>
-                    <Form.Item label="닉네임">{nickname}</Form.Item>
-                    <Form.Item label="블로그 URL">{blogUrl}</Form.Item>
-                    <Form.Item label="위치">{location}</Form.Item>
-                    <Form.Item label="저장소 수 (공개)">{repository}</Form.Item>
-                    <Form.Item label="팔로워 수">{followers}</Form.Item>
-                    <Form.Item label="팔로잉 수">{following}</Form.Item>
-                    <Form.Item label="한 줄 소개">
-                      {bio.split('\n').map((v, i) => (
-                        <div key={i}>{v}</div>
-                      ))}
-                    </Form.Item>
-                  </Form>
-                </section>
-                <section className="p-6">
-                  <Form title="커디 정보">
-                    <Form.Item label="직무 및 분야">
-                      <Input
-                        value={jobCategory}
-                        name="jobCategory"
-                        onChange={onChange}
-                        placeholder="프론트엔드 개발자"
-                        float={false}
+                <div className="relative h-16 bg-neutral-800 pb-8 dark:bg-black">
+                  <div className="absolute left-4 top-4 rounded-full bg-white p-2 dark:bg-black">
+                    {!!avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt=""
+                        className="h-20 w-20 rounded-full"
                       />
-                    </Form.Item>
-                    <div>
-                      <Button
-                        onClick={update}
-                        loading={isUpdating}
-                        shape="outlined"
-                        theme="primary"
-                      >
-                        변경
-                      </Button>
+                    ) : (
+                      <div className="h-20 w-20 rounded-full" />
+                    )}
+                  </div>
+                  <div className="absolute top-[72px] left-32 space-y-1">
+                    <span className="text-xl font-semibold">{nickname}</span>
+                    <div className="flex items-center gap-1 text-xs">
+                      {[
+                        { tab: 'repositories', value: repository },
+                        { tab: 'followers', value: followers },
+                        { tab: 'following', value: following }
+                      ].map((item, key) => (
+                        <Fragment key={key}>
+                          <a
+                            href={`https://github.com/${nickname}?tab=${item.tab}`}
+                            target="_blank"
+                            className="group cursor-pointer text-neutral-400 hover:text-blue-500"
+                          >
+                            <span className="font-bold text-neutral-500 group-hover:text-blue-500 dark:text-neutral-200">
+                              {item.value}
+                            </span>
+                            {` ${item.tab}`}
+                          </a>
+                          {key !== 2 && <span>·</span>}
+                        </Fragment>
+                      ))}
                     </div>
-                  </Form>
+                  </div>
+                </div>
+                <section className="space-y-1.5 p-6 pt-20">
+                  <Form.Item icon={BuildingOffice2Icon}>{company}</Form.Item>
+                  <Form.Item icon={MapPinIcon}>{location}</Form.Item>
+                  <Form.Item icon={EnvelopeIcon}>{email}</Form.Item>
+                  <Form.Item icon={LinkIcon}>{blogUrl}</Form.Item>
+                  <div className="pt-2">
+                    {bio.split('\n').map((v, i) => (
+                      <div key={i}>{v}</div>
+                    ))}
+                  </div>
+                </section>
+                <section className="space-y-4 p-6">
+                  <Form.Item label="직무 및 분야">
+                    <Input
+                      value={jobCategory}
+                      name="jobCategory"
+                      onChange={onChange}
+                      placeholder="프론트엔드 개발자"
+                      float={false}
+                    />
+                  </Form.Item>
+                  <div>
+                    <Button
+                      onClick={update}
+                      loading={isUpdating}
+                      shape="outlined"
+                      theme="primary"
+                    >
+                      변경
+                    </Button>
+                  </div>
                 </section>
                 <section className="p-6">
                   <Button
@@ -278,6 +307,10 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
             {tab === '활동' && <MyInfo.History />}
             {tab === '설정' && <MyInfo.Setting />}
           </section>
+
+          <button className="absolute top-3 right-4" onClick={onClose}>
+            <XMarkIcon className="h-5 w-5 text-neutral-100" />
+          </button>
         </div>
       </Modal>
       <Modal
