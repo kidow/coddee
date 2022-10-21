@@ -58,12 +58,21 @@ namespace NTable {
     created_at: string
     updated_at: string
     deleted_at: string
+    isUpdating?: boolean
+    tempContent?: string
   }
   interface Languages {
     id: number
     label: string
     value: string
     template: string
+    created_at: string
+  }
+  interface Reactions {
+    id: number
+    user_id: string
+    chat_id: number
+    text: string
     created_at: string
   }
 }

@@ -1,4 +1,4 @@
-import { CodePreview, SEO, Spinner } from 'components'
+import { CodePreview, SEO, Spinner, Tooltip } from 'components'
 import type { NextPage } from 'next'
 import {
   ArrowSmallUpIcon,
@@ -19,6 +19,7 @@ import { useRouter } from 'next/router'
 import { Modal } from 'containers'
 import classnames from 'classnames'
 import dayjs from 'dayjs'
+import { FaceSmileIcon, PencilIcon } from '@heroicons/react/24/solid'
 
 interface State {
   content: string
@@ -93,6 +94,7 @@ const RoomIdPage: NextPage = () => {
       language,
       code_block,
       created_at,
+      updated_at,
       user_id,
       user:user_id (
         nickname,
@@ -163,6 +165,46 @@ const RoomIdPage: NextPage = () => {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
     } else setState({ content: '' })
+  }
+
+  const update = async (index: number) => {
+    const item = chatList[index]
+    if (!item.isUpdating) {
+      setState({
+        chatList: [
+          ...chatList
+            .slice(0, index)
+            .map((item) => ({ ...item, isUpdating: false })),
+          { ...item, isUpdating: true, tempContent: item.content },
+          ...chatList
+            .slice(index + 1)
+            .map((item) => ({ ...item, isUpdating: false }))
+        ]
+      })
+      return
+    }
+
+    const { error } = await supabase
+      .from('chats')
+      .update({ content: item.tempContent })
+      .eq('id', item.id)
+    if (error) {
+      toast.error(TOAST_MESSAGE.API_ERROR)
+      return
+    }
+    setState({
+      chatList: [
+        ...chatList.slice(0, index),
+        {
+          ...item,
+          isUpdating: false,
+          tempContent: '',
+          content: item.tempContent || ''
+        },
+        ...chatList.slice(index + 1)
+      ]
+    })
+    toast.success('변경되었습니다.')
   }
 
   const isBringMore: boolean = useMemo(() => {
@@ -245,7 +287,7 @@ const RoomIdPage: NextPage = () => {
               <div
                 id={String(item.id)}
                 className={classnames(
-                  'group flex gap-3 py-1 px-5 hover:bg-neutral-50 dark:hover:bg-neutral-700',
+                  'group relative flex gap-3 py-1 px-5 hover:bg-neutral-50 dark:hover:bg-neutral-700',
                   {
                     'animate-bounce bg-blue-50':
                       window.location.href === `#${item.id}`
@@ -282,17 +324,60 @@ const RoomIdPage: NextPage = () => {
                       <span className="text-xs text-neutral-400">
                         {dayjs(item.created_at).locale('ko').format('A H:mm')}
                       </span>
-                      {!!item.updated_at && (
-                        <span className="text-xs text-neutral-400">
-                          (수정됨)
-                        </span>
-                      )}
                     </div>
                   )}
                   <div>
-                    {item.content.split('\n').map((v, i) => (
-                      <div key={i}>{v}</div>
-                    ))}
+                    {item.isUpdating ? (
+                      <div>
+                        <TextareaAutosize
+                          value={item.tempContent}
+                          className="resize-none rounded-lg bg-neutral-200 p-2 dark:bg-neutral-600 dark:text-neutral-200"
+                          spellCheck={false}
+                          autoFocus
+                          autoComplete="off"
+                          onChange={(e) =>
+                            setState({
+                              chatList: [
+                                ...chatList.slice(0, key),
+                                { ...item, tempContent: e.target.value },
+                                ...chatList.slice(key + 1)
+                              ]
+                            })
+                          }
+                        />
+                        <div className="flex gap-2 text-xs text-blue-500">
+                          <button
+                            onClick={() =>
+                              setState({
+                                chatList: [
+                                  ...chatList.slice(0, key),
+                                  {
+                                    ...item,
+                                    tempContent: '',
+                                    isUpdating: false
+                                  },
+                                  ...chatList.slice(key + 1)
+                                ]
+                              })
+                            }
+                          >
+                            취소
+                          </button>
+                          <button onClick={() => update(key)}>저장</button>
+                        </div>
+                      </div>
+                    ) : (
+                      item.content.split('\n').map((v, i, arr) => (
+                        <div key={i}>
+                          {v}
+                          {!!item.updated_at && i === arr.length - 1 && (
+                            <span className="ml-1 text-2xs text-neutral-400">
+                              (수정됨)
+                            </span>
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
                   {!!item.code_block && (
                     <div className="border dark:border-none">
@@ -302,6 +387,49 @@ const RoomIdPage: NextPage = () => {
                       />
                     </div>
                   )}
+                </div>
+                <div
+                  className={classnames(
+                    'absolute right-6 -top-4 z-10 hidden rounded-lg border bg-white dark:border-neutral-800 dark:bg-neutral-700',
+                    { 'group-hover:block': !item.isUpdating }
+                  )}
+                >
+                  <div className="flex">
+                    <Tooltip
+                      position="top"
+                      content="반응 추가"
+                      size="sm"
+                      theme={
+                        window.localStorage.getItem('theme') === 'dark'
+                          ? 'dark'
+                          : 'light'
+                      }
+                      border={window.localStorage.getItem('theme') !== 'dark'}
+                      className="flex h-7 w-7 items-center justify-center rounded-l-lg hover:bg-neutral-200 dark:hover:bg-neutral-600"
+                    >
+                      <button>
+                        <FaceSmileIcon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+                      </button>
+                    </Tooltip>
+                    {item.user_id === user?.id && (
+                      <Tooltip
+                        position="top"
+                        size="sm"
+                        content="수정"
+                        theme={
+                          window.localStorage.getItem('theme') === 'dark'
+                            ? 'dark'
+                            : 'light'
+                        }
+                        border={window.localStorage.getItem('theme') !== 'dark'}
+                        className="flex h-7 w-7 items-center justify-center rounded-r-lg hover:bg-neutral-200 dark:hover:bg-neutral-600"
+                      >
+                        <button onClick={() => update(key)}>
+                          <PencilIcon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+                        </button>
+                      </Tooltip>
+                    )}
+                  </div>
                 </div>
               </div>
               {(!!dayjs(dayjs(item.created_at).format('YYYY-MM-DD')).diff(

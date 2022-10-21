@@ -30,3 +30,16 @@ export const toast = {
   error: (message: string) =>
     EventListener.emit<NToast.Emit>('toast', { message, type: 'error' })
 }
+
+export function throttle(func: Function, wait: number) {
+  let waiting = false
+  return function () {
+    if (!waiting) {
+      func.apply(this, arguments)
+      waiting = true
+      setTimeout(() => {
+        waiting = false
+      }, wait)
+    }
+  }
+}

@@ -309,7 +309,12 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
           </section>
 
           <button className="absolute top-3 right-4" onClick={onClose}>
-            <XMarkIcon className="h-5 w-5 text-neutral-100" />
+            <XMarkIcon
+              className={classnames(
+                'h-5 w-5',
+                tab === '정보' ? 'text-neutral-100' : 'text-neutral-900'
+              )}
+            />
           </button>
         </div>
       </Modal>
