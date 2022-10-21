@@ -49,6 +49,10 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
 
   const create = async () => {
     const { data } = await supabase.auth.getUser()
+    if (!user) {
+      toast.info('로그인이 필요합니다.')
+      return
+    }
     if (!!user && !data.user) {
       await supabase.auth.signOut()
       setUser(null)
@@ -108,6 +112,9 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
                 로그인한 경우에만 가능합니다.
               </p>
             )}
+            <p className="text-sm italic sm:hidden">
+              모바일에서는 코드 에디터를 사용할 수 없습니다.
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -132,7 +139,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
       }
     >
       <div className="space-y-4">
-        <div className="hidden sm:block">
+        <div className="hidden border dark:border-none sm:block">
           <Editor
             height="300px"
             defaultLanguage={props.language}

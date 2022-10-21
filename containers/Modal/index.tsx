@@ -8,6 +8,7 @@ import MyInfoModal from './MyInfo'
 import ProfileModal from './Profile'
 import LoginModal from './Login'
 import SearchModal from './Search'
+import ThreadModal from './Thread'
 
 interface Props extends ReactProps, ModalProps {}
 interface State {}
@@ -103,5 +104,6 @@ export default Object.assign(Modal, {
   CodeEditor: CodeEditorModal,
   Profile: ProfileModal,
   Login: LoginModal,
-  Search: SearchModal
+  Search: SearchModal,
+  Thread: ThreadModal
 })

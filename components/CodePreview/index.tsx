@@ -33,7 +33,7 @@ const CodePreview: FC<Props> = ({ original, ...props }) => {
       }
       options={{
         readOnly: true,
-        scrollbar: { vertical: 'hidden' },
+        scrollbar: { vertical: 'hidden', alwaysConsumeMouseWheel: false },
         scrollBeyondLastLine: false,
         minimap: { enabled: false },
         fontSize: 14,

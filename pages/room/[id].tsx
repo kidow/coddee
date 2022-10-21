@@ -138,6 +138,10 @@ const RoomIdPage: NextPage = () => {
 
   const create = async () => {
     if (isSpamming) return
+    if (!user) {
+      toast.info('로그인이 필요합니다.')
+      return
+    }
     const { data } = await supabase.auth.getUser()
     if (!!user && !data.user) {
       await supabase.auth.signOut()
@@ -361,7 +365,7 @@ const RoomIdPage: NextPage = () => {
           </button>
           <button
             className="rounded-full bg-blue-500 p-1.5 duration-150 hover:bg-blue-400 active:bg-blue-600 disabled:bg-neutral-400"
-            disabled={isSubmitting || !content || !user}
+            disabled={isSubmitting || !content}
             onClick={create}
           >
             {isSubmitting ? (
