@@ -121,7 +121,7 @@ const Tooltip: FC<Props> = ({
             role="tooltip"
             ref={tooltipRef}
             className={classnames(
-              'fixed z-[9999] rounded',
+              'fixed z-[9999] rounded shadow-lg',
               isPositioned ? 'visible' : 'invisible',
               {
                 'px-5 py-3': padding && size === 'lg',

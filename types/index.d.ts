@@ -75,6 +75,7 @@ namespace NTable {
     text: string
     created_at: string
   }
+  interface Replies {}
 }
 
 namespace NToast {

@@ -20,6 +20,7 @@ import { Modal } from 'containers'
 import classnames from 'classnames'
 import dayjs from 'dayjs'
 import { FaceSmileIcon, PencilIcon } from '@heroicons/react/24/solid'
+import { SlackSelector } from '@charkour/react-reactions'
 
 interface State {
   content: string
@@ -35,6 +36,7 @@ interface State {
   page: number
   count: number
   isSpamming: boolean
+  isReactionOpen: boolean
 }
 
 const RoomIdPage: NextPage = () => {
@@ -52,7 +54,8 @@ const RoomIdPage: NextPage = () => {
       name,
       page,
       count,
-      isSpamming
+      isSpamming,
+      isReactionOpen
     },
     setState,
     onChange,
@@ -70,12 +73,14 @@ const RoomIdPage: NextPage = () => {
     name: '',
     page: 1,
     count: 0,
-    isSpamming: false
+    isSpamming: false,
+    isReactionOpen: false
   })
   const { query } = useRouter()
   const [user, setUser] = useUser()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const emojiRef = useRef<HTMLDivElement>(null)
 
   const getChatList = async (page: number = 1) => {
     if (!query.id || typeof query.id !== 'string') return
@@ -394,7 +399,24 @@ const RoomIdPage: NextPage = () => {
                     { 'group-hover:block': !item.isUpdating }
                   )}
                 >
-                  <div className="flex">
+                  <div className="relative flex">
+                    {isReactionOpen && (
+                      <div className="absolute top-0 -right-4 z-20 rounded-md border dark:[&>div]:!bg-neutral-900 dark:[&>div>div:nth-child(3)]:!bg-neutral-800">
+                        <SlackSelector
+                          onSelect={(id) => console.log('id', id)}
+                          frequent={[
+                            '👍',
+                            '🙌',
+                            '😊',
+                            '🚀',
+                            '👋',
+                            '😭',
+                            '🥳',
+                            '💪'
+                          ]}
+                        />
+                      </div>
+                    )}
                     <Tooltip
                       position="top"
                       content="반응 추가"
@@ -407,7 +429,9 @@ const RoomIdPage: NextPage = () => {
                       border={window.localStorage.getItem('theme') !== 'dark'}
                       className="flex h-7 w-7 items-center justify-center rounded-l-lg hover:bg-neutral-200 dark:hover:bg-neutral-600"
                     >
-                      <button>
+                      <button
+                        onClick={() => setState({ isReactionOpen: true })}
+                      >
                         <FaceSmileIcon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
                       </button>
                     </Tooltip>
