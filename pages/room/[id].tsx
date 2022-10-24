@@ -20,7 +20,6 @@ import { Modal } from 'containers'
 import classnames from 'classnames'
 import dayjs from 'dayjs'
 import { FaceSmileIcon, PencilIcon } from '@heroicons/react/24/solid'
-import { SlackSelector } from '@charkour/react-reactions'
 
 interface State {
   content: string
@@ -31,12 +30,24 @@ interface State {
   userId: string
   total: number
   isDropdownOpen: boolean
-  chatList: Array<NTable.Chats & { user: NTable.Users }>
+  chatList: Array<
+    NTable.Chats & {
+      user: NTable.Users
+      reactions: Array<{
+        id: number
+        room_id: string
+        chat_id: number
+        text: string
+        userList: Array<{ id: string; nickname: string }>
+      }>
+    }
+  >
   name: string
   page: number
   count: number
   isSpamming: boolean
-  isReactionOpen: boolean
+  isEmojiOpen: boolean
+  chatId: number
 }
 
 const RoomIdPage: NextPage = () => {
@@ -55,7 +66,8 @@ const RoomIdPage: NextPage = () => {
       page,
       count,
       isSpamming,
-      isReactionOpen
+      isEmojiOpen,
+      chatId
     },
     setState,
     onChange,
@@ -74,13 +86,13 @@ const RoomIdPage: NextPage = () => {
     page: 1,
     count: 0,
     isSpamming: false,
-    isReactionOpen: false
+    isEmojiOpen: false,
+    chatId: 0
   })
   const { query } = useRouter()
   const [user, setUser] = useUser()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const emojiRef = useRef<HTMLDivElement>(null)
 
   const getChatList = async (page: number = 1) => {
     if (!query.id || typeof query.id !== 'string') return
@@ -104,6 +116,14 @@ const RoomIdPage: NextPage = () => {
       user:user_id (
         nickname,
         avatar_url
+      ),
+      reactions (
+        id,
+        text,
+        user_id,
+        user:user_id (
+          nickname
+        )
       )
     `,
         { count: 'exact' }
@@ -114,6 +134,46 @@ const RoomIdPage: NextPage = () => {
     if (error) {
       console.error(error)
       return
+    }
+    for (const chat of data) {
+      let reactions: Array<{
+        id: number
+        room_id: string
+        chat_id: number
+        text: string
+        userList: Array<{ id: string; nickname: string }>
+      }> = []
+      // @ts-ignore
+      if (chat.reactions.length > 0) {
+        // @ts-ignore
+        for (const reaction of chat.reactions) {
+          const index = reactions.findIndex(
+            (item) => item.text === reaction.text
+          )
+          if (index === -1)
+            reactions.push({
+              id: reaction.id,
+              room_id: reaction.room_id,
+              chat_id: reaction.chat_id,
+              text: reaction.text,
+              userList: [
+                { id: reaction.user_id, nickname: reaction.user.nickname }
+              ]
+            })
+          else {
+            const userIndex = reactions[index].userList.findIndex(
+              (item) => item.id === reaction.user_id
+            )
+            if (userIndex === -1)
+              reactions[index].userList = [
+                ...reactions[index].userList,
+                { id: reaction.user_id, nickname: reaction.user.nickname }
+              ]
+          }
+        }
+      }
+      // @ts-ignore
+      chat.reactions = reactions
     }
     setState(
       {
@@ -143,10 +203,10 @@ const RoomIdPage: NextPage = () => {
     textareaRef.current?.focus()
   }
 
-  const create = async () => {
+  const createChat = async () => {
     if (isSpamming) return
     if (!user) {
-      toast.info('로그인이 필요합니다.')
+      toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
     }
     const { data } = await supabase.auth.getUser()
@@ -172,7 +232,7 @@ const RoomIdPage: NextPage = () => {
     } else setState({ content: '' })
   }
 
-  const update = async (index: number) => {
+  const updateChat = async (index: number) => {
     const item = chatList[index]
     if (!item.isUpdating) {
       setState({
@@ -212,6 +272,100 @@ const RoomIdPage: NextPage = () => {
     toast.success('변경되었습니다.')
   }
 
+  const onReaction = async (text: string) => {
+    if (!user) return
+
+    if (!chatId) {
+      setState({ isEmojiOpen: false, chatId: 0 })
+      console.error('Chat id is empty.')
+      return
+    }
+    const chatIndex = chatList.findIndex((item) => item.id === chatId)
+    if (chatIndex === -1) {
+      setState({ isEmojiOpen: false, chatId: 0 })
+      console.error('Chat index is empty')
+      return
+    }
+
+    const reactionIndex = chatList[chatIndex].reactions.findIndex(
+      (item) => item.text === text
+    )
+    if (reactionIndex === -1) {
+      const { error } = await supabase
+        .from('reactions')
+        .insert({ user_id: user.id, chat_id: chatId, text, room_id: query.id })
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+      }
+    } else {
+      const userIndex = chatList[chatIndex].reactions[
+        reactionIndex
+      ].userList.findIndex((item) => item.id === user.id)
+      if (userIndex === -1) {
+        const { error } = await supabase.from('reactions').insert({
+          user_id: user.id,
+          chat_id: chatId,
+          text,
+          room_id: query.id
+        })
+        if (error) {
+          console.error(error)
+          toast.error(TOAST_MESSAGE.API_ERROR)
+        }
+      } else {
+        const { error } = await supabase
+          .from('reactions')
+          .delete()
+          .match({ user_id: user.id, chat_id: chatId, text, room_id: query.id })
+        if (error) {
+          console.error(error)
+          toast.error(TOAST_MESSAGE.API_ERROR)
+        }
+      }
+    }
+
+    setState({ isEmojiOpen: false, chatId: 0 })
+  }
+
+  const updateReaction = async (chatIndex: number, reactionIndex: number) => {
+    if (!user) {
+      toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
+      return
+    }
+
+    const chat = chatList[chatIndex]
+    const reaction = chat.reactions[reactionIndex]
+    const userIndex = reaction.userList?.findIndex(
+      (item) => item.id === user.id
+    )
+    if (userIndex === undefined) return
+
+    if (userIndex === -1) {
+      const { error } = await supabase.from('reactions').insert({
+        chat_id: chat.id,
+        user_id: user.id,
+        text: reaction.text,
+        room_id: query.id
+      })
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+      }
+    } else {
+      const { error } = await supabase.from('reactions').delete().match({
+        user_id: user.id,
+        chat_id: chat.id,
+        text: reaction.text,
+        room_id: query.id
+      })
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+      }
+    }
+  }
+
   const isBringMore: boolean = useMemo(() => {
     if (chatList.length < 100) return false
     return page * 100 < total
@@ -226,7 +380,7 @@ const RoomIdPage: NextPage = () => {
   }, [query.id])
 
   useEffect(() => {
-    const channel = supabase
+    const chats = supabase
       .channel('public:chats')
       .on(
         'postgres_changes',
@@ -254,8 +408,129 @@ const RoomIdPage: NextPage = () => {
         }
       )
       .subscribe()
+
+    const reactions = supabase
+      .channel('public:reactions')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'reactions' },
+        async (payload: any) => {
+          if (payload.eventType === 'INSERT') {
+            if (payload.new.room_id !== query.id) return
+
+            const chatIndex = chatList.findIndex(
+              (item) => item.id === payload.new.chat_id
+            )
+            if (chatIndex === -1) return
+            const { data, error } = await supabase
+              .from('users')
+              .select('nickname')
+              .eq('id', payload.new.user_id)
+              .single()
+            if (error) {
+              console.error(error)
+              return
+            }
+
+            const reactionIndex = chatList[chatIndex].reactions.findIndex(
+              (item) => item.text === payload.new.text
+            )
+            setState({
+              chatList: [
+                ...chatList.slice(0, chatIndex),
+                {
+                  ...chatList[chatIndex],
+                  reactions:
+                    reactionIndex === -1
+                      ? [
+                          ...chatList[chatIndex].reactions,
+                          {
+                            ...payload.new,
+                            userList: [
+                              {
+                                id: payload.new.user_id,
+                                nickname: data.nickname
+                              }
+                            ]
+                          }
+                        ]
+                      : [
+                          ...chatList[chatIndex].reactions.slice(
+                            0,
+                            reactionIndex
+                          ),
+                          {
+                            ...chatList[chatIndex].reactions[reactionIndex],
+                            userList: [
+                              ...chatList[chatIndex].reactions[reactionIndex]
+                                .userList,
+                              {
+                                id: payload.new.user_id,
+                                nickname: data.nickname
+                              }
+                            ]
+                          },
+                          ...chatList[chatIndex].reactions.slice(
+                            reactionIndex + 1
+                          )
+                        ]
+                },
+                ...chatList.slice(chatIndex + 1)
+              ]
+            })
+          }
+          if (payload.eventType === 'DELETE') {
+            if (payload.old.room_id !== query.id) return
+
+            const chatIndex = chatList.findIndex(
+              (item) => item.id === payload.old.chat_id
+            )
+            if (chatIndex === -1) return
+
+            const reactionIndex = chatList[chatIndex].reactions.findIndex(
+              (item) => item.text === payload.old.text
+            )
+            if (reactionIndex === -1) return
+
+            setState({
+              chatList: [
+                ...chatList.slice(0, chatIndex),
+                {
+                  ...chatList[chatIndex],
+                  reactions:
+                    chatList[chatIndex].reactions[reactionIndex].userList
+                      .length > 1
+                      ? [
+                          ...chatList[chatIndex].reactions.slice(
+                            0,
+                            reactionIndex
+                          ),
+                          {
+                            ...chatList[chatIndex].reactions[reactionIndex],
+                            userList: chatList[chatIndex].reactions[
+                              reactionIndex
+                            ].userList.filter(
+                              (item) => item.id !== payload.old.user_id
+                            )
+                          },
+                          ...chatList[chatIndex].reactions.slice(
+                            reactionIndex + 1
+                          )
+                        ]
+                      : chatList[chatIndex].reactions.filter(
+                          (item) => item.text !== payload.old.text
+                        )
+                },
+                ...chatList.slice(chatIndex + 1)
+              ]
+            })
+          }
+        }
+      )
+      .subscribe()
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(chats)
+      supabase.removeChannel(reactions)
     }
   }, [chatList, query.id, count])
 
@@ -368,7 +643,7 @@ const RoomIdPage: NextPage = () => {
                           >
                             취소
                           </button>
-                          <button onClick={() => update(key)}>저장</button>
+                          <button onClick={() => updateChat(key)}>저장</button>
                         </div>
                       </div>
                     ) : (
@@ -385,11 +660,77 @@ const RoomIdPage: NextPage = () => {
                     )}
                   </div>
                   {!!item.code_block && (
-                    <div className="border dark:border-none">
+                    <div className="border dark:border-transparent">
                       <CodePreview
                         original={item.code_block}
                         defaultLanguage={item.language}
                       />
+                    </div>
+                  )}
+                  {!!item.reactions?.length && (
+                    <div className="mt-1 flex gap-1">
+                      {item.reactions.map((reaction, reactionKey) => (
+                        <Tooltip
+                          position="top"
+                          content={`${reaction.userList
+                            .map((item) => item.nickname)
+                            .join(', ')} 님이 반응하였습니다.`}
+                          size="sm"
+                          theme={
+                            window.localStorage.getItem('theme') === 'dark'
+                              ? 'dark'
+                              : 'light'
+                          }
+                          border={
+                            window.localStorage.getItem('theme') !== 'dark'
+                          }
+                          key={reaction.id}
+                          className="inline-flex h-6 items-center gap-1 rounded-xl border border-blue-700 bg-blue-100 px-1.5"
+                        >
+                          <button
+                            onClick={() => updateReaction(key, reactionKey)}
+                          >
+                            <span>{reaction.text}</span>
+                            <span className="text-xs font-semibold text-blue-700">
+                              {reaction?.userList.length}
+                            </span>
+                          </button>
+                        </Tooltip>
+                      ))}
+                      <Tooltip
+                        position="top"
+                        content="반응 추가"
+                        size="sm"
+                        theme={
+                          window.localStorage.getItem('theme') === 'dark'
+                            ? 'dark'
+                            : 'light'
+                        }
+                        border={window.localStorage.getItem('theme') !== 'dark'}
+                        className="hidden h-6 items-center justify-center rounded-xl border border-transparent bg-neutral-100 px-1.5 hover:border-neutral-500 hover:bg-white group-hover:inline-flex"
+                      >
+                        <button
+                          onClick={() => {
+                            if (!user) toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
+                            else
+                              setState({ isEmojiOpen: true, chatId: item.id })
+                          }}
+                        >
+                          <svg
+                            width="16px"
+                            height="16px"
+                            viewBox="0 0 16 16"
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 fill-neutral-600"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              clipRule="evenodd"
+                              d="M12 7.5c0 .169-.01.336-.027.5h1.005A5.5 5.5 0 1 0 8 12.978v-1.005A4.5 4.5 0 1 1 12 7.5zM5.5 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm2 2.5c.712 0 1.355-.298 1.81-.776l.707.708A3.49 3.49 0 0 1 7.5 10.5a3.49 3.49 0 0 1-2.555-1.108l.707-.708A2.494 2.494 0 0 0 7.5 9.5zm2-2.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm2.5 3h1v2h2v1h-2v2h-1v-2h-2v-1h2v-2z"
+                            />
+                          </svg>
+                        </button>
+                      </Tooltip>
                     </div>
                   )}
                 </div>
@@ -399,24 +740,7 @@ const RoomIdPage: NextPage = () => {
                     { 'group-hover:block': !item.isUpdating }
                   )}
                 >
-                  <div className="relative flex">
-                    {isReactionOpen && (
-                      <div className="absolute top-0 -right-4 z-20 rounded-md border dark:[&>div]:!bg-neutral-900 dark:[&>div>div:nth-child(3)]:!bg-neutral-800">
-                        <SlackSelector
-                          onSelect={(id) => console.log('id', id)}
-                          frequent={[
-                            '👍',
-                            '🙌',
-                            '😊',
-                            '🚀',
-                            '👋',
-                            '😭',
-                            '🥳',
-                            '💪'
-                          ]}
-                        />
-                      </div>
-                    )}
+                  <div className="flex">
                     <Tooltip
                       position="top"
                       content="반응 추가"
@@ -430,7 +754,10 @@ const RoomIdPage: NextPage = () => {
                       className="flex h-7 w-7 items-center justify-center rounded-l-lg hover:bg-neutral-200 dark:hover:bg-neutral-600"
                     >
                       <button
-                        onClick={() => setState({ isReactionOpen: true })}
+                        onClick={() => {
+                          if (!user) toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
+                          else setState({ isEmojiOpen: true, chatId: item.id })
+                        }}
                       >
                         <FaceSmileIcon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
                       </button>
@@ -448,7 +775,7 @@ const RoomIdPage: NextPage = () => {
                         border={window.localStorage.getItem('theme') !== 'dark'}
                         className="flex h-7 w-7 items-center justify-center rounded-r-lg hover:bg-neutral-200 dark:hover:bg-neutral-600"
                       >
-                        <button onClick={() => update(key)}>
+                        <button onClick={() => updateChat(key)}>
                           <PencilIcon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
                         </button>
                       </Tooltip>
@@ -504,7 +831,7 @@ const RoomIdPage: NextPage = () => {
             onKeyDown={(e) => {
               if (!e.shiftKey && e.keyCode === 13) {
                 e.preventDefault()
-                create()
+                createChat()
               }
             }}
             ref={textareaRef}
@@ -518,7 +845,7 @@ const RoomIdPage: NextPage = () => {
           <button
             className="rounded-full bg-blue-500 p-1.5 duration-150 hover:bg-blue-400 active:bg-blue-600 disabled:bg-neutral-400"
             disabled={isSubmitting || !content}
-            onClick={create}
+            onClick={createChat}
           >
             {isSubmitting ? (
               <Spinner className="h-5 w-5 text-neutral-50" />
@@ -537,6 +864,11 @@ const RoomIdPage: NextPage = () => {
         isOpen={isProfileOpen}
         onClose={() => setState({ isProfileOpen: false, userId: '' })}
         userId={userId}
+      />
+      <Modal.Emoji
+        isOpen={isEmojiOpen}
+        onClose={() => setState({ isEmojiOpen: false })}
+        onSelect={onReaction}
       />
     </>
   )

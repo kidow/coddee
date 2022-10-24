@@ -50,7 +50,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
   const create = async () => {
     const { data } = await supabase.auth.getUser()
     if (!user) {
-      toast.info('로그인이 필요합니다.')
+      toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
     }
     if (!!user && !data.user) {

@@ -72,8 +72,10 @@ namespace NTable {
     id: number
     user_id: string
     chat_id: number
+    room_id: string
     text: string
     created_at: string
+    userList: Array<{ id: string; nickname: string }>
   }
   interface Replies {}
 }

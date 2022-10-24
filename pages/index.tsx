@@ -1,8 +1,7 @@
-import { EmojiPicker, SEO } from 'components'
+import { SEO } from 'components'
 import type { NextPage } from 'next'
 import Link from 'next/link'
 import Script from 'next/script'
-import { SlackSelector } from '@charkour/react-reactions'
 
 interface State {}
 
@@ -75,15 +74,6 @@ const HomePage: NextPage = () => {
         </a>
       </div>
       <Script src="https://buttons.github.io/buttons.js" async defer />
-      {/* <div className="dark:[&>div]:!bg-neutral-900 dark:[&>div>div:nth-child(3)]:!bg-neutral-800">
-        <SlackSelector
-          onSelect={(id) => console.log('id', id)}
-          frequent={['👍', '🙌', '😊', '🚀', '👋', '😭', '🥳', '💪']}
-        />
-      </div> */}
-      <div className="flex h-96 items-center justify-center">
-        <EmojiPicker onSelect={(text) => console.log('text', text)} />
-      </div>
     </>
   )
 }
