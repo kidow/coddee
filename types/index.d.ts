@@ -58,6 +58,8 @@ namespace NTable {
     created_at: string
     updated_at: string
     deleted_at: string
+    isUpdating?: boolean
+    tempContent?: string
   }
   interface Languages {
     id: number
@@ -66,6 +68,16 @@ namespace NTable {
     template: string
     created_at: string
   }
+  interface Reactions {
+    id: number
+    user_id: string
+    chat_id: number
+    room_id: string
+    text: string
+    created_at: string
+    userList: Array<{ id: string; nickname: string }>
+  }
+  interface Replies {}
 }
 
 namespace NToast {

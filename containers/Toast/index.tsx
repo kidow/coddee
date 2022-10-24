@@ -73,7 +73,7 @@ const Toast: FC<Props> = () => {
                   <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
                 )}
               </span>
-              <span className="text-sm">{item.message}</span>
+              <span className="select-none text-sm">{item.message}</span>
             </div>
           </div>
         ))}

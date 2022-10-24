@@ -38,7 +38,7 @@ const Layout: FC<Props> = ({ children }) => {
       id,
       name,
       logo_url,
-      chats (
+      chats!chats_room_id_fkey (
         content,
         code_block,
         created_at

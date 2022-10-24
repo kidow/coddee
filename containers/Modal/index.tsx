@@ -9,6 +9,7 @@ import ProfileModal from './Profile'
 import LoginModal from './Login'
 import SearchModal from './Search'
 import ThreadModal from './Thread'
+import EmojiModal from './Emoji'
 
 interface Props extends ReactProps, ModalProps {}
 interface State {}
@@ -105,5 +106,6 @@ export default Object.assign(Modal, {
   Profile: ProfileModal,
   Login: LoginModal,
   Search: SearchModal,
-  Thread: ThreadModal
+  Thread: ThreadModal,
+  Emoji: EmojiModal
 })

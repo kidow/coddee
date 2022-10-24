@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="https://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="https://www.w3.org/1999/xhtml" xmlns:mobile="https://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="https://www.google.com/schemas/sitemap-image/1.1" xmlns:video="https://www.google.com/schemas/sitemap-video/1.1">
-<url><loc>https://coddee.dev</loc><lastmod>2022-10-21T07:33:17.449Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://coddee.dev/privacy</loc><lastmod>2022-10-21T07:33:17.449Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://coddee.dev/terms</loc><lastmod>2022-10-21T07:33:17.449Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://coddee.dev/room/6ef3ea9f-5090-456e-acdf-515cc23effbc</loc><lastmod>2022-10-21T07:33:17.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://coddee.dev</loc><lastmod>2022-10-24T09:26:15.356Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://coddee.dev/privacy</loc><lastmod>2022-10-24T09:26:15.356Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://coddee.dev/terms</loc><lastmod>2022-10-24T09:26:15.356Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://coddee.dev/room/6ef3ea9f-5090-456e-acdf-515cc23effbc</loc><lastmod>2022-10-24T09:26:16.563Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 </urlset>

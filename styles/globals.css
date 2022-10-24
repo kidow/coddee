@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: Slack;
+  src: url(/fonts/slack-icons-Regular.eot);
+  src: url(/fonts/slack-icons-Regular.eot?#iefix) format('embedded-opentype'),
+    url(/fonts/slack-icons-Regular.woff) format('woff'),
+    url(/fonts/slack-icons-Regular.ttf) format('truetype');
+}
+
 * {
   font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
     Pretendard, Roboto, 'Noto Sans KR', 'Segoe UI', 'Malgun Gothic', sans-serif;
