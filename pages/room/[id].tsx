@@ -685,13 +685,13 @@ const RoomIdPage: NextPage = () => {
                             window.localStorage.getItem('theme') !== 'dark'
                           }
                           key={reaction.id}
-                          className="inline-flex h-6 items-center gap-1 rounded-xl border border-blue-700 bg-blue-100 px-1.5"
+                          className="inline-flex h-6 items-center gap-1 rounded-xl border border-blue-700 bg-blue-100 px-1.5 dark:border-transparent dark:bg-neutral-900"
                         >
                           <button
                             onClick={() => updateReaction(key, reactionKey)}
                           >
                             <span>{reaction.text}</span>
-                            <span className="text-xs font-semibold text-blue-700">
+                            <span className="text-xs font-semibold text-blue-700 dark:text-neutral-400">
                               {reaction?.userList.length}
                             </span>
                           </button>
@@ -707,7 +707,7 @@ const RoomIdPage: NextPage = () => {
                             : 'light'
                         }
                         border={window.localStorage.getItem('theme') !== 'dark'}
-                        className="hidden h-6 items-center justify-center rounded-xl border border-transparent bg-neutral-100 px-1.5 hover:border-neutral-500 hover:bg-white group-hover:inline-flex"
+                        className="hidden h-6 items-center justify-center rounded-xl border border-transparent bg-neutral-100 px-1.5 hover:border-neutral-500 hover:bg-white group-hover:inline-flex dark:bg-neutral-900"
                       >
                         <button
                           onClick={() => {
@@ -721,7 +721,7 @@ const RoomIdPage: NextPage = () => {
                             height="16px"
                             viewBox="0 0 16 16"
                             xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 fill-neutral-600"
+                            className="h-5 w-5 fill-neutral-600 dark:fill-neutral-400"
                           >
                             <path
                               fillRule="evenodd"
