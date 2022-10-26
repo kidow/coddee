@@ -27,6 +27,9 @@
   textarea {
     @apply focus:outline-none;
   }
+  textarea {
+    @apply resize-none;
+  }
   button {
     @apply disabled:cursor-not-allowed;
   }

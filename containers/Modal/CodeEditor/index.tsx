@@ -157,7 +157,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
         </div>
         <div>
           <TextareaAutosize
-            className="w-full resize-none border p-2 focus:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900"
+            className="w-full border p-2 focus:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900"
             value={content}
             name="content"
             placeholder="서로를 존중하는 매너를 보여주세요 :)"

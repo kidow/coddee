@@ -30,6 +30,12 @@ interface ModalProps {
   error?: boolean
 }
 
+interface DrawerProps {
+  isOpen: boolean
+  onClose: () => void
+  position?: 'left' | 'top' | 'right' | 'bottom'
+}
+
 namespace NTable {
   interface Users {
     id: string
@@ -77,7 +83,27 @@ namespace NTable {
     created_at: string
     userList: Array<{ id: string; nickname: string }>
   }
-  interface Replies {}
+  interface Replies {
+    id: number
+    chat_id: number
+    user_id: string
+    content: string
+    language: string
+    code_block: string
+    created_at: string
+    updated_at: string
+    isUpdating?: boolean
+    tempContent?: string
+  }
+  interface ReplyReactions {
+    id: number
+    user_id: string
+    reply_id: number
+    chat_id: number
+    text: string
+    created_at: string
+    userList: Array<{ id: string; nickname: string }>
+  }
 }
 
 namespace NToast {

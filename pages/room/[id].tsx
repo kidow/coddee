@@ -16,10 +16,18 @@ import {
 import TextareaAutosize from 'react-textarea-autosize'
 import { Fragment, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { Modal } from 'containers'
+import { Drawer, Modal } from 'containers'
 import classnames from 'classnames'
 import dayjs from 'dayjs'
-import { FaceSmileIcon, PencilIcon } from '@heroicons/react/24/solid'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import {
+  FaceSmileIcon,
+  PencilIcon,
+  ChatBubbleLeftEllipsisIcon
+} from '@heroicons/react/24/solid'
+import { ChevronRightIcon } from '@heroicons/react/20/solid'
+
+dayjs.extend(relativeTime)
 
 interface State {
   content: string
@@ -33,12 +41,11 @@ interface State {
   chatList: Array<
     NTable.Chats & {
       user: NTable.Users
-      reactions: Array<{
-        id: number
-        room_id: string
-        chat_id: number
-        text: string
-        userList: Array<{ id: string; nickname: string }>
+      reactions: NTable.Reactions[]
+      replies: Array<{
+        id: string
+        created_at: string
+        user: { avatar_url: string }
       }>
     }
   >
@@ -48,6 +55,8 @@ interface State {
   isSpamming: boolean
   isEmojiOpen: boolean
   chatId: number
+  isThreadOpen: boolean
+  chatIndex: number | null
 }
 
 const RoomIdPage: NextPage = () => {
@@ -67,7 +76,9 @@ const RoomIdPage: NextPage = () => {
       count,
       isSpamming,
       isEmojiOpen,
-      chatId
+      chatId,
+      isThreadOpen,
+      chatIndex
     },
     setState,
     onChange,
@@ -87,7 +98,9 @@ const RoomIdPage: NextPage = () => {
     count: 0,
     isSpamming: false,
     isEmojiOpen: false,
-    chatId: 0
+    chatId: 0,
+    isThreadOpen: false,
+    chatIndex: null
   })
   const { query } = useRouter()
   const [user, setUser] = useUser()
@@ -124,12 +137,21 @@ const RoomIdPage: NextPage = () => {
         user:user_id (
           nickname
         )
+      ),
+      replies!replies_chat_id_fkey (
+        id,
+        created_at,
+        user:user_id (
+          avatar_url
+        )
       )
     `,
         { count: 'exact' }
       )
       .eq('room_id', query.id)
       .order('created_at', { ascending: false })
+      .order('created_at', { ascending: true, foreignTable: 'reactions' })
+      .order('created_at', { ascending: false, foreignTable: 'replies' })
       .range((page - 1) * 100 + count, page * 100 - 1 + count)
     if (error) {
       console.error(error)
@@ -224,7 +246,7 @@ const RoomIdPage: NextPage = () => {
     setState({ isSubmitting: true })
     const { error } = await supabase
       .from('chats')
-      .insert({ user_id: user?.id, room_id: query.id, content })
+      .insert({ user_id: user.id, room_id: query.id, content })
     setState({ isSubmitting: false, isSpamming: true })
     if (error) {
       console.error(error)
@@ -249,6 +271,7 @@ const RoomIdPage: NextPage = () => {
       return
     }
 
+    if (!item.tempContent?.trim()) return
     const { error } = await supabase
       .from('chats')
       .update({ content: item.tempContent })
@@ -257,19 +280,6 @@ const RoomIdPage: NextPage = () => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    setState({
-      chatList: [
-        ...chatList.slice(0, index),
-        {
-          ...item,
-          isUpdating: false,
-          tempContent: '',
-          content: item.tempContent || ''
-        },
-        ...chatList.slice(index + 1)
-      ]
-    })
-    toast.success('변경되었습니다.')
   }
 
   const onReaction = async (text: string) => {
@@ -366,11 +376,6 @@ const RoomIdPage: NextPage = () => {
     }
   }
 
-  const isBringMore: boolean = useMemo(() => {
-    if (chatList.length < 100) return false
-    return page * 100 < total
-  }, [page, total, chatList.length, count])
-
   useEffect(() => {
     getChatList()
     getRoom()
@@ -384,9 +389,13 @@ const RoomIdPage: NextPage = () => {
       .channel('public:chats')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'chats' },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chats',
+          filter: `room_id=eq.${query.id}`
+        },
         async (payload: any) => {
-          if (payload.new.room_id !== query.id) return
           const { data, error } = await supabase
             .from('users')
             .select('id, nickname, avatar_url')
@@ -398,7 +407,10 @@ const RoomIdPage: NextPage = () => {
           }
           if (data)
             setState({
-              chatList: [{ ...payload.new, user: data }, ...chatList],
+              chatList: [
+                { ...payload.new, user: data, reactions: [] },
+                ...chatList
+              ],
               count: count + 1
             })
           if (payload.new.user_id === user?.id) {
@@ -407,132 +419,173 @@ const RoomIdPage: NextPage = () => {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chats',
+          filter: `room_id=eq.${query.id}`
+        },
+        (payload) => {
+          const index = chatList.findIndex((item) => item.id === payload.new.id)
+          if (index === -1) return
+          setState({
+            chatList: [
+              ...chatList.slice(0, index),
+              {
+                ...chatList[index],
+                isUpdating: false,
+                tempContent: '',
+                content: payload.new.content,
+                updated_at: payload.new.updated_at
+              },
+              ...chatList.slice(index + 1)
+            ]
+          })
+          toast.success('변경되었습니다.')
+        }
+      )
       .subscribe()
 
+    return () => {
+      supabase.removeChannel(chats)
+    }
+  }, [chatList, query.id, count])
+
+  useEffect(() => {
     const reactions = supabase
       .channel('public:reactions')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'reactions' },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'reactions',
+          filter: `room_id=eq.${query.id}`
+        },
         async (payload: any) => {
-          if (payload.eventType === 'INSERT') {
-            if (payload.new.room_id !== query.id) return
-
-            const chatIndex = chatList.findIndex(
-              (item) => item.id === payload.new.chat_id
-            )
-            if (chatIndex === -1) return
-            const { data, error } = await supabase
-              .from('users')
-              .select('nickname')
-              .eq('id', payload.new.user_id)
-              .single()
-            if (error) {
-              console.error(error)
-              return
-            }
-
-            const reactionIndex = chatList[chatIndex].reactions.findIndex(
-              (item) => item.text === payload.new.text
-            )
-            setState({
-              chatList: [
-                ...chatList.slice(0, chatIndex),
-                {
-                  ...chatList[chatIndex],
-                  reactions:
-                    reactionIndex === -1
-                      ? [
-                          ...chatList[chatIndex].reactions,
-                          {
-                            ...payload.new,
-                            userList: [
-                              {
-                                id: payload.new.user_id,
-                                nickname: data.nickname
-                              }
-                            ]
-                          }
-                        ]
-                      : [
-                          ...chatList[chatIndex].reactions.slice(
-                            0,
-                            reactionIndex
-                          ),
-                          {
-                            ...chatList[chatIndex].reactions[reactionIndex],
-                            userList: [
-                              ...chatList[chatIndex].reactions[reactionIndex]
-                                .userList,
-                              {
-                                id: payload.new.user_id,
-                                nickname: data.nickname
-                              }
-                            ]
-                          },
-                          ...chatList[chatIndex].reactions.slice(
-                            reactionIndex + 1
-                          )
-                        ]
-                },
-                ...chatList.slice(chatIndex + 1)
-              ]
-            })
+          const chatIndex = chatList.findIndex(
+            (item) => item.id === payload.new.chat_id
+          )
+          if (chatIndex === -1) return
+          const { data, error } = await supabase
+            .from('users')
+            .select('nickname')
+            .eq('id', payload.new.user_id)
+            .single()
+          if (error) {
+            console.error(error)
+            return
           }
-          if (payload.eventType === 'DELETE') {
-            if (payload.old.room_id !== query.id) return
 
-            const chatIndex = chatList.findIndex(
-              (item) => item.id === payload.old.chat_id
-            )
-            if (chatIndex === -1) return
-
-            const reactionIndex = chatList[chatIndex].reactions.findIndex(
-              (item) => item.text === payload.old.text
-            )
-            if (reactionIndex === -1) return
-
-            setState({
-              chatList: [
-                ...chatList.slice(0, chatIndex),
-                {
-                  ...chatList[chatIndex],
-                  reactions:
-                    chatList[chatIndex].reactions[reactionIndex].userList
-                      .length > 1
-                      ? [
-                          ...chatList[chatIndex].reactions.slice(
-                            0,
-                            reactionIndex
-                          ),
-                          {
-                            ...chatList[chatIndex].reactions[reactionIndex],
-                            userList: chatList[chatIndex].reactions[
-                              reactionIndex
-                            ].userList.filter(
-                              (item) => item.id !== payload.old.user_id
-                            )
-                          },
-                          ...chatList[chatIndex].reactions.slice(
-                            reactionIndex + 1
-                          )
-                        ]
-                      : chatList[chatIndex].reactions.filter(
-                          (item) => item.text !== payload.old.text
+          const reactionIndex = chatList[chatIndex].reactions.findIndex(
+            (item) => item.text === payload.new.text
+          )
+          setState({
+            chatList: [
+              ...chatList.slice(0, chatIndex),
+              {
+                ...chatList[chatIndex],
+                reactions:
+                  reactionIndex === -1
+                    ? [
+                        ...chatList[chatIndex].reactions,
+                        {
+                          ...payload.new,
+                          userList: [
+                            {
+                              id: payload.new.user_id,
+                              nickname: data.nickname
+                            }
+                          ]
+                        }
+                      ]
+                    : [
+                        ...chatList[chatIndex].reactions.slice(
+                          0,
+                          reactionIndex
+                        ),
+                        {
+                          ...chatList[chatIndex].reactions[reactionIndex],
+                          userList: [
+                            ...chatList[chatIndex].reactions[reactionIndex]
+                              .userList,
+                            {
+                              id: payload.new.user_id,
+                              nickname: data.nickname
+                            }
+                          ]
+                        },
+                        ...chatList[chatIndex].reactions.slice(
+                          reactionIndex + 1
                         )
-                },
-                ...chatList.slice(chatIndex + 1)
-              ]
-            })
-          }
+                      ]
+              },
+              ...chatList.slice(chatIndex + 1)
+            ]
+          })
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'reactions',
+          filter: `room_id=eq.${query.id}`
+        },
+        (payload) => {
+          const chatIndex = chatList.findIndex(
+            (item) => item.id === payload.old.chat_id
+          )
+          if (chatIndex === -1) return
+
+          const reactionIndex = chatList[chatIndex].reactions.findIndex(
+            (item) => item.text === payload.old.text
+          )
+          if (reactionIndex === -1) return
+
+          setState({
+            chatList: [
+              ...chatList.slice(0, chatIndex),
+              {
+                ...chatList[chatIndex],
+                reactions:
+                  chatList[chatIndex].reactions[reactionIndex].userList.length >
+                  1
+                    ? [
+                        ...chatList[chatIndex].reactions.slice(
+                          0,
+                          reactionIndex
+                        ),
+                        {
+                          ...chatList[chatIndex].reactions[reactionIndex],
+                          userList: chatList[chatIndex].reactions[
+                            reactionIndex
+                          ].userList.filter(
+                            (item) => item.id !== payload.old.user_id
+                          )
+                        },
+                        ...chatList[chatIndex].reactions.slice(
+                          reactionIndex + 1
+                        )
+                      ]
+                    : chatList[chatIndex].reactions.filter(
+                        (item) => item.text !== payload.old.text
+                      )
+              },
+              ...chatList.slice(chatIndex + 1)
+            ]
+          })
         }
       )
       .subscribe()
+
     return () => {
-      supabase.removeChannel(chats)
       supabase.removeChannel(reactions)
     }
-  }, [chatList, query.id, count])
+  }, [chatList, query.id])
 
   useEffect(() => {
     if (isSpamming) setTimeout(() => setState({ isSpamming: false }), 3000)
@@ -594,7 +647,7 @@ const RoomIdPage: NextPage = () => {
                   {item.user_id !== arr[key + 1]?.user_id && (
                     <div className="flex items-center gap-2">
                       <span className="flex cursor-pointer items-center text-sm font-medium">
-                        {item.user?.nickname}
+                        <span>{item.user?.nickname}</span>
                         {item.user_id === user?.id && (
                           <span className="ml-1 text-xs text-neutral-400">
                             (나)
@@ -611,7 +664,7 @@ const RoomIdPage: NextPage = () => {
                       <div>
                         <TextareaAutosize
                           value={item.tempContent}
-                          className="resize-none rounded-lg bg-neutral-200 p-2 dark:bg-neutral-600 dark:text-neutral-200"
+                          className="rounded-lg bg-neutral-200 p-2 dark:bg-neutral-600 dark:text-neutral-200"
                           spellCheck={false}
                           autoFocus
                           autoComplete="off"
@@ -649,7 +702,7 @@ const RoomIdPage: NextPage = () => {
                     ) : (
                       item.content.split('\n').map((v, i, arr) => (
                         <div key={i}>
-                          {v}
+                          <span>{v}</span>
                           {!!item.updated_at && i === arr.length - 1 && (
                             <span className="ml-1 text-2xs text-neutral-400">
                               (수정됨)
@@ -670,67 +723,51 @@ const RoomIdPage: NextPage = () => {
                   {!!item.reactions?.length && (
                     <div className="mt-1 flex gap-1">
                       {item.reactions.map((reaction, reactionKey) => (
-                        <Tooltip
-                          position="top"
+                        <Tooltip.Reaction
                           content={`${reaction.userList
                             .map((item) => item.nickname)
                             .join(', ')} 님이 반응하였습니다.`}
-                          size="sm"
-                          theme={
-                            window.localStorage.getItem('theme') === 'dark'
-                              ? 'dark'
-                              : 'light'
-                          }
-                          border={
-                            window.localStorage.getItem('theme') !== 'dark'
-                          }
                           key={reaction.id}
-                          className="inline-flex h-6 items-center gap-1 rounded-xl border border-blue-700 bg-blue-100 px-1.5 dark:border-transparent dark:bg-neutral-900"
-                        >
-                          <button
-                            onClick={() => updateReaction(key, reactionKey)}
-                          >
-                            <span>{reaction.text}</span>
-                            <span className="text-xs font-semibold text-blue-700 dark:text-neutral-400">
-                              {reaction?.userList.length}
-                            </span>
-                          </button>
-                        </Tooltip>
+                          onClick={() => updateReaction(key, reactionKey)}
+                          text={reaction.text}
+                          length={reaction?.userList.length}
+                        />
                       ))}
-                      <Tooltip
-                        position="top"
-                        content="반응 추가"
-                        size="sm"
-                        theme={
-                          window.localStorage.getItem('theme') === 'dark'
-                            ? 'dark'
-                            : 'light'
+                      <Tooltip.AddReaction
+                        onClick={() =>
+                          setState({ isEmojiOpen: true, chatId: item.id })
                         }
-                        border={window.localStorage.getItem('theme') !== 'dark'}
-                        className="hidden h-6 items-center justify-center rounded-xl border border-transparent bg-neutral-100 px-1.5 hover:border-neutral-500 hover:bg-white group-hover:inline-flex dark:bg-neutral-900"
-                      >
-                        <button
-                          onClick={() => {
-                            if (!user) toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
-                            else
-                              setState({ isEmojiOpen: true, chatId: item.id })
-                          }}
-                        >
-                          <svg
-                            width="16px"
-                            height="16px"
-                            viewBox="0 0 16 16"
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 fill-neutral-600 dark:fill-neutral-400"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              clipRule="evenodd"
-                              d="M12 7.5c0 .169-.01.336-.027.5h1.005A5.5 5.5 0 1 0 8 12.978v-1.005A4.5 4.5 0 1 1 12 7.5zM5.5 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm2 2.5c.712 0 1.355-.298 1.81-.776l.707.708A3.49 3.49 0 0 1 7.5 10.5a3.49 3.49 0 0 1-2.555-1.108l.707-.708A2.494 2.494 0 0 0 7.5 9.5zm2-2.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm2.5 3h1v2h2v1h-2v2h-1v-2h-2v-1h2v-2z"
-                            />
-                          </svg>
-                        </button>
-                      </Tooltip>
+                      />
+                    </div>
+                  )}
+                  {!!item.replies?.length && (
+                    <div
+                      onClick={() =>
+                        setState({ isThreadOpen: true, chatIndex: key })
+                      }
+                      className="group/reply mt-1 flex cursor-pointer items-center justify-between rounded border border-transparent p-1 duration-150 hover:border-neutral-200 hover:bg-white"
+                    >
+                      <div className="flex flex-1 items-center gap-2">
+                        <img
+                          src={item.replies[0].user.avatar_url}
+                          alt=""
+                          className="h-6 w-6 rounded"
+                        />
+                        <span className="text-sm font-semibold text-neutral-600 hover:underline">
+                          {item.replies.length}개의 댓글
+                        </span>
+                        <div className="text-sm text-neutral-400 group-hover/reply:hidden">
+                          {dayjs(item.replies[0].created_at)
+                            .locale('ko')
+                            .fromNow()}
+                        </div>
+                        <div className="hidden text-sm text-neutral-400 group-hover/reply:block">
+                          스레드 보기
+                        </div>
+                      </div>
+                      <button className="hidden group-hover/reply:inline-block">
+                        <ChevronRightIcon className="h-5 w-5 text-neutral-500" />
+                      </button>
                     </div>
                   )}
                 </div>
@@ -740,45 +777,19 @@ const RoomIdPage: NextPage = () => {
                     { 'group-hover:block': !item.isUpdating }
                   )}
                 >
-                  <div className="flex">
-                    <Tooltip
-                      position="top"
-                      content="반응 추가"
-                      size="sm"
-                      theme={
-                        window.localStorage.getItem('theme') === 'dark'
-                          ? 'dark'
-                          : 'light'
+                  <div className="flex p-0.5">
+                    <Tooltip.Actions.AddReaction
+                      onClick={() =>
+                        setState({ isEmojiOpen: true, chatId: item.id })
                       }
-                      border={window.localStorage.getItem('theme') !== 'dark'}
-                      className="flex h-7 w-7 items-center justify-center rounded-l-lg hover:bg-neutral-200 dark:hover:bg-neutral-600"
-                    >
-                      <button
-                        onClick={() => {
-                          if (!user) toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
-                          else setState({ isEmojiOpen: true, chatId: item.id })
-                        }}
-                      >
-                        <FaceSmileIcon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
-                      </button>
-                    </Tooltip>
+                    />
+                    <Tooltip.Actions.Thread
+                      onClick={() =>
+                        setState({ isThreadOpen: true, chatIndex: key })
+                      }
+                    />
                     {item.user_id === user?.id && (
-                      <Tooltip
-                        position="top"
-                        size="sm"
-                        content="수정"
-                        theme={
-                          window.localStorage.getItem('theme') === 'dark'
-                            ? 'dark'
-                            : 'light'
-                        }
-                        border={window.localStorage.getItem('theme') !== 'dark'}
-                        className="flex h-7 w-7 items-center justify-center rounded-r-lg hover:bg-neutral-200 dark:hover:bg-neutral-600"
-                      >
-                        <button onClick={() => updateChat(key)}>
-                          <PencilIcon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
-                        </button>
-                      </Tooltip>
+                      <Tooltip.Actions.Update onClick={() => updateChat(key)} />
                     )}
                   </div>
                 </div>
@@ -801,21 +812,10 @@ const RoomIdPage: NextPage = () => {
               아직 채팅이 없습니다. 첫 채팅의 주인공이 되어 보시겠어요? :)
             </div>
           )}
-          {isLoading ? (
+          {isLoading && (
             <div className="mb-4 flex items-center justify-center">
               <Spinner className="h-5 w-5 text-neutral-200 dark:text-neutral-400" />
             </div>
-          ) : (
-            isBringMore && (
-              <div className="mb-4 flex items-center justify-center">
-                <button
-                  className="text-sm text-neutral-400"
-                  onClick={() => getChatList(page + 1)}
-                >
-                  더 보기
-                </button>
-              </div>
-            )
           )}
           <div ref={ref} />
         </main>
@@ -826,7 +826,7 @@ const RoomIdPage: NextPage = () => {
             onChange={onChange}
             disabled={isSubmitting}
             placeholder="서로를 존중하는 매너를 보여주세요 :)"
-            className="flex-1 resize-none dark:bg-transparent"
+            className="flex-1 dark:bg-transparent"
             spellCheck={false}
             onKeyDown={(e) => {
               if (!e.shiftKey && e.keyCode === 13) {
@@ -834,6 +834,7 @@ const RoomIdPage: NextPage = () => {
                 createChat()
               }
             }}
+            autoComplete="off"
             ref={textareaRef}
           />
           <button
@@ -869,6 +870,42 @@ const RoomIdPage: NextPage = () => {
         isOpen={isEmojiOpen}
         onClose={() => setState({ isEmojiOpen: false })}
         onSelect={onReaction}
+      />
+      <Drawer.Thread
+        isOpen={isThreadOpen}
+        onClose={() => setState({ isThreadOpen: false, chatIndex: null })}
+        chat={chatIndex === null ? null : chatList[chatIndex]}
+        updateReaction={(reactionIndex) =>
+          updateReaction(chatIndex!, reactionIndex)
+        }
+        onCreate={(reply) => {
+          if (!chatIndex || chatIndex < 0) return
+          setState({
+            chatList: [
+              ...chatList.slice(0, chatIndex),
+              {
+                ...chatList[chatIndex],
+                replies: [reply, ...chatList[chatIndex].replies]
+              },
+              ...chatList.slice(chatIndex + 1)
+            ]
+          })
+        }}
+        onDelete={(id) => {
+          if (!chatIndex || chatIndex < 0) return
+          setState({
+            chatList: [
+              ...chatList.slice(0, chatIndex),
+              {
+                ...chatList[chatIndex],
+                replies: chatList[chatIndex].replies.filter(
+                  (item) => item.id !== id
+                )
+              },
+              ...chatList.slice(chatIndex + 1)
+            ]
+          })
+        }}
       />
     </>
   )

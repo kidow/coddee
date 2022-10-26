@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { FC } from 'react'
 import { XMarkIcon } from '@heroicons/react/24/solid'
 import classnames from 'classnames'
@@ -8,8 +9,8 @@ import MyInfoModal from './MyInfo'
 import ProfileModal from './Profile'
 import LoginModal from './Login'
 import SearchModal from './Search'
-import ThreadModal from './Thread'
 import EmojiModal from './Emoji'
+import MentionModal from './Mention'
 
 interface Props extends ReactProps, ModalProps {}
 interface State {}
@@ -26,6 +27,20 @@ const Modal: FC<Props> = ({
   error = false
 }) => {
   if (!isOpen) return null
+
+  const onEscape = (e: KeyboardEvent) => {
+    if (e.code === 'Escape') {
+      onClose()
+      window.removeEventListener('keydown', onEscape)
+    }
+  }
+
+  useEffect(() => {
+    window.addEventListener('keydown', onEscape)
+    return () => {
+      window.removeEventListener('keydown', onEscape)
+    }
+  }, [])
   return createPortal(
     <div
       className="fixed inset-0 z-30 overflow-y-auto"
@@ -106,6 +121,6 @@ export default Object.assign(Modal, {
   Profile: ProfileModal,
   Login: LoginModal,
   Search: SearchModal,
-  Thread: ThreadModal,
-  Emoji: EmojiModal
+  Emoji: EmojiModal,
+  Mention: MentionModal
 })
