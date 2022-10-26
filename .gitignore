@@ -37,3 +37,8 @@ next-env.d.ts
 
 # Sentry
 .sentryclirc
+
+# SEO
+/public/robots.txt
+/public/sitemap-0.xml
+/public/sitemap.xml

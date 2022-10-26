@@ -93,14 +93,14 @@ const Tooltip: FC<Props> = ({
   const left: number = useMemo(() => {
     if (position === 'top' || position === 'bottom')
       return triggerLeft + triggerWidth / 2 - tooltipWidth / 2
-    else if (position === 'left') return triggerLeft - tooltipWidth - 10
-    else if (position === 'right') return triggerLeft + triggerWidth + 10
+    else if (position === 'left') return triggerLeft - tooltipWidth - 16
+    else if (position === 'right') return triggerLeft + triggerWidth + 16
     return 0
   }, [triggerLeft, triggerWidth, tooltipWidth])
 
   const top: number = useMemo(() => {
     if (position === 'top') return triggerTop - tooltipHeight - 16
-    else if (position === 'bottom') return triggerTop + tooltipHeight
+    else if (position === 'bottom') return triggerTop + tooltipHeight + 20
     else if (position === 'left' || position === 'right')
       return triggerTop + triggerHeight / 2 - tooltipHeight / 2
     return 0

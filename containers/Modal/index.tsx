@@ -62,7 +62,8 @@ const Modal: FC<Props> = ({
         </span>
         <div
           className={classnames(
-            'my-8 inline-block w-full transform overflow-hidden rounded-lg bg-white text-left align-middle shadow-xl transition-all dark:bg-neutral-800',
+            'my-8 inline-block w-full transform overflow-hidden rounded-lg bg-white text-left align-middle shadow-xl transition-all',
+            error ? 'dark:bg-red-50' : 'dark:bg-neutral-800',
             maxWidth
           )}
         >

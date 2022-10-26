@@ -44,6 +44,8 @@ interface State {
     }
   >
   replyId: number
+  tempContent: string
+  isUpdateMode: boolean
 }
 
 const ThreadDrawer: FC<Props> = ({
@@ -64,7 +66,9 @@ const ThreadDrawer: FC<Props> = ({
       userId,
       isSubmitting,
       list,
-      replyId
+      replyId,
+      tempContent,
+      isUpdateMode
     },
     setState,
     onChange
@@ -76,7 +80,9 @@ const ThreadDrawer: FC<Props> = ({
     userId: '',
     isSubmitting: false,
     list: [],
-    replyId: 0
+    replyId: 0,
+    tempContent: '',
+    isUpdateMode: false
   })
   const [user, setUser] = useUser()
   const { query } = useRouter()
@@ -569,7 +575,7 @@ const ThreadDrawer: FC<Props> = ({
     <>
       <Drawer isOpen={isOpen} onClose={onClose} position="right">
         <div>
-          <div className="group relative flex items-start gap-3 p-4 hover:bg-neutral-50">
+          <div className="group relative flex items-start gap-3 p-4 hover:bg-neutral-50 dark:hover:bg-neutral-700">
             <img
               src={chat?.user?.avatar_url}
               alt=""
@@ -610,18 +616,24 @@ const ThreadDrawer: FC<Props> = ({
                 </div>
               )}
             </div>
-            <div className="absolute top-4 right-4 hidden rounded-md border bg-white group-hover:flex">
-              <button
-                className="p-1"
-                onClick={() => setState({ isEmojiOpen: true })}
-              >
-                <Icon.AddReaction />
-              </button>
+            <div className="absolute top-4 right-4 z-10 hidden rounded-lg border bg-white group-hover:flex dark:border-neutral-800 dark:bg-neutral-700">
+              <div className="flex p-0.5">
+                <Tooltip.Actions.AddReaction
+                  onClick={() => setState({ isEmojiOpen: true })}
+                  position="bottom"
+                />
+                {/* {chat?.user_id === user?.id && (
+                  <Tooltip.Actions.Update
+                    onClick={() => {}}
+                    position="bottom"
+                  />
+                )} */}
+              </div>
             </div>
           </div>
           {!!list.length && (
-            <div className="relative m-4 border-t">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 bg-white pr-2 text-xs text-neutral-400">
+            <div className="relative m-4 border-t dark:border-neutral-700">
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 bg-white pr-2 text-xs text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500">
                 {list.length}개의 댓글
               </span>
             </div>
@@ -630,7 +642,7 @@ const ThreadDrawer: FC<Props> = ({
             {list.map((item, key) => (
               <div
                 key={item.id}
-                className="group relative flex items-start gap-3 py-2 pl-4 pr-6 hover:bg-neutral-50"
+                className="group relative flex items-start gap-3 py-2 pl-4 pr-6 hover:bg-neutral-50 dark:hover:bg-neutral-700"
               >
                 <img
                   src={item.user?.avatar_url}
@@ -658,7 +670,7 @@ const ThreadDrawer: FC<Props> = ({
                     {item.isUpdating ? (
                       <div>
                         <TextareaAutosize
-                          className="rounded-lg bg-neutral-200 p-2"
+                          className="rounded-lg bg-neutral-200 p-2 dark:bg-neutral-600 dark:text-neutral-200"
                           spellCheck={false}
                           value={item.tempContent}
                           autoFocus
@@ -716,7 +728,7 @@ const ThreadDrawer: FC<Props> = ({
                     </div>
                   )}
                   {!!item.reply_reactions?.length && (
-                    <div className="mt-1 flex gap-1">
+                    <div className="mt-1 flex flex-wrap gap-1 pr-10">
                       {item.reply_reactions.map((reaction, reactionKey) => (
                         <Tooltip.Reaction
                           content={`${reaction.userList
@@ -764,7 +776,7 @@ const ThreadDrawer: FC<Props> = ({
             ))}
           </div>
           <div className="p-4">
-            <div className="flex items-center gap-1 rounded-lg bg-neutral-100 p-2">
+            <div className="flex items-center gap-1 rounded-lg bg-neutral-100 p-2 dark:bg-neutral-700">
               <TextareaAutosize
                 placeholder="메시지 보내기"
                 className="flex-1 bg-transparent"

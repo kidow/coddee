@@ -745,7 +745,7 @@ const RoomIdPage: NextPage = () => {
                       onClick={() =>
                         setState({ isThreadOpen: true, chatIndex: key })
                       }
-                      className="group/reply mt-1 flex cursor-pointer items-center justify-between rounded border border-transparent p-1 duration-150 hover:border-neutral-200 hover:bg-white"
+                      className="group/reply mt-1 flex cursor-pointer items-center justify-between rounded border border-transparent p-1 duration-150 hover:border-neutral-200 hover:bg-white dark:hover:border-neutral-600 dark:hover:bg-neutral-800"
                     >
                       <div className="flex flex-1 items-center gap-2">
                         <img
@@ -753,7 +753,7 @@ const RoomIdPage: NextPage = () => {
                           alt=""
                           className="h-6 w-6 rounded"
                         />
-                        <span className="text-sm font-semibold text-neutral-600 hover:underline">
+                        <span className="text-sm font-semibold text-neutral-600 hover:underline dark:text-blue-400">
                           {item.replies.length}개의 댓글
                         </span>
                         <div className="text-sm text-neutral-400 group-hover/reply:hidden">

@@ -23,7 +23,7 @@ const DeleteTooltipAction: FC<Props> = ({ onClick }) => {
           window.localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'
         }
         border={window.localStorage.getItem('theme') !== 'dark'}
-        className="group/tooltip flex h-7 w-7 items-center justify-center rounded hover:bg-neutral-100"
+        className="group/tooltip flex h-7 w-7 items-center justify-center rounded hover:bg-neutral-100 dark:hover:bg-neutral-600"
       >
         <button onClick={() => setState({ isOpen: true })}>
           <TrashIcon className="h-4 w-4 text-neutral-600 group-hover/tooltip:text-red-500 dark:text-neutral-400" />
@@ -50,7 +50,11 @@ const DeleteTooltipAction: FC<Props> = ({ onClick }) => {
           메시지를 삭제하시겠습니까? 이 행동은 되돌릴 수 없습니다.
         </p>
         <div className="flex items-center justify-end gap-3 py-5 px-6">
-          <Button size="sm" shape="outlined">
+          <Button
+            size="sm"
+            shape="outlined"
+            onClick={() => setState({ isOpen: false })}
+          >
             취소
           </Button>
           <Button size="sm" theme="danger" onClick={onClick}>

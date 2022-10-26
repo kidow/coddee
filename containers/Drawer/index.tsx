@@ -54,7 +54,7 @@ const Drawer: FC<Props> = ({
       />
       <div
         className={classnames(
-          'fixed z-30 w-5/6 overflow-auto overscroll-contain bg-white duration-200',
+          'fixed z-30 w-5/6 overflow-auto overscroll-contain bg-white duration-200 dark:bg-neutral-800',
           {
             'left-0 top-0 h-screen': position === 'left',
             'right-0 top-0 h-screen': position === 'right',
