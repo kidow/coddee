@@ -13,7 +13,13 @@ import {
   GlobeAltIcon,
   PaintBrushIcon
 } from '@heroicons/react/24/outline'
-import { throttle, useObjectState } from 'services'
+import {
+  throttle,
+  toast,
+  TOAST_MESSAGE,
+  useObjectState,
+  useUser
+} from 'services'
 
 export interface Props extends ModalProps {
   onSelect: (text: string) => void
@@ -28,6 +34,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
     currentScroll: 0
   })
   const ref = useRef<HTMLElement>(null)
+  const [user] = useUser()
 
   const isActive = (id: string, index: number): boolean => {
     if (currentScroll === 0 && id === 'mine') return true
@@ -45,6 +52,11 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
     const element = document.getElementById(id)
     if (!element) return
     ref.current!.scrollTop = element.offsetTop - 32
+  }
+
+  const onEmojiClick = (text: string) => {
+    if (!user) toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
+    else onSelect(text)
   }
 
   const tabs: Array<{ Icon: any; id: string }> = useMemo(
@@ -98,7 +110,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
             id="mine"
             label="자주 사용됨"
             list={['😊', '🚀', '😭', '🥳', '💪']}
-            onClick={onSelect}
+            onClick={onEmojiClick}
           />
           <List
             id="workdone"
@@ -123,7 +135,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
               '🔵',
               '🔴'
             ]}
-            onClick={onSelect}
+            onClick={onEmojiClick}
           />
           <List
             id="people"
@@ -602,7 +614,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
               '🫂',
               '👣'
             ]}
-            onClick={onSelect}
+            onClick={onEmojiClick}
           />
           <List
             label="동물 및 자연"
@@ -753,7 +765,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
               '🪹',
               '🪺'
             ]}
-            onClick={onSelect}
+            onClick={onEmojiClick}
           />
           <List
             id="food-and-drink"
@@ -892,7 +904,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
               '🫙',
               '🏺'
             ]}
-            onClick={onSelect}
+            onClick={onEmojiClick}
           />
           <List
             id="travel-and-places"
@@ -1117,7 +1129,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
               '💧',
               '🌊'
             ]}
-            onClick={onSelect}
+            onClick={onEmojiClick}
           />
           <List
             id="activity"
@@ -1210,7 +1222,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
               '🧶',
               '🪢'
             ]}
-            onClick={onSelect}
+            onClick={onEmojiClick}
           />
           <List
             id="objects"
@@ -1472,7 +1484,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
               '🪧',
               '🪪'
             ]}
-            onClick={onSelect}
+            onClick={onEmojiClick}
           />
           <List
             id="symbols"
@@ -1700,7 +1712,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
               '🔳',
               '🔲'
             ]}
-            onClick={onSelect}
+            onClick={onEmojiClick}
           />
           <List
             id="flags"
@@ -1949,7 +1961,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
               '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
               '🏴󠁧󠁢󠁷󠁬󠁳󠁿'
             ]}
-            onClick={onSelect}
+            onClick={onEmojiClick}
           />
         </section>
       </div>

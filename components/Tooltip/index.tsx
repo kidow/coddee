@@ -2,12 +2,16 @@ import { Children, cloneElement, useRef, useEffect, useMemo } from 'react'
 import type { ReactElement, MouseEvent, ReactNode, FC } from 'react'
 import classnames from 'classnames'
 import type { Argument } from 'classnames'
-import { throttle, useObjectState } from 'services'
+import { useObjectState } from 'services'
 import { createPortal } from 'react-dom'
+
+import AddReactionTooltip from './AddReaction'
+import ReactionTooltip from './Reaction'
+import TooltipActions from './Actions'
 
 export interface Props extends ReactProps {
   content: ReactNode
-  position: 'top' | 'right' | 'bottom' | 'left'
+  position?: 'top' | 'right' | 'bottom' | 'left'
   border?: boolean
   theme?: 'dark' | 'light'
   arrow?: boolean
@@ -32,7 +36,7 @@ const Tooltip: FC<Props> = ({
   border = true,
   theme = 'light',
   arrow = true,
-  position,
+  position = 'top',
   padding = true,
   animation = true,
   className,
@@ -121,7 +125,7 @@ const Tooltip: FC<Props> = ({
             role="tooltip"
             ref={tooltipRef}
             className={classnames(
-              'fixed z-[9999] rounded shadow-lg',
+              'fixed z-[9999] rounded',
               isPositioned ? 'visible' : 'invisible',
               {
                 'px-5 py-3': padding && size === 'lg',
@@ -213,4 +217,8 @@ const Tooltip: FC<Props> = ({
   )
 }
 
-export default Tooltip
+export default Object.assign(Tooltip, {
+  AddReaction: AddReactionTooltip,
+  Reaction: ReactionTooltip,
+  Actions: TooltipActions
+})
