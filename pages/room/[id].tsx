@@ -1,6 +1,7 @@
 import { CodePreview, SEO, Spinner, Tooltip } from 'components'
 import type { NextPage } from 'next'
 import {
+  ArrowLeftIcon,
   ArrowSmallUpIcon,
   CodeBracketIcon,
   EllipsisVerticalIcon
@@ -14,17 +15,12 @@ import {
   TOAST_MESSAGE
 } from 'services'
 import TextareaAutosize from 'react-textarea-autosize'
-import { Fragment, useEffect, useMemo, useRef } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { Drawer, Modal } from 'containers'
 import classnames from 'classnames'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import {
-  FaceSmileIcon,
-  PencilIcon,
-  ChatBubbleLeftEllipsisIcon
-} from '@heroicons/react/24/solid'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 
 dayjs.extend(relativeTime)
@@ -52,11 +48,11 @@ interface State {
   name: string
   page: number
   count: number
-  isSpamming: boolean
   isEmojiOpen: boolean
   chatId: number
   isThreadOpen: boolean
   chatIndex: number | null
+  spamCount: number
 }
 
 const RoomIdPage: NextPage = () => {
@@ -74,11 +70,11 @@ const RoomIdPage: NextPage = () => {
       name,
       page,
       count,
-      isSpamming,
       isEmojiOpen,
       chatId,
       isThreadOpen,
-      chatIndex
+      chatIndex,
+      spamCount
     },
     setState,
     onChange,
@@ -96,13 +92,13 @@ const RoomIdPage: NextPage = () => {
     name: '',
     page: 1,
     count: 0,
-    isSpamming: false,
     isEmojiOpen: false,
     chatId: 0,
     isThreadOpen: false,
-    chatIndex: null
+    chatIndex: null,
+    spamCount: 0
   })
-  const { query } = useRouter()
+  const { query, back } = useRouter()
   const [user, setUser] = useUser()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -226,7 +222,10 @@ const RoomIdPage: NextPage = () => {
   }
 
   const createChat = async () => {
-    if (isSpamming) return
+    if (spamCount >= 3) {
+      toast.warn('도배는 자제 부탁드립니다. :)')
+      return
+    }
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
@@ -247,7 +246,7 @@ const RoomIdPage: NextPage = () => {
     const { error } = await supabase
       .from('chats')
       .insert({ user_id: user.id, room_id: query.id, content })
-    setState({ isSubmitting: false, isSpamming: true })
+    setState({ isSubmitting: false, spamCount: spamCount + 1 })
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
@@ -588,8 +587,9 @@ const RoomIdPage: NextPage = () => {
   }, [chatList, query.id])
 
   useEffect(() => {
-    if (isSpamming) setTimeout(() => setState({ isSpamming: false }), 3000)
-  }, [isSpamming])
+    const timer = setInterval(() => setState({ spamCount: 0 }), 3000)
+    return () => clearInterval(timer)
+  }, [spamCount])
 
   useEffect(() => {
     if (isIntersecting && page * 100 < total) getChatList(page + 1)
@@ -599,7 +599,12 @@ const RoomIdPage: NextPage = () => {
       <SEO title="Javascript" />
       <div className="flex h-full flex-col">
         <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b bg-white px-5 dark:border-neutral-700 dark:bg-neutral-800">
-          <span className="font-semibold">{name}</span>
+          <div className="flex items-center gap-2">
+            <button onClick={back} className="sm:hidden">
+              <ArrowLeftIcon className="h-5 w-5 text-neutral-800" />
+            </button>
+            <span className="font-semibold">{name}</span>
+          </div>
           {/* <div className="relative">
             <button
               onClick={() => setState({ isDropdownOpen: !isDropdownOpen })}
@@ -724,9 +729,7 @@ const RoomIdPage: NextPage = () => {
                     <div className="mt-1 flex gap-1">
                       {item.reactions.map((reaction, reactionKey) => (
                         <Tooltip.Reaction
-                          content={`${reaction.userList
-                            .map((item) => item.nickname)
-                            .join(', ')} 님이 반응하였습니다.`}
+                          userList={reaction.userList}
                           key={reaction.id}
                           onClick={() => updateReaction(key, reactionKey)}
                           text={reaction.text}
@@ -819,7 +822,7 @@ const RoomIdPage: NextPage = () => {
           )}
           <div ref={ref} />
         </main>
-        <footer className="sticky bottom-0 z-20 flex min-h-[59px] w-full items-center gap-3 border-t bg-white py-3 px-5 dark:border-neutral-700 dark:bg-neutral-800">
+        <footer className="sticky bottom-16 z-20 flex min-h-[59px] w-full items-center gap-3 border-t bg-white py-3 px-5 dark:border-neutral-700 dark:bg-neutral-800 sm:bottom-0">
           <TextareaAutosize
             value={content}
             name="content"

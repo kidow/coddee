@@ -2,10 +2,10 @@ import { useEffect } from 'react'
 import type { FC } from 'react'
 import classnames from 'classnames'
 import type { Argument } from 'classnames'
-
-import ThreadDrawer from './Thread'
 import { useObjectState } from 'services'
 import { createPortal } from 'react-dom'
+
+import ThreadDrawer from './Thread'
 
 export interface Props extends DrawerProps, ReactProps {
   className?: Argument
@@ -39,7 +39,7 @@ const Drawer: FC<Props> = ({
   }, [isOpen])
 
   useEffect(() => {
-    if (isClosed) setTimeout(() => onClose(), 200)
+    if (isClosed) setTimeout(() => onClose(), 190)
   }, [isClosed])
   return createPortal(
     <div
@@ -56,10 +56,10 @@ const Drawer: FC<Props> = ({
         className={classnames(
           'fixed z-30 w-5/6 overflow-auto overscroll-contain bg-white duration-200 dark:bg-neutral-800',
           {
-            'left-0 top-0 h-screen': position === 'left',
-            'right-0 top-0 h-screen': position === 'right',
-            'top-0 left-0 w-screen': position === 'top',
-            'bottom-0 left-0 w-screen': position === 'bottom',
+            'left-0': position === 'left',
+            'right-0': position === 'right',
+            'top-0': position === 'top',
+            'bottom-0': position === 'bottom',
             'animate-fade-in-left': position === 'right' && isOpen,
             'animate-fade-in-right': position === 'left' && isOpen,
             'animate-fade-in-bottom': position === 'top' && isOpen,
@@ -68,7 +68,9 @@ const Drawer: FC<Props> = ({
             'md:w-96':
               !className && (position === 'left' || position === 'right'),
             'md:h-96':
-              !className && (position === 'top' || position === 'bottom')
+              !className && (position === 'top' || position === 'bottom'),
+            'top-0 h-screen': position === 'left' || position === 'right',
+            'left-0 w-screen': position === 'top' || position === 'bottom'
           },
           className
         )}
