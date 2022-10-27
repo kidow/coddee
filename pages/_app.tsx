@@ -9,13 +9,11 @@ import 'dayjs/locale/ko'
 interface Props {}
 interface State {
   hasError: boolean
-  isValidated: boolean
 }
 
 class MyApp extends App<Props, {}, State> {
   state = {
-    hasError: false,
-    isValidated: false
+    hasError: false
   }
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     if (error) this.setState({ hasError: true })
@@ -28,7 +26,6 @@ class MyApp extends App<Props, {}, State> {
     if (theme === 'dark') document.documentElement.classList.add('dark')
   }
   render() {
-    const { isValidated } = this.state
     const { Component, pageProps } = this.props
     return (
       <>
@@ -47,13 +44,13 @@ class MyApp extends App<Props, {}, State> {
               if (data) set(userState, data)
             } catch (err) {
               console.error(err)
-            } finally {
-              this.setState({ isValidated: true })
             }
           }}
         >
           <Auth>
-            <Layout>{isValidated && <Component {...pageProps} />}</Layout>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
           </Auth>
         </RecoilRoot>
         <Backdrop />

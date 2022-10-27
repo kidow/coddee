@@ -1,6 +1,5 @@
 import { SEO } from 'components'
 import type { NextPage } from 'next'
-import Head from 'next/head'
 import Link from 'next/link'
 import Script from 'next/script'
 
@@ -9,9 +8,6 @@ interface State {}
 const HomePage: NextPage = () => {
   return (
     <>
-      <Head>
-        <title>개발자 채팅방 - 커디</title>
-      </Head>
       <SEO />
       <article className="prose prose-neutral p-4 dark:prose-invert">
         <h2>안녕하세요! 커디입니다.</h2>
