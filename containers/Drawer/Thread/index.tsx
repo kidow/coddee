@@ -601,9 +601,7 @@ const ThreadDrawer: FC<Props> = ({
                 <div className="group mt-1 flex flex-wrap gap-1 pr-16">
                   {chat.reactions.map((item, key) => (
                     <Tooltip.Reaction
-                      content={`${item.userList
-                        .map((user) => user.nickname)
-                        .join(', ')} 님이 반응하였습니다.`}
+                      userList={item.userList}
                       key={item.id}
                       onClick={() => updateReaction(key)}
                       text={item.text}
@@ -731,9 +729,7 @@ const ThreadDrawer: FC<Props> = ({
                     <div className="mt-1 flex flex-wrap gap-1 pr-10">
                       {item.reply_reactions.map((reaction, reactionKey) => (
                         <Tooltip.Reaction
-                          content={`${reaction.userList
-                            .map((item) => item.nickname)
-                            .join(', ')}님 이 반응하였습니다.`}
+                          userList={reaction.userList}
                           key={reaction.id}
                           onClick={() => updateReplyReaction(key, reactionKey)}
                           text={reaction.text}

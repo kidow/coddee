@@ -14,17 +14,12 @@ import {
   TOAST_MESSAGE
 } from 'services'
 import TextareaAutosize from 'react-textarea-autosize'
-import { Fragment, useEffect, useMemo, useRef } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { Drawer, Modal } from 'containers'
 import classnames from 'classnames'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import {
-  FaceSmileIcon,
-  PencilIcon,
-  ChatBubbleLeftEllipsisIcon
-} from '@heroicons/react/24/solid'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 
 dayjs.extend(relativeTime)
@@ -724,9 +719,7 @@ const RoomIdPage: NextPage = () => {
                     <div className="mt-1 flex gap-1">
                       {item.reactions.map((reaction, reactionKey) => (
                         <Tooltip.Reaction
-                          content={`${reaction.userList
-                            .map((item) => item.nickname)
-                            .join(', ')} 님이 반응하였습니다.`}
+                          userList={reaction.userList}
                           key={reaction.id}
                           onClick={() => updateReaction(key, reactionKey)}
                           text={reaction.text}
