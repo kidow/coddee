@@ -1,5 +1,6 @@
 import { SEO } from 'components'
 import type { NextPage } from 'next'
+import { Content } from 'templates'
 
 interface State {}
 
@@ -7,7 +8,7 @@ const TermsPage: NextPage = () => {
   return (
     <>
       <SEO title="이용약관" />
-      <div>준비 중입니다.</div>
+      <Content.Terms />
     </>
   )
 }
