@@ -16,7 +16,6 @@ export interface Props extends ReactProps {
   theme?: 'dark' | 'light'
   arrow?: boolean
   padding?: boolean
-  animation?: boolean
   className?: Argument
   size?: 'sm' | 'md' | 'lg'
 }
@@ -38,7 +37,6 @@ const Tooltip: FC<Props> = ({
   arrow = true,
   position = 'top',
   padding = true,
-  animation = true,
   className,
   size = 'md',
   ...props
@@ -54,7 +52,7 @@ const Tooltip: FC<Props> = ({
       tooltipWidth
     },
     setState,
-    onChange,
+    _,
     resetState
   ] = useObjectState<State>({
     isOpen: false,
@@ -65,7 +63,7 @@ const Tooltip: FC<Props> = ({
     tooltipHeight: 0,
     tooltipWidth: 0
   })
-  const tooltipRef = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null)
   const child = Children.only(
     typeof children === 'string' ? (
       <div tabIndex={-1}>{children}</div>
@@ -77,7 +75,7 @@ const Tooltip: FC<Props> = ({
     ...props,
     className: className || 'inline-block',
     onMouseEnter: (e: MouseEvent) => {
-      const element = e.target as HTMLElement
+      const element = e.currentTarget as HTMLElement
       const { height, width, top, left } = element.getBoundingClientRect()
       setState({
         isOpen: true,
@@ -99,23 +97,24 @@ const Tooltip: FC<Props> = ({
   }, [triggerLeft, triggerWidth, tooltipWidth])
 
   const top: number = useMemo(() => {
-    if (position === 'top') return triggerTop - tooltipHeight - 16
-    else if (position === 'bottom') return triggerTop + tooltipHeight + 20
-    else if (position === 'left' || position === 'right')
+    if (position === 'left' || position === 'right')
       return triggerTop + triggerHeight / 2 - tooltipHeight / 2
+    else if (position === 'top') return triggerTop - tooltipHeight - 16
+    else if (position === 'bottom') return triggerTop + tooltipHeight + 20
     return 0
-  }, [triggerTop, tooltipHeight])
+  }, [triggerTop, triggerHeight, tooltipHeight])
 
-  const isPositioned: boolean = useMemo(() => {
-    return !!tooltipWidth && !!tooltipHeight
-  }, [left, top])
+  const isPositioned: boolean = useMemo(
+    () => !!tooltipHeight && !!tooltipWidth,
+    [tooltipHeight, tooltipWidth]
+  )
 
   useEffect(() => {
-    if (isOpen && tooltipRef.current) {
-      const { height, width } = tooltipRef.current.getBoundingClientRect()
+    if (isOpen && ref.current) {
+      const { height, width } = ref.current.getBoundingClientRect()
       setState({ tooltipHeight: height, tooltipWidth: width })
     }
-  }, [isOpen, tooltipRef])
+  }, [isOpen, ref])
   return (
     <>
       {trigger}
@@ -123,7 +122,7 @@ const Tooltip: FC<Props> = ({
         createPortal(
           <div
             role="tooltip"
-            ref={tooltipRef}
+            ref={ref}
             className={classnames(
               'fixed z-[9999] rounded',
               isPositioned ? 'visible' : 'invisible',
@@ -134,7 +133,7 @@ const Tooltip: FC<Props> = ({
                 'after:absolute after:z-10 after:border-8 after:content-[""]':
                   arrow,
                 'border border-neutral-400': border,
-                'before-content-[""] before:absolute before:border-[9px]':
+                'before:absolute before:border-[9px] before:content-[""]':
                   arrow && border,
 
                 'bg-white text-neutral-700': theme === 'light',
