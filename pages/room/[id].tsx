@@ -22,6 +22,7 @@ import classnames from 'classnames'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
+import Linkify from 'linkify-react'
 
 dayjs.extend(relativeTime)
 
@@ -706,14 +707,22 @@ const RoomIdPage: NextPage = () => {
                       </div>
                     ) : (
                       item.content.split('\n').map((v, i, arr) => (
-                        <div key={i}>
-                          <span>{v}</span>
+                        <Linkify
+                          options={{
+                            target: '_blank',
+                            rel: 'nofollow noreferrer noopener'
+                          }}
+                          key={i}
+                        >
+                          <span className="[&>a]:text-blue-500 [&>a]:hover:underline dark:[&>a]:text-blue-400">
+                            {v}
+                          </span>
                           {!!item.updated_at && i === arr.length - 1 && (
                             <span className="ml-1 text-2xs text-neutral-400">
                               (수정됨)
                             </span>
                           )}
-                        </div>
+                        </Linkify>
                       ))
                     )}
                   </div>
