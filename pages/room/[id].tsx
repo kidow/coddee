@@ -1,6 +1,7 @@
 import { CodePreview, SEO, Spinner, Tooltip } from 'components'
 import type { NextPage } from 'next'
 import {
+  ArrowLeftIcon,
   ArrowSmallUpIcon,
   CodeBracketIcon,
   EllipsisVerticalIcon
@@ -97,7 +98,7 @@ const RoomIdPage: NextPage = () => {
     chatIndex: null,
     spamCount: 0
   })
-  const { query } = useRouter()
+  const { query, back } = useRouter()
   const [user, setUser] = useUser()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -598,7 +599,12 @@ const RoomIdPage: NextPage = () => {
       <SEO title="Javascript" />
       <div className="flex h-full flex-col">
         <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b bg-white px-5 dark:border-neutral-700 dark:bg-neutral-800">
-          <span className="font-semibold">{name}</span>
+          <div className="flex items-center gap-2">
+            <button onClick={back} className="sm:hidden">
+              <ArrowLeftIcon className="h-5 w-5 text-neutral-800" />
+            </button>
+            <span className="font-semibold">{name}</span>
+          </div>
           {/* <div className="relative">
             <button
               onClick={() => setState({ isDropdownOpen: !isDropdownOpen })}
@@ -816,7 +822,7 @@ const RoomIdPage: NextPage = () => {
           )}
           <div ref={ref} />
         </main>
-        <footer className="sticky bottom-0 z-20 flex min-h-[59px] w-full items-center gap-3 border-t bg-white py-3 px-5 dark:border-neutral-700 dark:bg-neutral-800">
+        <footer className="sticky bottom-16 z-20 flex min-h-[59px] w-full items-center gap-3 border-t bg-white py-3 px-5 dark:border-neutral-700 dark:bg-neutral-800 sm:bottom-0">
           <TextareaAutosize
             value={content}
             name="content"
