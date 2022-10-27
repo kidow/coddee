@@ -1,5 +1,6 @@
 import { SEO } from 'components'
 import type { NextPage } from 'next'
+import Head from 'next/head'
 import Link from 'next/link'
 import Script from 'next/script'
 
