@@ -47,11 +47,11 @@ interface State {
   name: string
   page: number
   count: number
-  isSpamming: boolean
   isEmojiOpen: boolean
   chatId: number
   isThreadOpen: boolean
   chatIndex: number | null
+  spamCount: number
 }
 
 const RoomIdPage: NextPage = () => {
@@ -69,11 +69,11 @@ const RoomIdPage: NextPage = () => {
       name,
       page,
       count,
-      isSpamming,
       isEmojiOpen,
       chatId,
       isThreadOpen,
-      chatIndex
+      chatIndex,
+      spamCount
     },
     setState,
     onChange,
@@ -91,11 +91,11 @@ const RoomIdPage: NextPage = () => {
     name: '',
     page: 1,
     count: 0,
-    isSpamming: false,
     isEmojiOpen: false,
     chatId: 0,
     isThreadOpen: false,
-    chatIndex: null
+    chatIndex: null,
+    spamCount: 0
   })
   const { query } = useRouter()
   const [user, setUser] = useUser()
@@ -221,7 +221,10 @@ const RoomIdPage: NextPage = () => {
   }
 
   const createChat = async () => {
-    if (isSpamming) return
+    if (spamCount >= 3) {
+      toast.warn('도배는 자제 부탁드립니다. :)')
+      return
+    }
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
@@ -242,7 +245,7 @@ const RoomIdPage: NextPage = () => {
     const { error } = await supabase
       .from('chats')
       .insert({ user_id: user.id, room_id: query.id, content })
-    setState({ isSubmitting: false, isSpamming: true })
+    setState({ isSubmitting: false, spamCount: spamCount + 1 })
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
@@ -583,8 +586,9 @@ const RoomIdPage: NextPage = () => {
   }, [chatList, query.id])
 
   useEffect(() => {
-    if (isSpamming) setTimeout(() => setState({ isSpamming: false }), 3000)
-  }, [isSpamming])
+    const timer = setInterval(() => setState({ spamCount: 0 }), 3000)
+    return () => clearInterval(timer)
+  }, [spamCount])
 
   useEffect(() => {
     if (isIntersecting && page * 100 < total) getChatList(page + 1)
