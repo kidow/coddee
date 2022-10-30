@@ -23,6 +23,7 @@
     "next-sitemap": "^3.1.29",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-mentions": "^4.4.7",
     "react-textarea-autosize": "^8.3.4",
     "recoil": "^0.7.6"
   },
@@ -31,6 +32,7 @@
     "@types/node": "^18.8.4",
     "@types/react": "^18.0.21",
     "@types/react-dom": "^18.0.6",
+    "@types/react-mentions": "^4.1.7",
     "autoprefixer": "^10.4.12",
     "postcss": "^8.4.17",
     "prettier-plugin-tailwindcss": "^0.1.13",

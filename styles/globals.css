@@ -34,3 +34,9 @@
     @apply disabled:cursor-not-allowed;
   }
 }
+
+@layer components {
+  .skeleton {
+    @apply animate-pulse bg-neutral-200 dark:bg-neutral-700;
+  }
+}

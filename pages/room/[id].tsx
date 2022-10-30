@@ -1,4 +1,11 @@
-import { CodePreview, SEO, Spinner, Tooltip } from 'components'
+import {
+  CodePreview,
+  SEO,
+  Spinner,
+  Textarea,
+  TextParser,
+  Tooltip
+} from 'components'
 import type { NextPage } from 'next'
 import {
   ArrowLeftIcon,
@@ -14,7 +21,6 @@ import {
   toast,
   TOAST_MESSAGE
 } from 'services'
-import TextareaAutosize from 'react-textarea-autosize'
 import { Fragment, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { Drawer, Modal } from 'containers'
@@ -587,8 +593,27 @@ const RoomIdPage: NextPage = () => {
     }
   }, [chatList, query.id])
 
+  // useEffect(() => {
+  //   const mentions = supabase
+  //     .channel('public:mentions')
+  //     .on(
+  //       'postgres_changes',
+  //       { event: 'INSERT', schema: 'public', table: 'mentions' },
+  //       (payload) => {
+  //         console.log('payload', payload)
+  //       }
+  //     )
+  //     .subscribe()
+
+  //   return () => {
+  //     supabase.removeChannel(mentions)
+  //   }
+  // }, [query.id])
+
   useEffect(() => {
-    const timer = setInterval(() => setState({ spamCount: 0 }), 3000)
+    const timer = setInterval(() => {
+      if (spamCount > 0) setState({ spamCount: 0 })
+    }, 3000)
     return () => clearInterval(timer)
   }, [spamCount])
 
@@ -668,22 +693,21 @@ const RoomIdPage: NextPage = () => {
                   <div>
                     {item.isUpdating ? (
                       <div>
-                        <TextareaAutosize
-                          value={item.tempContent}
-                          className="rounded-lg bg-neutral-200 p-2 dark:bg-neutral-600 dark:text-neutral-200"
-                          spellCheck={false}
-                          autoFocus
-                          autoComplete="off"
-                          onChange={(e) =>
-                            setState({
-                              chatList: [
-                                ...chatList.slice(0, key),
-                                { ...item, tempContent: e.target.value },
-                                ...chatList.slice(key + 1)
-                              ]
-                            })
-                          }
-                        />
+                        <div className="rounded-lg bg-neutral-200 p-2 dark:bg-neutral-600 dark:text-neutral-200">
+                          <Textarea
+                            value={item.tempContent}
+                            autoFocus
+                            onChange={(e) =>
+                              setState({
+                                chatList: [
+                                  ...chatList.slice(0, key),
+                                  { ...item, tempContent: e.target.value },
+                                  ...chatList.slice(key + 1)
+                                ]
+                              })
+                            }
+                          />
+                        </div>
                         <div className="flex gap-2 text-xs text-blue-500">
                           <button
                             onClick={() =>
@@ -707,22 +731,14 @@ const RoomIdPage: NextPage = () => {
                       </div>
                     ) : (
                       item.content.split('\n').map((v, i, arr) => (
-                        <Linkify
-                          options={{
-                            target: '_blank',
-                            rel: 'nofollow noreferrer noopener'
-                          }}
-                          key={i}
-                        >
-                          <span className="[&>a]:text-blue-500 [&>a]:hover:underline dark:[&>a]:text-blue-400">
-                            {v}
-                          </span>
+                        <Fragment key={i}>
+                          <TextParser value={v} />
                           {!!item.updated_at && i === arr.length - 1 && (
                             <span className="ml-1 text-2xs text-neutral-400">
                               (수정됨)
                             </span>
                           )}
-                        </Linkify>
+                        </Fragment>
                       ))
                     )}
                   </div>
@@ -760,11 +776,20 @@ const RoomIdPage: NextPage = () => {
                       className="group/reply mt-1 flex cursor-pointer items-center justify-between rounded border border-transparent p-1 duration-150 hover:border-neutral-200 hover:bg-white dark:hover:border-neutral-600 dark:hover:bg-neutral-800"
                     >
                       <div className="flex flex-1 items-center gap-2">
-                        <img
-                          src={item.replies[0].user.avatar_url}
-                          alt=""
-                          className="h-6 w-6 rounded"
-                        />
+                        <div className="flex items-center gap-1">
+                          {[
+                            ...new Set(
+                              item.replies.map((item) => item.user.avatar_url)
+                            )
+                          ].map((url, key) => (
+                            <img
+                              key={key}
+                              src={url}
+                              alt=""
+                              className="h-6 w-6 rounded"
+                            />
+                          ))}
+                        </div>
                         <span className="text-sm font-semibold text-neutral-600 hover:underline dark:text-blue-400">
                           {item.replies.length}개의 댓글
                         </span>
@@ -832,22 +857,18 @@ const RoomIdPage: NextPage = () => {
           <div ref={ref} />
         </main>
         <footer className="sticky bottom-16 z-20 flex min-h-[59px] w-full items-center gap-3 border-t bg-white py-3 px-5 dark:border-neutral-700 dark:bg-neutral-800 sm:bottom-0">
-          <TextareaAutosize
+          <Textarea
             value={content}
-            name="content"
-            onChange={onChange}
+            onChange={(e) => setState({ content: e.target.value })}
             disabled={isSubmitting}
             placeholder="서로를 존중하는 매너를 보여주세요 :)"
             className="flex-1 dark:bg-transparent"
-            spellCheck={false}
             onKeyDown={(e) => {
               if (!e.shiftKey && e.keyCode === 13) {
                 e.preventDefault()
                 createChat()
               }
             }}
-            autoComplete="off"
-            ref={textareaRef}
           />
           <button
             onClick={() => setState({ isCodeEditorOpen: true })}

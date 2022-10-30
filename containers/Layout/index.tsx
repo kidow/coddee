@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import type { FC } from 'react'
 import classnames from 'classnames'
 import Link from 'next/link'
-import { supabase, toast, useObjectState, useUser } from 'services'
+import { REGEXP, supabase, toast, useObjectState, useUser } from 'services'
 import { Modal, Drawer } from 'containers'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
@@ -221,7 +221,11 @@ const Layout: FC<Props> = ({ children }) => {
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="w-56 truncate text-xs text-neutral-500 dark:text-neutral-400 sm:w-40">
-                              {item.newChat}
+                              {REGEXP.MENTION.test(item.newChat)
+                                ? item.newChat.replace(REGEXP.MENTION, (v) =>
+                                    v.slice(2, -39)
+                                  )
+                                : item.newChat}
                             </div>
                             <div className="flex h-4 justify-end">
                               {item.newCount > 0 && (
@@ -241,7 +245,7 @@ const Layout: FC<Props> = ({ children }) => {
           </div>
           <div className="flex flex-1 flex-col border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800 sm:block sm:border-x">
             <div>{children}</div>
-            <nav className="sticky bottom-0 z-10 flex h-[65px] border-t bg-neutral-100 sm:hidden">
+            <nav className="sticky bottom-0 z-10 flex h-[65px] border-t bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 sm:hidden">
               <button
                 onClick={() => push('/')}
                 className="flex flex-1 flex-col items-center justify-center gap-1"

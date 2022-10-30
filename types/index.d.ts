@@ -104,6 +104,13 @@ namespace NTable {
     created_at: string
     userList: Array<{ id: string; nickname: string }>
   }
+  interface Mentions {
+    id: number
+    mention_to: string
+    mention_from: string
+    chat_id: number
+    created_at: string
+  }
 }
 
 namespace NToast {
