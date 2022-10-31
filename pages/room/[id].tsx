@@ -473,7 +473,7 @@ const RoomIdPage: NextPage = () => {
   }, [isIntersecting])
   return (
     <>
-      <SEO title="Javascript" />
+      <SEO title={name} />
       <div className="flex h-full flex-col">
         <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b bg-white px-5 dark:border-neutral-700 dark:bg-neutral-800">
           <div className="flex items-center gap-2">

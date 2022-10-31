@@ -108,7 +108,7 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
           ) : !!avatarUrl ? (
             <img src={avatarUrl} alt="" className="h-20 w-20 rounded-full" />
           ) : (
-            <div className="h-20 w-20 rounded-full" />
+            <div className="skeleton h-20 w-20 rounded-full" />
           )}
         </div>
         <button className="absolute top-3 right-4" onClick={onClose}>
@@ -178,7 +178,9 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
             {isLoading ? (
               <div role="status" className="skeleton h-4 w-48 rounded-full" />
             ) : (
-              <span>{blogUrl}</span>
+              <a href={blogUrl} target="_blank" className="hover:underline">
+                {blogUrl}
+              </a>
             )}
           </Form.Item>
           <div className="pt-2">

@@ -9,6 +9,9 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { Logo } from 'components'
 import {
+  AtSymbolIcon,
+  BookmarkIcon,
+  ChatBubbleBottomCenterTextIcon,
   ChatBubbleLeftRightIcon,
   HomeIcon as HomeOutlineIcon,
   UserIcon
@@ -25,16 +28,29 @@ interface State {
     NTable.Rooms & { newChat: string; newDate: string; newCount: number }
   >
   isListOpen: boolean
+  isNewMentionCreated: boolean
+  isNewThreadCreated: boolean
 }
 
 const Layout: FC<Props> = ({ children }) => {
-  const [{ isMyInfoOpen, isLoginOpen, roomList, isListOpen }, setState] =
-    useObjectState<State>({
-      isMyInfoOpen: false,
-      isLoginOpen: false,
-      roomList: [],
-      isListOpen: false
-    })
+  const [
+    {
+      isMyInfoOpen,
+      isLoginOpen,
+      roomList,
+      isListOpen,
+      isNewMentionCreated,
+      isNewThreadCreated
+    },
+    setState
+  ] = useObjectState<State>({
+    isMyInfoOpen: false,
+    isLoginOpen: false,
+    roomList: [],
+    isListOpen: false,
+    isNewMentionCreated: false,
+    isNewThreadCreated: false
+  })
   const [user] = useUser()
   const { query, pathname, replace, push } = useRouter()
 
@@ -77,12 +93,12 @@ const Layout: FC<Props> = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    supabase
+    const channel = supabase
       .channel('*')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public' },
-        (payload: any) => {
+        async (payload: any) => {
           if (payload.table === 'chats') {
             if (payload.eventType === 'INSERT') {
               const index = roomList.findIndex(
@@ -105,6 +121,53 @@ const Layout: FC<Props> = ({ children }) => {
                   ...roomList.slice(index + 1)
                 ]
               })
+
+              if (REGEXP.MENTION.test(payload.new.content)) {
+                const mentions = (payload.new.content as string).match(
+                  REGEXP.MENTION
+                )
+                if (!mentions) return
+
+                const result = await Promise.all(
+                  mentions.map((item) =>
+                    supabase
+                      .from('mentions')
+                      .insert({
+                        mention_from: payload.new.user_id,
+                        mention_to: item.slice(-37, -1),
+                        chat_id: payload.new.id
+                      })
+                      .select()
+                      .single()
+                  )
+                )
+                result.forEach(async (item) => {
+                  if (item.error) {
+                    console.error(item.error)
+                    return
+                  }
+                  if (item.data.mention_to === user?.id) {
+                    const { data, error } = await supabase
+                      .from('users')
+                      .select('nickname, avatar_url')
+                      .eq('id', payload.new.user_id)
+                      .single()
+                    if (error) {
+                      console.error(error)
+                      return
+                    }
+                    new Notification(data.nickname, {
+                      body: payload.new.content.replace(REGEXP.MENTION, ''),
+                      icon: data.avatar_url
+                    })
+                    if (
+                      pathname !== '/mentions' &&
+                      item.data.mention_from !== user?.id
+                    )
+                      setState({ isNewMentionCreated: true })
+                  }
+                })
+              }
             }
           }
 
@@ -144,10 +207,43 @@ const Layout: FC<Props> = ({ children }) => {
               } else toast.info('방이 삭제되었습니다.')
             }
           }
+
+          if (payload.table === 'replies') {
+            if (payload.eventType === 'INSERT') {
+              const [{ data: chat }, { data: replies }] = await Promise.all([
+                supabase
+                  .from('chats')
+                  .select('user_id')
+                  .eq('id', payload.new.chat_id)
+                  .single(),
+                supabase
+                  .from('replies')
+                  .select('user_id')
+                  .eq('chat_id', payload.new.chat_id)
+              ])
+              if (
+                chat?.user_id === user?.id ||
+                replies?.findIndex((item) => item.user_id === user?.id) !== -1
+              ) {
+                setState({ isNewThreadCreated: true })
+              }
+            }
+          }
         }
       )
       .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [roomList, query.id])
+
+  useEffect(() => {
+    if (pathname === '/mentions' && isNewMentionCreated)
+      setState({ isNewMentionCreated: false })
+    if (pathname === '/threads' && isNewThreadCreated)
+      setState({ isNewThreadCreated: false })
+  }, [pathname])
   return (
     <>
       <div className="mx-auto max-w-6xl">
@@ -242,9 +338,88 @@ const Layout: FC<Props> = ({ children }) => {
                 ))}
               </ul>
             </menu>
+            <footer className="sticky bottom-0 flex h-[59px]">
+              <ul className="flex w-full">
+                <li className="flex-1">
+                  <Link href="/mentions">
+                    <a
+                      className={classnames(
+                        'flex h-full w-full items-center justify-center text-neutral-600 dark:text-neutral-400',
+                        pathname === '/mentions'
+                          ? 'bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-200'
+                          : 'hover:bg-neutral-50 active:bg-neutral-100 dark:hover:bg-neutral-700 dark:active:bg-neutral-600'
+                      )}
+                    >
+                      <div>
+                        <div className="flex justify-center">
+                          <AtSymbolIcon className="h-5 w-5" />
+                        </div>
+                        <div className="relative text-xs">
+                          <span>멘션</span>
+                          {isNewMentionCreated && (
+                            <span className="absolute right-0 top-0 -mr-2 -mt-1 flex h-2 w-2">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </a>
+                  </Link>
+                </li>
+                <li className="flex-1">
+                  <Link href="/threads">
+                    <a
+                      className={classnames(
+                        'flex h-full w-full items-center justify-center text-neutral-600 dark:text-neutral-400',
+                        pathname === '/threads'
+                          ? 'bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-200'
+                          : 'hover:bg-neutral-50 active:bg-neutral-100 dark:hover:bg-neutral-700 dark:active:bg-neutral-600'
+                      )}
+                    >
+                      <div>
+                        <div className="flex justify-center">
+                          <ChatBubbleBottomCenterTextIcon className="h-5 w-5" />
+                        </div>
+                        <div className="relative text-xs">
+                          <span>스레드</span>
+                          {isNewThreadCreated && (
+                            <span className="absolute right-0 top-0 -mr-2 -mt-1 flex h-2 w-2">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </a>
+                  </Link>
+                </li>
+                <li className="flex-1">
+                  <Link href="/saved">
+                    <a
+                      className={classnames(
+                        'flex h-full w-full items-center justify-center text-neutral-600 dark:text-neutral-400',
+                        pathname === '/saved'
+                          ? 'bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-200'
+                          : 'hover:bg-neutral-50 active:bg-neutral-100 dark:hover:bg-neutral-700 dark:active:bg-neutral-600'
+                      )}
+                    >
+                      <div>
+                        <div className="flex justify-center">
+                          <BookmarkIcon className="h-5 w-5" />
+                        </div>
+                        <div className="relative text-xs">
+                          <span>저장</span>
+                        </div>
+                      </div>
+                    </a>
+                  </Link>
+                </li>
+              </ul>
+            </footer>
           </div>
           <div className="flex flex-1 flex-col border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800 sm:block sm:border-x">
-            <div>{children}</div>
+            {children}
             <nav className="sticky bottom-0 z-10 flex h-[65px] border-t bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 sm:hidden">
               <button
                 onClick={() => push('/')}
