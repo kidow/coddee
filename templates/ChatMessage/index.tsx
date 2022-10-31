@@ -37,6 +37,7 @@ export interface Props {
     user: { avatar_url: string }
   }) => void
   onDeleteReply: (id: string) => void
+  onNicknameClick: (mention: string) => void
 }
 interface State {
   isProfileOpen: boolean
@@ -55,7 +56,8 @@ const ChatMessage: FC<Props> = ({
   total,
   index,
   onCreateReply,
-  onDeleteReply
+  onDeleteReply,
+  onNicknameClick
 }) => {
   const [
     {
@@ -109,6 +111,9 @@ const ChatMessage: FC<Props> = ({
     if (error) {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
+    }
+
+    if (REGEXP.MENTION.test(content)) {
     }
   }
 
@@ -213,7 +218,7 @@ const ChatMessage: FC<Props> = ({
         className={classnames(
           'group relative flex gap-3 py-1 px-5 hover:bg-neutral-50 dark:hover:bg-neutral-700',
           {
-            'animate-bounce bg-blue-50': window.location.href === `#${chat.id}`
+            'animate-bounce bg-blue-50': window.location.hash === `#${chat.id}`
           }
         )}
       >
@@ -237,7 +242,16 @@ const ChatMessage: FC<Props> = ({
           {chat.user_id !== nextUserId && (
             <div className="flex items-center gap-2">
               <span className="flex items-center text-sm font-medium">
-                <span className="cursor-pointer">{chat.user?.nickname}</span>
+                <span
+                  onClick={() =>
+                    onNicknameClick(
+                      `@[${chat.user?.nickname}](${chat.user?.id})`
+                    )
+                  }
+                  className="cursor-pointer"
+                >
+                  {chat.user?.nickname}
+                </span>
                 {chat.user_id === user?.id && (
                   <span className="ml-1 text-xs text-neutral-400">(나)</span>
                 )}

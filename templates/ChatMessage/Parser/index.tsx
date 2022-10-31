@@ -34,6 +34,7 @@ const ChatMessageParser: FC<Props> = ({ content, updatedAt }) => {
                   >
                     {text}
                   </a>
+                  {space}
                 </Fragment>
               )
             }
@@ -41,12 +42,13 @@ const ChatMessageParser: FC<Props> = ({ content, updatedAt }) => {
               return (
                 <Fragment key={i}>
                   <span
-                    onClick={() =>
+                    onClick={(e) => {
+                      e.stopPropagation()
                       setState({
                         isProfileOpen: true,
                         userId: text.slice(-37, -1)
                       })
-                    }
+                    }}
                     className="cursor-pointer rounded bg-blue-100 px-0.5 py-px text-indigo-500 hover:underline dark:bg-cyan-600 dark:text-cyan-50"
                   >
                     @{text.replace(REGEXP.MENTION, (t) => t.slice(2, -39))}

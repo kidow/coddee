@@ -89,7 +89,7 @@ const RoomIdPage: NextPage = () => {
     if (!isLoading) setState({ isLoading: true })
     if (page === 1) setState({ chatList: [] })
     const {
-      data,
+      data: list,
       error,
       count: total
     } = await supabase
@@ -134,7 +134,7 @@ const RoomIdPage: NextPage = () => {
       console.error(error)
       return
     }
-    for (const chat of data) {
+    for (const chat of list) {
       let reactions: Array<{
         id: number
         room_id: string
@@ -149,7 +149,7 @@ const RoomIdPage: NextPage = () => {
           const index = reactions.findIndex(
             (item) => item.text === reaction.text
           )
-          if (index === -1)
+          if (index === -1) {
             reactions.push({
               id: reaction.id,
               room_id: reaction.room_id,
@@ -159,7 +159,7 @@ const RoomIdPage: NextPage = () => {
                 { id: reaction.user_id, nickname: reaction.user.nickname }
               ]
             })
-          else {
+          } else {
             const userIndex = reactions[index].userList.findIndex(
               (item) => item.id === reaction.user_id
             )
@@ -177,7 +177,7 @@ const RoomIdPage: NextPage = () => {
     setState(
       {
         isLoading: false,
-        chatList: (page === 1 ? data : [...chatList, ...(data as any[])]) || [],
+        chatList: (page === 1 ? list : [...chatList, ...(list as any[])]) || [],
         page,
         total: total || 0
       },
@@ -527,6 +527,14 @@ const RoomIdPage: NextPage = () => {
                     },
                     ...chatList.slice(key + 1)
                   ]
+                })
+              }
+              onNicknameClick={(mention) =>
+                setState({
+                  content:
+                    content.length > 0
+                      ? `${content} ${mention} `
+                      : `${mention} `
                 })
               }
             />

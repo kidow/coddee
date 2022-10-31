@@ -347,7 +347,13 @@ const Layout: FC<Props> = ({ children }) => {
                           <AtSymbolIcon className="h-5 w-5" />
                         </div>
                         <div className="relative text-xs">
-                          <span>멘션</span>
+                          <span
+                            className={classnames({
+                              'font-bold': pathname === '/mentions'
+                            })}
+                          >
+                            멘션
+                          </span>
                           {isNewMentionCreated && (
                             <span className="absolute right-0 top-0 -mr-2 -mt-1 flex h-2 w-2">
                               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
@@ -374,7 +380,13 @@ const Layout: FC<Props> = ({ children }) => {
                           <ChatBubbleBottomCenterTextIcon className="h-5 w-5" />
                         </div>
                         <div className="relative text-xs">
-                          <span>스레드</span>
+                          <span
+                            className={classnames({
+                              'font-bold': pathname === '/threads'
+                            })}
+                          >
+                            스레드
+                          </span>
                           {isNewThreadCreated && (
                             <span className="absolute right-0 top-0 -mr-2 -mt-1 flex h-2 w-2">
                               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
@@ -401,7 +413,13 @@ const Layout: FC<Props> = ({ children }) => {
                           <BookmarkIcon className="h-5 w-5" />
                         </div>
                         <div className="relative text-xs">
-                          <span>저장</span>
+                          <span
+                            className={classnames({
+                              'font-bold': pathname === '/saved'
+                            })}
+                          >
+                            저장
+                          </span>
                         </div>
                       </div>
                     </a>
