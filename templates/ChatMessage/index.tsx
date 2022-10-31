@@ -15,6 +15,8 @@ import { CodePreview, Textarea, Tooltip } from 'components'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/router'
 
+import ChatMessageParser from './Parser'
+
 export interface Props {
   chat: NTable.Chats & {
     user: NTable.Users
@@ -270,61 +272,10 @@ const ChatMessage: FC<Props> = ({
                 </div>
               </div>
             ) : (
-              chat.content.split('\n').map((v, i, arr) => (
-                <Fragment key={i}>
-                  {/* <TextParser value={v} /> */}
-                  {v.split(' ').map((text, i, { length }) => {
-                    const space = i !== length - 1 && <>&nbsp;</>
-                    if (REGEXP.URL.test(text)) {
-                      return (
-                        <Fragment key={i}>
-                          <a
-                            target="_blank"
-                            rel="nofollow noreferrer noopener"
-                            href={text}
-                            className="text-blue-500 hover:underline dark:text-blue-400"
-                          >
-                            {text}
-                          </a>
-                          {space}
-                        </Fragment>
-                      )
-                    }
-                    if (REGEXP.MENTION.test(text)) {
-                      return (
-                        <Fragment key={i}>
-                          <span
-                            onClick={() =>
-                              setState({
-                                isProfileOpen: true,
-                                userId: text.slice(-37, -1)
-                              })
-                            }
-                            className="cursor-pointer rounded bg-blue-100 px-0.5 py-px text-indigo-500 hover:underline dark:bg-cyan-600 dark:text-cyan-50"
-                          >
-                            @
-                            {text.replace(REGEXP.MENTION, (t) =>
-                              t.slice(2, -39)
-                            )}
-                          </span>
-                          {space}
-                        </Fragment>
-                      )
-                    }
-                    return (
-                      <Fragment key={i}>
-                        {text}
-                        {space}
-                      </Fragment>
-                    )
-                  })}
-                  {!!chat.updated_at && i === arr.length - 1 && (
-                    <span className="ml-1 text-2xs text-neutral-400">
-                      (수정됨)
-                    </span>
-                  )}
-                </Fragment>
-              ))
+              <ChatMessageParser
+                content={chat.content}
+                updatedAt={chat.updated_at}
+              />
             )}
           </div>
           {!!chat.code_block && (
@@ -440,4 +391,4 @@ const ChatMessage: FC<Props> = ({
   )
 }
 
-export default ChatMessage
+export default Object.assign(ChatMessage, { Parser: ChatMessageParser })

@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import type { FC } from 'react'
 import Editor from '@monaco-editor/react'
-import TextareaAutosize from 'react-textarea-autosize'
 import { Modal } from 'containers'
 import {
   supabase,
@@ -10,7 +9,7 @@ import {
   useObjectState,
   useUser
 } from 'services'
-import { Button, Select } from 'components'
+import { Button, Select, Textarea } from 'components'
 import { useRouter } from 'next/router'
 
 export interface Props extends ModalProps {
@@ -156,13 +155,11 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
           />
         </div>
         <div>
-          <TextareaAutosize
-            className="w-full border p-2 focus:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900"
+          <Textarea
             value={content}
-            name="content"
+            className="w-full border p-2 focus:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900"
             placeholder="서로를 존중하는 매너를 보여주세요 :)"
-            spellCheck={false}
-            onChange={onChange}
+            onChange={(e) => setState({ content: e.target.value })}
           />
         </div>
       </div>

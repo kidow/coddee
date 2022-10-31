@@ -121,53 +121,6 @@ const Layout: FC<Props> = ({ children }) => {
                   ...roomList.slice(index + 1)
                 ]
               })
-
-              if (REGEXP.MENTION.test(payload.new.content)) {
-                const mentions = (payload.new.content as string).match(
-                  REGEXP.MENTION
-                )
-                if (!mentions) return
-
-                const result = await Promise.all(
-                  mentions.map((item) =>
-                    supabase
-                      .from('mentions')
-                      .insert({
-                        mention_from: payload.new.user_id,
-                        mention_to: item.slice(-37, -1),
-                        chat_id: payload.new.id
-                      })
-                      .select()
-                      .single()
-                  )
-                )
-                result.forEach(async (item) => {
-                  if (item.error) {
-                    console.error(item.error)
-                    return
-                  }
-                  if (item.data.mention_to === user?.id) {
-                    const { data, error } = await supabase
-                      .from('users')
-                      .select('nickname, avatar_url')
-                      .eq('id', payload.new.user_id)
-                      .single()
-                    if (error) {
-                      console.error(error)
-                      return
-                    }
-                    new Notification(data.nickname, {
-                      body: payload.new.content.replace(REGEXP.MENTION, ''),
-                      icon: data.avatar_url
-                    })
-                    if (
-                      pathname !== '/mentions' &&
-                      item.data.mention_from !== user?.id
-                    )
-                      setState({ isNewMentionCreated: true })
-                  }
-                })
-              }
             }
           }
 
@@ -226,6 +179,45 @@ const Layout: FC<Props> = ({ children }) => {
                 replies?.findIndex((item) => item.user_id === user?.id) !== -1
               ) {
                 setState({ isNewThreadCreated: true })
+              }
+            }
+          }
+
+          if (payload.table === 'mentions') {
+            if (payload.eventType === 'INSERT') {
+              if (payload.new.mention_to === user?.id) {
+                const [
+                  { data: userData, error: userError },
+                  { data: chatData, error: chatError }
+                ] = await Promise.all([
+                  supabase
+                    .from('users')
+                    .select('nickname, avatar_url')
+                    .eq('id', payload.new.mention_from)
+                    .single(),
+                  supabase
+                    .from('chats')
+                    .select('content')
+                    .eq('id', payload.new.chat_id)
+                    .single()
+                ])
+
+                if (userError || chatError) {
+                  if (userError) console.error(userError)
+                  if (chatError) console.error(chatError)
+                  return
+                }
+
+                new Notification(userData?.nickname, {
+                  body: chatData?.content.replace(REGEXP.MENTION, ''),
+                  icon: userData?.avatar_url
+                })
+
+                if (
+                  pathname !== '/mentions' &&
+                  payload.new.mention_from !== user?.id
+                )
+                  setState({ isNewMentionCreated: true })
               }
             }
           }

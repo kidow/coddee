@@ -109,6 +109,7 @@ namespace NTable {
     mention_to: string
     mention_from: string
     chat_id: number
+    reply_id: number
     created_at: string
   }
 }

@@ -12,7 +12,8 @@ import {
   useUser,
   useIntersectionObserver,
   toast,
-  TOAST_MESSAGE
+  TOAST_MESSAGE,
+  REGEXP
 } from 'services'
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
@@ -223,14 +224,33 @@ const RoomIdPage: NextPage = () => {
       return
     }
     setState({ isSubmitting: true })
-    const { error } = await supabase
+    const { data: chat, error } = await supabase
       .from('chats')
       .insert({ user_id: user.id, room_id: query.id, content })
+      .select()
+      .single()
     setState({ isSubmitting: false, spamCount: spamCount + 1 })
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
     } else setState({ content: '' })
+
+    if (REGEXP.MENTION.test(content)) {
+      const mentions = content
+        .match(REGEXP.MENTION)
+        ?.filter((id) => id !== user.id)
+      if (!mentions) return
+
+      await Promise.all(
+        mentions.map((id) =>
+          supabase.from('mentions').insert({
+            mention_to: id.slice(-37, -1),
+            mention_from: user.id,
+            chat_id: chat.id
+          })
+        )
+      )
+    }
   }
 
   useEffect(() => {
@@ -443,23 +463,6 @@ const RoomIdPage: NextPage = () => {
       supabase.removeChannel(reactions)
     }
   }, [chatList, query.id])
-
-  // useEffect(() => {
-  //   const mentions = supabase
-  //     .channel('public:mentions')
-  //     .on(
-  //       'postgres_changes',
-  //       { event: 'INSERT', schema: 'public', table: 'mentions' },
-  //       (payload) => {
-  //         console.log('payload', payload)
-  //       }
-  //     )
-  //     .subscribe()
-
-  //   return () => {
-  //     supabase.removeChannel(mentions)
-  //   }
-  // }, [query.id])
 
   useEffect(() => {
     const timer = setInterval(() => {
