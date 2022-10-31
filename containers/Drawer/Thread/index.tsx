@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import type { FC } from 'react'
 import { Drawer, Modal } from 'containers'
 import {
+  REGEXP,
   supabase,
   toast,
   TOAST_MESSAGE,
@@ -9,11 +10,11 @@ import {
   useUser
 } from 'services'
 import dayjs from 'dayjs'
-import TextareaAutosize from 'react-textarea-autosize'
-import { CodePreview, Icon, Spinner, Tooltip } from 'components'
+import { CodePreview, Spinner, Textarea, Tooltip } from 'components'
 import { useRouter } from 'next/router'
-import { ArrowSmallUpIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
+import { ArrowSmallUpIcon } from '@heroicons/react/24/outline'
 import classnames from 'classnames'
+import { ChatMessage } from 'templates'
 
 export interface Props extends DrawerProps {
   chat:
@@ -182,14 +183,34 @@ const ThreadDrawer: FC<Props> = ({
       return
     }
     setState({ isSubmitting: true })
-    const { error } = await supabase
+    const { data: reply, error } = await supabase
       .from('replies')
       .insert({ user_id: user.id, chat_id: chat.id, content })
+      .select()
+      .single()
     setState({ isSubmitting: false })
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
     } else setState({ content: '' })
+
+    if (REGEXP.MENTION.test(content)) {
+      const mentions = content
+        .match(REGEXP.MENTION)
+        ?.filter((id) => id !== user.id)
+      if (!mentions) return
+
+      await Promise.all(
+        mentions.map((id) =>
+          supabase.from('mentions').insert({
+            mention_to: id.slice(-37, -1),
+            mention_from: user.id,
+            chat_id: chat.id,
+            reply_id: reply.id
+          })
+        )
+      )
+    }
   }
 
   const updateReply = async (index: number) => {
@@ -596,7 +617,12 @@ const ThreadDrawer: FC<Props> = ({
                   {dayjs(chat?.created_at).locale('ko').format('A H:mm')}
                 </span>
               </div>
-              <div>{chat?.content}</div>
+              <div>
+                <ChatMessage.Parser
+                  content={chat?.content || ''}
+                  updatedAt={chat?.updated_at || ''}
+                />
+              </div>
               {!!chat?.reactions?.length && (
                 <div className="group mt-1 flex flex-wrap gap-1 pr-16">
                   {chat.reactions.map((item, key) => (
@@ -667,12 +693,10 @@ const ThreadDrawer: FC<Props> = ({
                   <div>
                     {item.isUpdating ? (
                       <div>
-                        <TextareaAutosize
+                        <Textarea
                           className="rounded-lg bg-neutral-200 p-2 dark:bg-neutral-600 dark:text-neutral-200"
-                          spellCheck={false}
                           value={item.tempContent}
                           autoFocus
-                          autoComplete="off"
                           onChange={(e) =>
                             setState({
                               list: [
@@ -705,16 +729,10 @@ const ThreadDrawer: FC<Props> = ({
                         </div>
                       </div>
                     ) : (
-                      item.content.split('\n').map((v, i, arr) => (
-                        <div key={i}>
-                          <span>{v}</span>
-                          {!!item.updated_at && i === arr.length - 1 && (
-                            <span className="ml-1 text-2xs text-neutral-400">
-                              (수정됨)
-                            </span>
-                          )}
-                        </div>
-                      ))
+                      <ChatMessage.Parser
+                        content={item.content}
+                        updatedAt={item.updated_at}
+                      />
                     )}
                   </div>
                   {!!item.code_block && (
@@ -773,14 +791,11 @@ const ThreadDrawer: FC<Props> = ({
           </div>
           <div className="p-4">
             <div className="flex items-center gap-1 rounded-lg bg-neutral-100 p-2 dark:bg-neutral-700">
-              <TextareaAutosize
+              <Textarea
                 placeholder="메시지 보내기"
                 className="flex-1 bg-transparent"
                 value={content}
-                name="content"
-                onChange={onChange}
-                spellCheck={false}
-                autoComplete="off"
+                onChange={(e) => setState({ content: e.target.value })}
                 onKeyDown={(e) => {
                   if (!e.shiftKey && e.keyCode === 13) {
                     e.preventDefault()

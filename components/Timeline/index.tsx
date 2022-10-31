@@ -16,7 +16,7 @@ const Timeline: FC<Props> = ({ list }) => {
         <div
           key={key}
           className={classNames(
-            "relative -top-2 flex gap-5 pl-5 pb-10 after:absolute after:-left-[5px] after:top-1.5 after:z-10 after:h-3 after:w-3 after:rounded-full after:border-2 after:border-blue-600 after:bg-white after:content-[''] last:pb-0",
+            "relative -top-2 flex gap-5 pl-5 pb-10 after:absolute after:-left-[5px] after:top-1.5 after:z-10 after:h-3 after:w-3 after:rounded-full after:border-2 after:border-blue-600 after:bg-white after:content-[''] last:pb-0 dark:after:border-blue-400 dark:after:bg-neutral-800",
             {
               "before:absolute before:top-2 before:-bottom-2 before:left-0 before:border-r before:border-dashed before:border-neutral-300 before:content-['']":
                 key !== list.length - 1

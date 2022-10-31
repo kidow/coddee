@@ -28,6 +28,7 @@ interface State {
   githubUrl: string
   company: string
   repository: number
+  isLoading: boolean
 }
 
 const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
@@ -45,7 +46,8 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       location,
       githubUrl,
       company,
-      repository
+      repository,
+      isLoading
     },
     setState
   ] = useObjectState<State>({
@@ -60,7 +62,8 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
     location: '',
     githubUrl: '',
     company: '',
-    repository: 0
+    repository: 0,
+    isLoading: true
   })
 
   const get = async () => {
@@ -71,6 +74,7 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       .single()
     if (error) {
       console.error(error)
+      setState({ isLoading: false })
       return
     }
     const res = await fetch(`https://api.github.com/users/${user.nickname}`)
@@ -87,7 +91,8 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       following: data.following || 0,
       githubUrl: data.html_url || '',
       company: data.company || '',
-      repository: data.public_repos || 0
+      repository: data.public_repos || 0,
+      isLoading: false
     })
   }
 
@@ -98,10 +103,12 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
     <Modal isOpen={isOpen} onClose={onClose} padding={false}>
       <div className="relative h-16 bg-neutral-800 dark:bg-black">
         <div className="absolute left-4 top-4 rounded-full bg-white p-2 dark:bg-black">
-          {!!avatarUrl ? (
+          {isLoading ? (
+            <div role="status" className="skeleton h-20 w-20 rounded-full" />
+          ) : !!avatarUrl ? (
             <img src={avatarUrl} alt="" className="h-20 w-20 rounded-full" />
           ) : (
-            <div className="h-20 w-20 rounded-full" />
+            <div className="skeleton h-20 w-20 rounded-full" />
           )}
         </div>
         <button className="absolute top-3 right-4" onClick={onClose}>
@@ -111,7 +118,11 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       <div className="px-5 pt-16 pb-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 text-xl">
-            <span className="font-bold">{nickname}</span>
+            {isLoading ? (
+              <span role="status" className="skeleton h-7 w-16 rounded-full" />
+            ) : (
+              <span className="font-bold">{nickname}</span>
+            )}
             <a target="_blank" href={githubUrl}>
               <ArrowTopRightOnSquareIcon className="h-5 w-5 text-neutral-400 hover:text-neutral-700" />
             </a>
@@ -140,18 +151,53 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
         </div>
         <Divider />
         <div className="space-y-1.5">
-          <Form.Item icon={BuildingOffice2Icon}>{company}</Form.Item>
-          <Form.Item icon={MapPinIcon}>{location}</Form.Item>
-          <Form.Item icon={EnvelopeIcon}>
-            <a href={`mailto:${email}`} className="hover:underline">
-              {email}
-            </a>
+          <Form.Item icon={BuildingOffice2Icon}>
+            {isLoading ? (
+              <div role="status" className="skeleton h-4 w-20 rounded-full" />
+            ) : (
+              <span>{company}</span>
+            )}
           </Form.Item>
-          <Form.Item icon={LinkIcon}>{blogUrl}</Form.Item>
+          <Form.Item icon={MapPinIcon}>
+            {isLoading ? (
+              <div role="status" className="skeleton h-4 w-28 rounded-full" />
+            ) : (
+              <span>{location}</span>
+            )}
+          </Form.Item>
+          <Form.Item icon={EnvelopeIcon}>
+            {isLoading ? (
+              <div role="status" className="skeleton h-4 w-36 rounded-full" />
+            ) : (
+              <a href={`mailto:${email}`} className="hover:underline">
+                {email}
+              </a>
+            )}
+          </Form.Item>
+          <Form.Item icon={LinkIcon}>
+            {isLoading ? (
+              <div role="status" className="skeleton h-4 w-48 rounded-full" />
+            ) : (
+              <a href={blogUrl} target="_blank" className="hover:underline">
+                {blogUrl}
+              </a>
+            )}
+          </Form.Item>
           <div className="pt-2">
-            {bio.split('\n').map((v, i) => (
-              <div key={i}>{v}</div>
-            ))}
+            {isLoading ? (
+              <div
+                role="status"
+                className="skeleton space-y-2 [&>div]:h-2 [&>div]:rounded-full"
+              >
+                <div className="w-80" />
+                <div className="w-96" />
+                <div className="w-72" />
+                <div className="w-64" />
+                <div className="w-80" />
+              </div>
+            ) : (
+              bio.split('\n').map((v, i) => <div key={i}>{v}</div>)
+            )}
           </div>
           <Divider />
           <Form.Item label="직무 및 분야">{jobCategory}</Form.Item>

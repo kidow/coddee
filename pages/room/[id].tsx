@@ -1,4 +1,4 @@
-import { CodePreview, SEO, Spinner, Tooltip } from 'components'
+import { SEO, Spinner, Textarea } from 'components'
 import type { NextPage } from 'next'
 import {
   ArrowLeftIcon,
@@ -12,17 +12,15 @@ import {
   useUser,
   useIntersectionObserver,
   toast,
-  TOAST_MESSAGE
+  TOAST_MESSAGE,
+  REGEXP
 } from 'services'
-import TextareaAutosize from 'react-textarea-autosize'
-import { Fragment, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { Drawer, Modal } from 'containers'
-import classnames from 'classnames'
+import { Modal } from 'containers'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { ChevronRightIcon } from '@heroicons/react/20/solid'
-import Linkify from 'linkify-react'
+import { ChatMessage } from 'templates'
 
 dayjs.extend(relativeTime)
 
@@ -31,8 +29,6 @@ interface State {
   isLoading: boolean
   isCodeEditorOpen: boolean
   isSubmitting: boolean
-  isProfileOpen: boolean
-  userId: string
   total: number
   isDropdownOpen: boolean
   chatList: Array<
@@ -49,10 +45,6 @@ interface State {
   name: string
   page: number
   count: number
-  isEmojiOpen: boolean
-  chatId: number
-  isThreadOpen: boolean
-  chatIndex: number | null
   spamCount: number
 }
 
@@ -63,18 +55,12 @@ const RoomIdPage: NextPage = () => {
       isLoading,
       isCodeEditorOpen,
       isSubmitting,
-      isProfileOpen,
-      userId,
       total,
       isDropdownOpen,
       chatList,
       name,
       page,
       count,
-      isEmojiOpen,
-      chatId,
-      isThreadOpen,
-      chatIndex,
       spamCount
     },
     setState,
@@ -85,18 +71,12 @@ const RoomIdPage: NextPage = () => {
     isLoading: true,
     isCodeEditorOpen: false,
     isSubmitting: false,
-    isProfileOpen: false,
-    userId: '',
     total: 0,
     isDropdownOpen: false,
     chatList: [],
     name: '',
     page: 1,
     count: 0,
-    isEmojiOpen: false,
-    chatId: 0,
-    isThreadOpen: false,
-    chatIndex: null,
     spamCount: 0
   })
   const { query, back } = useRouter()
@@ -109,7 +89,7 @@ const RoomIdPage: NextPage = () => {
     if (!isLoading) setState({ isLoading: true })
     if (page === 1) setState({ chatList: [] })
     const {
-      data,
+      data: list,
       error,
       count: total
     } = await supabase
@@ -154,7 +134,7 @@ const RoomIdPage: NextPage = () => {
       console.error(error)
       return
     }
-    for (const chat of data) {
+    for (const chat of list) {
       let reactions: Array<{
         id: number
         room_id: string
@@ -169,7 +149,7 @@ const RoomIdPage: NextPage = () => {
           const index = reactions.findIndex(
             (item) => item.text === reaction.text
           )
-          if (index === -1)
+          if (index === -1) {
             reactions.push({
               id: reaction.id,
               room_id: reaction.room_id,
@@ -179,7 +159,7 @@ const RoomIdPage: NextPage = () => {
                 { id: reaction.user_id, nickname: reaction.user.nickname }
               ]
             })
-          else {
+          } else {
             const userIndex = reactions[index].userList.findIndex(
               (item) => item.id === reaction.user_id
             )
@@ -197,7 +177,7 @@ const RoomIdPage: NextPage = () => {
     setState(
       {
         isLoading: false,
-        chatList: (page === 1 ? data : [...chatList, ...(data as any[])]) || [],
+        chatList: (page === 1 ? list : [...chatList, ...(list as any[])]) || [],
         page,
         total: total || 0
       },
@@ -244,135 +224,32 @@ const RoomIdPage: NextPage = () => {
       return
     }
     setState({ isSubmitting: true })
-    const { error } = await supabase
+    const { data: chat, error } = await supabase
       .from('chats')
       .insert({ user_id: user.id, room_id: query.id, content })
+      .select()
+      .single()
     setState({ isSubmitting: false, spamCount: spamCount + 1 })
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
     } else setState({ content: '' })
-  }
 
-  const updateChat = async (index: number) => {
-    const item = chatList[index]
-    if (!item.isUpdating) {
-      setState({
-        chatList: [
-          ...chatList
-            .slice(0, index)
-            .map((item) => ({ ...item, isUpdating: false })),
-          { ...item, isUpdating: true, tempContent: item.content },
-          ...chatList
-            .slice(index + 1)
-            .map((item) => ({ ...item, isUpdating: false }))
-        ]
-      })
-      return
-    }
+    if (REGEXP.MENTION.test(content)) {
+      const mentions = content
+        .match(REGEXP.MENTION)
+        ?.filter((id) => id !== user.id)
+      if (!mentions) return
 
-    if (!item.tempContent?.trim()) return
-    const { error } = await supabase
-      .from('chats')
-      .update({ content: item.tempContent })
-      .eq('id', item.id)
-    if (error) {
-      toast.error(TOAST_MESSAGE.API_ERROR)
-      return
-    }
-  }
-
-  const onReaction = async (text: string) => {
-    if (!user) return
-
-    if (!chatId) {
-      setState({ isEmojiOpen: false, chatId: 0 })
-      console.error('Chat id is empty.')
-      return
-    }
-    const chatIndex = chatList.findIndex((item) => item.id === chatId)
-    if (chatIndex === -1) {
-      setState({ isEmojiOpen: false, chatId: 0 })
-      console.error('Chat index is empty')
-      return
-    }
-
-    const reactionIndex = chatList[chatIndex].reactions.findIndex(
-      (item) => item.text === text
-    )
-    if (reactionIndex === -1) {
-      const { error } = await supabase
-        .from('reactions')
-        .insert({ user_id: user.id, chat_id: chatId, text, room_id: query.id })
-      if (error) {
-        console.error(error)
-        toast.error(TOAST_MESSAGE.API_ERROR)
-      }
-    } else {
-      const userIndex = chatList[chatIndex].reactions[
-        reactionIndex
-      ].userList.findIndex((item) => item.id === user.id)
-      if (userIndex === -1) {
-        const { error } = await supabase.from('reactions').insert({
-          user_id: user.id,
-          chat_id: chatId,
-          text,
-          room_id: query.id
-        })
-        if (error) {
-          console.error(error)
-          toast.error(TOAST_MESSAGE.API_ERROR)
-        }
-      } else {
-        const { error } = await supabase
-          .from('reactions')
-          .delete()
-          .match({ user_id: user.id, chat_id: chatId, text, room_id: query.id })
-        if (error) {
-          console.error(error)
-          toast.error(TOAST_MESSAGE.API_ERROR)
-        }
-      }
-    }
-
-    setState({ isEmojiOpen: false, chatId: 0 })
-  }
-
-  const updateReaction = async (chatIndex: number, reactionIndex: number) => {
-    if (!user) {
-      toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
-      return
-    }
-
-    const chat = chatList[chatIndex]
-    const reaction = chat.reactions[reactionIndex]
-    const userIndex = reaction.userList?.findIndex(
-      (item) => item.id === user.id
-    )
-    if (userIndex === undefined) return
-
-    if (userIndex === -1) {
-      const { error } = await supabase.from('reactions').insert({
-        chat_id: chat.id,
-        user_id: user.id,
-        text: reaction.text,
-        room_id: query.id
-      })
-      if (error) {
-        console.error(error)
-        toast.error(TOAST_MESSAGE.API_ERROR)
-      }
-    } else {
-      const { error } = await supabase.from('reactions').delete().match({
-        user_id: user.id,
-        chat_id: chat.id,
-        text: reaction.text,
-        room_id: query.id
-      })
-      if (error) {
-        console.error(error)
-        toast.error(TOAST_MESSAGE.API_ERROR)
-      }
+      await Promise.all(
+        mentions.map((id) =>
+          supabase.from('mentions').insert({
+            mention_to: id.slice(-37, -1),
+            mention_from: user.id,
+            chat_id: chat.id
+          })
+        )
+      )
     }
   }
 
@@ -588,7 +465,9 @@ const RoomIdPage: NextPage = () => {
   }, [chatList, query.id])
 
   useEffect(() => {
-    const timer = setInterval(() => setState({ spamCount: 0 }), 3000)
+    const timer = setInterval(() => {
+      if (spamCount > 0) setState({ spamCount: 0 })
+    }, 3000)
     return () => clearInterval(timer)
   }, [spamCount])
 
@@ -597,7 +476,7 @@ const RoomIdPage: NextPage = () => {
   }, [isIntersecting])
   return (
     <>
-      <SEO title="Javascript" />
+      <SEO title={name} />
       <div className="flex h-full flex-col">
         <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b bg-white px-5 dark:border-neutral-700 dark:bg-neutral-800">
           <div className="flex items-center gap-2">
@@ -622,202 +501,43 @@ const RoomIdPage: NextPage = () => {
         </header>
         <main className="flex flex-1 flex-col-reverse py-3">
           {chatList.map((item, key, arr) => (
-            <Fragment key={key}>
-              <div
-                id={String(item.id)}
-                className={classnames(
-                  'group relative flex gap-3 py-1 px-5 hover:bg-neutral-50 dark:hover:bg-neutral-700',
-                  {
-                    'animate-bounce bg-blue-50':
-                      window.location.href === `#${item.id}`
-                  }
-                )}
-              >
-                <div className="flex w-8 items-start justify-center">
-                  {item.user_id !== arr[key + 1]?.user_id ? (
-                    <img
-                      src={item.user.avatar_url}
-                      alt=""
-                      className="mt-1 h-8 w-8 cursor-pointer rounded-full"
-                      onClick={() =>
-                        setState({ isProfileOpen: true, userId: item.user_id })
-                      }
-                    />
-                  ) : (
-                    <span className="mt-[5px] text-2xs text-neutral-400 opacity-0 group-hover:opacity-100">
-                      {dayjs(item.created_at).locale('ko').format('H:mm')}
-                    </span>
-                  )}
-                </div>
-                <div className="flex-1">
-                  {item.user_id !== arr[key + 1]?.user_id && (
-                    <div className="flex items-center gap-2">
-                      <span className="flex cursor-pointer items-center text-sm font-medium">
-                        <span>{item.user?.nickname}</span>
-                        {item.user_id === user?.id && (
-                          <span className="ml-1 text-xs text-neutral-400">
-                            (나)
-                          </span>
-                        )}
-                      </span>
-                      <span className="text-xs text-neutral-400">
-                        {dayjs(item.created_at).locale('ko').format('A H:mm')}
-                      </span>
-                    </div>
-                  )}
-                  <div>
-                    {item.isUpdating ? (
-                      <div>
-                        <TextareaAutosize
-                          value={item.tempContent}
-                          className="rounded-lg bg-neutral-200 p-2 dark:bg-neutral-600 dark:text-neutral-200"
-                          spellCheck={false}
-                          autoFocus
-                          autoComplete="off"
-                          onChange={(e) =>
-                            setState({
-                              chatList: [
-                                ...chatList.slice(0, key),
-                                { ...item, tempContent: e.target.value },
-                                ...chatList.slice(key + 1)
-                              ]
-                            })
-                          }
-                        />
-                        <div className="flex gap-2 text-xs text-blue-500">
-                          <button
-                            onClick={() =>
-                              setState({
-                                chatList: [
-                                  ...chatList.slice(0, key),
-                                  {
-                                    ...item,
-                                    tempContent: '',
-                                    isUpdating: false
-                                  },
-                                  ...chatList.slice(key + 1)
-                                ]
-                              })
-                            }
-                          >
-                            취소
-                          </button>
-                          <button onClick={() => updateChat(key)}>저장</button>
-                        </div>
-                      </div>
-                    ) : (
-                      item.content.split('\n').map((v, i, arr) => (
-                        <Linkify
-                          options={{
-                            target: '_blank',
-                            rel: 'nofollow noreferrer noopener'
-                          }}
-                          key={i}
-                        >
-                          <span className="[&>a]:text-blue-500 [&>a]:hover:underline dark:[&>a]:text-blue-400">
-                            {v}
-                          </span>
-                          {!!item.updated_at && i === arr.length - 1 && (
-                            <span className="ml-1 text-2xs text-neutral-400">
-                              (수정됨)
-                            </span>
-                          )}
-                        </Linkify>
-                      ))
-                    )}
-                  </div>
-                  {!!item.code_block && (
-                    <div className="border dark:border-transparent">
-                      <CodePreview
-                        original={item.code_block}
-                        defaultLanguage={item.language}
-                      />
-                    </div>
-                  )}
-                  {!!item.reactions?.length && (
-                    <div className="mt-1 flex gap-1">
-                      {item.reactions.map((reaction, reactionKey) => (
-                        <Tooltip.Reaction
-                          userList={reaction.userList}
-                          key={reaction.id}
-                          onClick={() => updateReaction(key, reactionKey)}
-                          text={reaction.text}
-                          length={reaction?.userList.length}
-                        />
-                      ))}
-                      <Tooltip.AddReaction
-                        onClick={() =>
-                          setState({ isEmojiOpen: true, chatId: item.id })
-                        }
-                      />
-                    </div>
-                  )}
-                  {!!item.replies?.length && (
-                    <div
-                      onClick={() =>
-                        setState({ isThreadOpen: true, chatIndex: key })
-                      }
-                      className="group/reply mt-1 flex cursor-pointer items-center justify-between rounded border border-transparent p-1 duration-150 hover:border-neutral-200 hover:bg-white dark:hover:border-neutral-600 dark:hover:bg-neutral-800"
-                    >
-                      <div className="flex flex-1 items-center gap-2">
-                        <img
-                          src={item.replies[0].user.avatar_url}
-                          alt=""
-                          className="h-6 w-6 rounded"
-                        />
-                        <span className="text-sm font-semibold text-neutral-600 hover:underline dark:text-blue-400">
-                          {item.replies.length}개의 댓글
-                        </span>
-                        <div className="text-sm text-neutral-400 group-hover/reply:hidden">
-                          {dayjs(item.replies[0].created_at)
-                            .locale('ko')
-                            .fromNow()}
-                        </div>
-                        <div className="hidden text-sm text-neutral-400 group-hover/reply:block">
-                          스레드 보기
-                        </div>
-                      </div>
-                      <button className="hidden group-hover/reply:inline-block">
-                        <ChevronRightIcon className="h-5 w-5 text-neutral-500" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <div
-                  className={classnames(
-                    'absolute right-6 -top-4 z-10 hidden rounded-lg border bg-white dark:border-neutral-800 dark:bg-neutral-700',
-                    { 'group-hover:block': !item.isUpdating }
-                  )}
-                >
-                  <div className="flex p-0.5">
-                    <Tooltip.Actions.AddReaction
-                      onClick={() =>
-                        setState({ isEmojiOpen: true, chatId: item.id })
-                      }
-                    />
-                    <Tooltip.Actions.Thread
-                      onClick={() =>
-                        setState({ isThreadOpen: true, chatIndex: key })
-                      }
-                    />
-                    {item.user_id === user?.id && (
-                      <Tooltip.Actions.Update onClick={() => updateChat(key)} />
-                    )}
-                  </div>
-                </div>
-              </div>
-              {(!!dayjs(dayjs(item.created_at).format('YYYY-MM-DD')).diff(
-                dayjs(arr[key + 1]?.created_at).format('YYYY-MM-DD'),
-                'day'
-              ) ||
-                key === arr.length - 1) && (
-                <div className="relative z-10 mx-5 flex items-center justify-center py-5 text-xs before:absolute before:h-px before:w-full before:bg-neutral-200 dark:before:bg-neutral-700">
-                  <div className="absolute bottom-1/2 left-1/2 z-10 translate-y-[calc(50%-1px)] -translate-x-[46px] select-none bg-white px-5 text-neutral-400 dark:bg-neutral-800">
-                    {dayjs(item.created_at).format('MM월 DD일')}
-                  </div>
-                </div>
-              )}
-            </Fragment>
+            <ChatMessage
+              chat={item}
+              key={key}
+              nextUserId={arr[key + 1]?.user_id}
+              nextCreatedAt={arr[key + 1]?.created_at}
+              total={arr.length}
+              index={key}
+              onCreateReply={(reply) =>
+                setState({
+                  chatList: [
+                    ...chatList.slice(0, key),
+                    { ...item, replies: [reply, ...item.replies] },
+                    ...chatList.slice(key + 1)
+                  ]
+                })
+              }
+              onDeleteReply={(id) =>
+                setState({
+                  chatList: [
+                    ...chatList.slice(0, key),
+                    {
+                      ...item,
+                      replies: item.replies.filter((item) => item.id !== id)
+                    },
+                    ...chatList.slice(key + 1)
+                  ]
+                })
+              }
+              onNicknameClick={(mention) =>
+                setState({
+                  content:
+                    content.length > 0
+                      ? `${content} ${mention} `
+                      : `${mention} `
+                })
+              }
+            />
           ))}
           {!isLoading && !chatList.length && (
             <div className="flex h-full items-center justify-center text-xs text-neutral-400">
@@ -832,22 +552,18 @@ const RoomIdPage: NextPage = () => {
           <div ref={ref} />
         </main>
         <footer className="sticky bottom-16 z-20 flex min-h-[59px] w-full items-center gap-3 border-t bg-white py-3 px-5 dark:border-neutral-700 dark:bg-neutral-800 sm:bottom-0">
-          <TextareaAutosize
+          <Textarea
             value={content}
-            name="content"
-            onChange={onChange}
+            onChange={(e) => setState({ content: e.target.value })}
             disabled={isSubmitting}
             placeholder="서로를 존중하는 매너를 보여주세요 :)"
             className="flex-1 dark:bg-transparent"
-            spellCheck={false}
             onKeyDown={(e) => {
               if (!e.shiftKey && e.keyCode === 13) {
                 e.preventDefault()
                 createChat()
               }
             }}
-            autoComplete="off"
-            ref={textareaRef}
           />
           <button
             onClick={() => setState({ isCodeEditorOpen: true })}
@@ -872,52 +588,6 @@ const RoomIdPage: NextPage = () => {
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}
         content={content}
-      />
-      <Modal.Profile
-        isOpen={isProfileOpen}
-        onClose={() => setState({ isProfileOpen: false, userId: '' })}
-        userId={userId}
-      />
-      <Modal.Emoji
-        isOpen={isEmojiOpen}
-        onClose={() => setState({ isEmojiOpen: false })}
-        onSelect={onReaction}
-      />
-      <Drawer.Thread
-        isOpen={isThreadOpen}
-        onClose={() => setState({ isThreadOpen: false, chatIndex: null })}
-        chat={chatIndex === null ? null : chatList[chatIndex]}
-        updateReaction={(reactionIndex) =>
-          updateReaction(chatIndex!, reactionIndex)
-        }
-        onCreate={(reply) => {
-          if (!chatIndex || chatIndex < 0) return
-          setState({
-            chatList: [
-              ...chatList.slice(0, chatIndex),
-              {
-                ...chatList[chatIndex],
-                replies: [reply, ...chatList[chatIndex].replies]
-              },
-              ...chatList.slice(chatIndex + 1)
-            ]
-          })
-        }}
-        onDelete={(id) => {
-          if (!chatIndex || chatIndex < 0) return
-          setState({
-            chatList: [
-              ...chatList.slice(0, chatIndex),
-              {
-                ...chatList[chatIndex],
-                replies: chatList[chatIndex].replies.filter(
-                  (item) => item.id !== id
-                )
-              },
-              ...chatList.slice(chatIndex + 1)
-            ]
-          })
-        }}
       />
     </>
   )

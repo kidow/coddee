@@ -1,6 +1,6 @@
 import type { FC } from 'react'
 import { Modal } from 'containers'
-import { supabase, useObjectState } from 'services'
+import { supabase, useBackdrop, useObjectState } from 'services'
 import { Content } from 'templates'
 
 export interface Props extends ModalProps {}
@@ -15,8 +15,10 @@ const LoginModal: FC<Props> = ({ isOpen, onClose }) => {
     mode: 'terms',
     isContentOpen: false
   })
+  const backdrop = useBackdrop()
 
   const onLogin = async () => {
+    backdrop(true)
     await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {

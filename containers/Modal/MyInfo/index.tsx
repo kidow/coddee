@@ -37,6 +37,7 @@ interface State {
   following: number
   repository: number
   company: string
+  isLoading: boolean
 }
 
 const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
@@ -57,7 +58,8 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       followers,
       following,
       repository,
-      company
+      company,
+      isLoading
     },
     setState,
     onChange
@@ -76,7 +78,8 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     followers: 0,
     following: 0,
     repository: 0,
-    company: ''
+    company: '',
+    isLoading: true
   })
   const [user, setUser] = useUser()
   const backdrop = useBackdrop()
@@ -97,23 +100,32 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       .single()
     if (error) {
       console.error(error)
+      setState({ isLoading: false })
       return
     }
-    const res = await fetch(`https://api.github.com/users/${userData.nickname}`)
-    const json = await res.json()
-    setState({
-      bio: json.bio || '',
-      avatarUrl: json.avatar_url,
-      nickname: userData.nickname,
-      jobCategory: userData.job_category,
-      blogUrl: json.blog || '',
-      email: userData.email,
-      location: json.location || '',
-      followers: json.followers || 0,
-      following: json.following || 0,
-      repository: json.public_repos || 0,
-      company: json.company || ''
-    })
+    try {
+      const res = await fetch(
+        `https://api.github.com/users/${userData.nickname}`
+      )
+      const json = await res.json()
+      setState({
+        bio: json.bio || '',
+        avatarUrl: json.avatar_url,
+        nickname: userData.nickname,
+        jobCategory: userData.job_category,
+        blogUrl: json.blog || '',
+        email: userData.email,
+        location: json.location || '',
+        followers: json.followers || 0,
+        following: json.following || 0,
+        repository: json.public_repos || 0,
+        company: json.company || '',
+        isLoading: false
+      })
+    } catch (err) {
+      console.error(err)
+      setState({ isLoading: false })
+    }
   }
 
   const update = async () => {
@@ -231,7 +243,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
                         className="h-20 w-20 rounded-full"
                       />
                     ) : (
-                      <div className="h-20 w-20 rounded-full" />
+                      <div className="skeleton h-20 w-20 rounded-full" />
                     )}
                   </div>
                   <div className="absolute top-[72px] left-32 space-y-1">
@@ -260,14 +272,67 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
                   </div>
                 </div>
                 <section className="space-y-1.5 p-6 pt-20">
-                  <Form.Item icon={BuildingOffice2Icon}>{company}</Form.Item>
-                  <Form.Item icon={MapPinIcon}>{location}</Form.Item>
-                  <Form.Item icon={EnvelopeIcon}>{email}</Form.Item>
-                  <Form.Item icon={LinkIcon}>{blogUrl}</Form.Item>
+                  <Form.Item icon={BuildingOffice2Icon}>
+                    {isLoading ? (
+                      <div
+                        role="status"
+                        className="skeleton h-4 w-20 rounded-full"
+                      />
+                    ) : (
+                      <span>{company}</span>
+                    )}
+                  </Form.Item>
+                  <Form.Item icon={MapPinIcon}>
+                    {isLoading ? (
+                      <div
+                        role="status"
+                        className="skeleton h-4 w-28 rounded-full"
+                      />
+                    ) : (
+                      <span>{location}</span>
+                    )}
+                  </Form.Item>
+                  <Form.Item icon={EnvelopeIcon}>
+                    {isLoading ? (
+                      <div
+                        role="status"
+                        className="skeleton h-4 w-36 rounded-full"
+                      />
+                    ) : (
+                      <span>{email}</span>
+                    )}
+                  </Form.Item>
+                  <Form.Item icon={LinkIcon}>
+                    {isLoading ? (
+                      <div
+                        role="status"
+                        className="skeleton h-4 w-48 rounded-full"
+                      />
+                    ) : (
+                      <a
+                        href={blogUrl}
+                        target="_blank"
+                        className="hover:underline"
+                      >
+                        {blogUrl}
+                      </a>
+                    )}
+                  </Form.Item>
                   <div className="pt-2">
-                    {bio.split('\n').map((v, i) => (
-                      <div key={i}>{v}</div>
-                    ))}
+                    {isLoading ? (
+                      <div
+                        role="status"
+                        className="skeleton space-y-2 [&>div]:h-2 [&>div]:rounded-full"
+                      >
+                        <div className="w-80" />
+                        <div className="w-96" />
+                        <div className="w-72" />
+                        <div className="w-64" />
+                        <div className="w-80" />
+                      </div>
+                    ) : (
+                      bio.split('\n').map((v, i) => <div key={i}>{v}</div>)
+                    )}
                   </div>
                 </section>
                 <section className="space-y-4 p-6">

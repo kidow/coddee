@@ -1,16 +1,25 @@
-import { Form, Radio, Select } from 'components'
+import { Button, Form, Radio } from 'components'
 import type { FC } from 'react'
 import { useObjectState } from 'services'
 
 export interface Props {}
 interface State {
   theme: string
+  permission: NotificationPermission
 }
 
 const MyInfoSetting: FC<Props> = () => {
-  const [{ theme }, setState] = useObjectState<State>({
-    theme: window.localStorage.getItem('theme') || 'light'
+  const [{ theme, permission }, setState] = useObjectState<State>({
+    theme: window.localStorage.getItem('theme') || 'light',
+    permission: window.Notification.permission || 'default'
   })
+
+  const onAlarmChange = async () => {
+    if (permission !== 'granted') {
+      const result = await window.Notification.requestPermission()
+      setState({ permission: result })
+    }
+  }
   return (
     <section className="space-y-4 p-6">
       <Form.Item label="테마">
@@ -27,6 +36,16 @@ const MyInfoSetting: FC<Props> = () => {
             { name: 'Dark', value: 'dark' }
           ]}
         />
+      </Form.Item>
+      <Form.Item label="알림 여부">
+        <Button
+          size="sm"
+          onClick={onAlarmChange}
+          theme="primary"
+          disabled={permission === 'granted'}
+        >
+          {permission === 'granted' ? '활성 중' : '활성화'}
+        </Button>
       </Form.Item>
     </section>
   )
