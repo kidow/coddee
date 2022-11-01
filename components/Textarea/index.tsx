@@ -45,7 +45,7 @@ const Textarea: FC<Props> = ({ ...props }) => {
       autoComplete="off"
       customSuggestionsContainer={(children) => (
         <ul
-          className="max-h-48 w-80 border py-2 shadow-md dark:border-neutral-700 dark:bg-neutral-800"
+          className="max-h-48 w-80 overflow-auto overscroll-contain border py-2 shadow-md dark:border-neutral-700 dark:bg-neutral-800"
           role="listbox"
         >
           {children}

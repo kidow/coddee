@@ -58,8 +58,15 @@ const MentionsPage: NextPage = () => {
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
 
   const get = async (page: number = 1) => {
-    const { data } = await supabase.auth.getUser()
-    if (!data.user) return
+    if (!user) {
+      setState({ isLoading: false })
+      return
+    }
+    // const { data } = await supabase.auth.getUser()
+    // if (!data.user) {
+    //   setState({ isLoading: false })
+    //   return
+    // }
     if (!isLoading) setState({ isLoading: true })
     const {
       data: mentions,
@@ -98,7 +105,7 @@ const MentionsPage: NextPage = () => {
       `,
         { count: 'exact' }
       )
-      .eq('mention_to', data.user.id)
+      .eq('mention_to', user.id)
       .order('created_at', { ascending: false })
       .order('created_at', { ascending: true, foreignTable: 'chats:reactions' })
       .range((page - 1) * 20, page * 20 - 1)

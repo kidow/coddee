@@ -3,7 +3,6 @@ import App from 'next/app'
 import { ErrorInfo } from 'react'
 import { Layout, Auth, Backdrop, Toast } from 'containers'
 import { RecoilRoot } from 'recoil'
-import { supabase, userState } from 'services'
 import 'dayjs/locale/ko'
 
 interface Props {}
@@ -29,24 +28,7 @@ class MyApp extends App<Props, {}, State> {
     const { Component, pageProps } = this.props
     return (
       <>
-        <RecoilRoot
-          initializeState={async ({ set }) => {
-            try {
-              const {
-                data: { user }
-              } = await supabase.auth.getUser()
-              if (!user) return
-              const { data } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', user?.id)
-                .single()
-              if (data) set(userState, data)
-            } catch (err) {
-              console.error(err)
-            }
-          }}
-        >
+        <RecoilRoot>
           <Auth>
             <Layout>
               <Component {...pageProps} />

@@ -1,9 +1,7 @@
-import { Fragment } from 'react'
 import type { FC } from 'react'
 import dayjs from 'dayjs'
 import classnames from 'classnames'
 import {
-  REGEXP,
   supabase,
   toast,
   TOAST_MESSAGE,
@@ -111,9 +109,6 @@ const ChatMessage: FC<Props> = ({
     if (error) {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
-    }
-
-    if (REGEXP.MENTION.test(content)) {
     }
   }
 

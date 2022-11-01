@@ -22,7 +22,7 @@ const ChatMessageParser: FC<Props> = ({ content, updatedAt }) => {
       {content.split('\n').map((value, key, arr) => (
         <Fragment key={key}>
           {value.split(' ').map((text, i, { length }) => {
-            const space = i !== length - 1 ? <>&nbsp;</> : <></>
+            const space = i !== length - 1 ? ' ' : ''
             if (REGEXP.URL.test(text)) {
               return (
                 <Fragment key={i}>
@@ -67,6 +67,7 @@ const ChatMessageParser: FC<Props> = ({ content, updatedAt }) => {
           {!!updatedAt && key === arr.length - 1 && (
             <span className="ml-1 text-2xs text-neutral-400">(수정됨)</span>
           )}
+          {key !== arr.length - 1 && <br />}
         </Fragment>
       ))}
       <Modal.Profile
