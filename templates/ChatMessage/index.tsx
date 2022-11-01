@@ -1,17 +1,12 @@
 import type { FC } from 'react'
 import dayjs from 'dayjs'
 import classnames from 'classnames'
-import {
-  supabase,
-  toast,
-  TOAST_MESSAGE,
-  useObjectState,
-  useUser
-} from 'services'
+import { toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
 import { Drawer, Modal } from 'containers'
 import { CodePreview, Textarea, Tooltip } from 'components'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/router'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 import ChatMessageParser from './Parser'
 
@@ -79,6 +74,7 @@ const ChatMessage: FC<Props> = ({
   })
   const [user, setUser] = useUser()
   const { query } = useRouter()
+  const supabase = useSupabaseClient()
 
   const updateChat = async () => {
     const { data } = await supabase.auth.getUser()

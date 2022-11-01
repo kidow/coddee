@@ -7,7 +7,6 @@ import {
   EllipsisVerticalIcon
 } from '@heroicons/react/24/outline'
 import {
-  supabase,
   useObjectState,
   useUser,
   useIntersectionObserver,
@@ -21,6 +20,7 @@ import { Modal } from 'containers'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { ChatMessage } from 'templates'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 dayjs.extend(relativeTime)
 
@@ -83,6 +83,7 @@ const RoomIdPage: NextPage = () => {
   const [user, setUser] = useUser()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const supabase = useSupabaseClient()
 
   const getChatList = async (page: number = 1) => {
     if (!query.id || typeof query.id !== 'string') return

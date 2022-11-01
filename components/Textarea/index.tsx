@@ -3,14 +3,16 @@ import type { FC } from 'react'
 import { MentionsInput, Mention } from 'react-mentions'
 import type { MentionsInputProps } from 'react-mentions'
 import { useRecoilState } from 'recoil'
-import { supabase, userListState } from 'services'
+import { userListState } from 'services'
 import classnames from 'classnames'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 export interface Props extends Omit<MentionsInputProps, 'children'> {}
 interface State {}
 
 const Textarea: FC<Props> = ({ ...props }) => {
   const [userList, setUserList] = useRecoilState(userListState)
+  const supabase = useSupabaseClient()
 
   const get = async () => {
     if (!!userList.length) return

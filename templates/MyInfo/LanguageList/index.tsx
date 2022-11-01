@@ -2,8 +2,9 @@ import { useEffect } from 'react'
 import type { FC } from 'react'
 import Editor from '@monaco-editor/react'
 import { Button, Input } from 'components'
-import { supabase, toast, useBackdrop, useObjectState } from 'services'
+import { toast, useBackdrop, useObjectState } from 'services'
 import { XMarkIcon } from '@heroicons/react/24/outline'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 export interface Props {}
 interface State {
@@ -24,6 +25,7 @@ const MyInfoLanguageList: FC<Props> = () => {
       langaugeList: []
     })
   const backdrop = useBackdrop()
+  const supabase = useSupabaseClient()
 
   const get = async () => {
     const { data } = await supabase.from('languages').select('*').order('value')

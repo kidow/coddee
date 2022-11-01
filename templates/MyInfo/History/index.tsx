@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
 import { Timeline } from 'components'
 import type { FC } from 'react'
-import { supabase, useObjectState, useUser } from 'services'
+import { useObjectState, useUser } from 'services'
 import dayjs from 'dayjs'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 export interface Props {}
 interface State {
@@ -12,6 +13,7 @@ interface State {
 const MyInfoHistory: FC<Props> = () => {
   const [{ list }, setState] = useObjectState<State>({ list: [] })
   const [user] = useUser()
+  const supabase = useSupabaseClient()
 
   const get = async () => {
     const { data, error } = await supabase

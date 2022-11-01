@@ -2,17 +2,13 @@ import { AtSymbolIcon } from '@heroicons/react/24/outline'
 import { CodePreview, SEO, Spinner, Tooltip } from 'components'
 import type { NextPage } from 'next'
 import { useEffect } from 'react'
-import {
-  supabase,
-  useIntersectionObserver,
-  useObjectState,
-  useUser
-} from 'services'
+import { useIntersectionObserver, useObjectState, useUser } from 'services'
 import dayjs from 'dayjs'
 import { ChatMessage } from 'templates'
 import { Modal } from 'containers'
 import { useRouter } from 'next/router'
 import classnames from 'classnames'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 interface State {
   list: Array<{
@@ -56,17 +52,14 @@ const MentionsPage: NextPage = () => {
   const [user] = useUser()
   const { push } = useRouter()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
+  const supabase = useSupabaseClient()
 
   const get = async (page: number = 1) => {
-    if (!user) {
+    const { data } = await supabase.auth.getUser()
+    if (!data.user) {
       setState({ isLoading: false })
       return
     }
-    // const { data } = await supabase.auth.getUser()
-    // if (!data.user) {
-    //   setState({ isLoading: false })
-    //   return
-    // }
     if (!isLoading) setState({ isLoading: true })
     const {
       data: mentions,
@@ -105,7 +98,7 @@ const MentionsPage: NextPage = () => {
       `,
         { count: 'exact' }
       )
-      .eq('mention_to', user.id)
+      .eq('mention_to', data.user.id)
       .order('created_at', { ascending: false })
       .order('created_at', { ascending: true, foreignTable: 'chats:reactions' })
       .range((page - 1) * 20, page * 20 - 1)

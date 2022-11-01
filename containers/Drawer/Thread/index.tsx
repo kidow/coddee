@@ -1,20 +1,14 @@
 import { useEffect } from 'react'
 import type { FC } from 'react'
 import { Drawer, Modal } from 'containers'
-import {
-  REGEXP,
-  supabase,
-  toast,
-  TOAST_MESSAGE,
-  useObjectState,
-  useUser
-} from 'services'
+import { REGEXP, toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
 import dayjs from 'dayjs'
 import { CodePreview, Spinner, Textarea, Tooltip } from 'components'
 import { useRouter } from 'next/router'
 import { ArrowSmallUpIcon } from '@heroicons/react/24/outline'
 import classnames from 'classnames'
 import { ChatMessage } from 'templates'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 export interface Props extends DrawerProps {
   chat:
@@ -85,6 +79,7 @@ const ThreadDrawer: FC<Props> = ({
     tempContent: '',
     isUpdateMode: false
   })
+  const supabase = useSupabaseClient()
   const [user, setUser] = useUser()
   const { query } = useRouter()
 
