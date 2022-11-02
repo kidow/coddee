@@ -32,23 +32,18 @@ interface State {
       nickname: string
     }
   }>
-  isProfileOpen: boolean
-  userId: string
   isLoading: boolean
   page: number
   total: number
 }
 
 const MentionsPage: NextPage = () => {
-  const [{ list, isProfileOpen, userId, isLoading, page, total }, setState] =
-    useObjectState<State>({
-      list: [],
-      isProfileOpen: false,
-      userId: '',
-      isLoading: true,
-      page: 1,
-      total: 0
-    })
+  const [{ list, isLoading, page, total }, setState] = useObjectState<State>({
+    list: [],
+    isLoading: true,
+    page: 1,
+    total: 0
+  })
   const [user] = useUser()
   const { push } = useRouter()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
@@ -171,13 +166,67 @@ const MentionsPage: NextPage = () => {
           table: 'mentions',
           filter: `mention_to=eq.${user.id}`
         },
-        (payload) => {}
+        async (payload) => {
+          const [
+            { data: user, error: userError },
+            { data: chat, error: chatError }
+          ] = await Promise.all([
+            supabase
+              .from('users')
+              .select('id, nickname, avatar_url')
+              .eq('id', payload.new.mention_from)
+              .single(),
+            supabase
+              .from('chats')
+              .select(
+                `
+              id,
+              content,
+              code_block,
+              langauge,
+              updated_at,
+              room:room_id (
+                id,
+                name
+              )
+            `
+              )
+              .eq('id', payload.new.chat_id)
+              .single()
+          ])
+          if (userError || chatError) {
+            if (userError) console.error(userError)
+            if (chatError) console.error(chatError)
+            return
+          }
+          setState({
+            list: [
+              {
+                id: payload.new.id,
+                created_at: payload.new.created_at,
+                user: user as any,
+                chat: {
+                  ...(chat as any),
+                  reactions: []
+                }
+              },
+              ...list
+            ]
+          })
+        }
       )
       .subscribe()
   }
 
   useEffect(() => {
     get()
+  }, [])
+
+  useEffect(() => {
+    if (isIntersecting && page * 20 < total) get(page + 1)
+  }, [isIntersecting])
+
+  useEffect(() => {
     onSubscribe()
 
     return () => {
@@ -187,11 +236,7 @@ const MentionsPage: NextPage = () => {
       )
       if (mention) supabase.removeChannel(mention)
     }
-  }, [])
-
-  useEffect(() => {
-    if (isIntersecting && page * 20 < total) get(page + 1)
-  }, [isIntersecting])
+  }, [list])
 
   return (
     <>
@@ -230,18 +275,7 @@ const MentionsPage: NextPage = () => {
                 />
                 <div className="text-sm">
                   <div className="flex items-center gap-2">
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setState({
-                          isProfileOpen: true,
-                          userId: item.user.id
-                        })
-                      }}
-                      className="font-semibold"
-                    >
-                      {item.user.nickname}
-                    </span>
+                    <span className="font-semibold">{item.user.nickname}</span>
                     <span className="text-xs text-neutral-400">
                       {dayjs(item.created_at).locale('ko').fromNow()}
                     </span>
@@ -301,11 +335,6 @@ const MentionsPage: NextPage = () => {
           <div ref={ref} />
         </main>
       </div>
-      <Modal.Profile
-        isOpen={isProfileOpen}
-        onClose={() => setState({ isProfileOpen: false, userId: '' })}
-        userId={userId}
-      />
     </>
   )
 }

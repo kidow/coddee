@@ -34,6 +34,7 @@ interface State {
       reply_reactions: NTable.ReplyReactions[]
     }
   >
+  spamCount: number
 }
 
 const ThreadDrawer: FC<Props> = ({
@@ -45,13 +46,16 @@ const ThreadDrawer: FC<Props> = ({
   onDelete
 }) => {
   if (!isOpen) return null
-  const [{ content, isCodeEditorOpen, isSubmitting, list }, setState] =
-    useObjectState<State>({
-      content: '',
-      isCodeEditorOpen: false,
-      isSubmitting: false,
-      list: []
-    })
+  const [
+    { content, isCodeEditorOpen, isSubmitting, list, spamCount },
+    setState
+  ] = useObjectState<State>({
+    content: '',
+    isCodeEditorOpen: false,
+    isSubmitting: false,
+    list: [],
+    spamCount: 0
+  })
   const supabase = useSupabaseClient()
   const [user, setUser] = useUser()
   const { query } = useRouter()
@@ -71,16 +75,17 @@ const ThreadDrawer: FC<Props> = ({
         user_id,
         chat_id,
         user:user_id (
-            nickname,
-            avatar_url
+          id,
+          nickname,
+          avatar_url
         ),
         reply_reactions (
-            id,
-            text,
-            user_id,
-            user:user_id (
-                nickname
-            )
+          id,
+          text,
+          user_id,
+          user:user_id (
+              nickname
+          )
         )
     `
       )
@@ -134,6 +139,11 @@ const ThreadDrawer: FC<Props> = ({
 
   const createReply = async () => {
     if (!chat) return
+
+    if (spamCount >= 3) {
+      toast.warn('도배는 자제 부탁드립니다. :)')
+      return
+    }
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
@@ -157,7 +167,7 @@ const ThreadDrawer: FC<Props> = ({
       .insert({ user_id: user.id, chat_id: chat.id, content })
       .select()
       .single()
-    setState({ isSubmitting: false })
+    setState({ isSubmitting: false, spamCount: spamCount + 1 })
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
@@ -230,6 +240,13 @@ const ThreadDrawer: FC<Props> = ({
   useEffect(() => {
     get()
   }, [chat])
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (spamCount > 0) setState({ spamCount: 0 })
+    }, 3000)
+    return () => clearInterval(timer)
+  }, [spamCount])
 
   useEffect(() => {
     if (!chat) return

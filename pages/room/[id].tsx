@@ -563,23 +563,14 @@ const RoomIdPage: NextPage = () => {
               }
             }}
           />
-          <button
+          <Message.Button.Code
             onClick={() => setState({ isCodeEditorOpen: true })}
-            className="group flex h-8 w-8 items-center justify-center rounded-full border bg-white p-1.5 hover:border-neutral-600 dark:border-neutral-600 dark:bg-transparent dark:hover:border-neutral-500"
-          >
-            <CodeBracketIcon className="h-5 w-5 text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-300" />
-          </button>
-          <button
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 p-1.5 duration-150 hover:bg-blue-400 active:bg-blue-600 disabled:bg-neutral-400"
+          />
+          <Message.Button.Submit
             disabled={isSubmitting || !content}
             onClick={createChat}
-          >
-            {isSubmitting ? (
-              <Spinner className="h-5 w-5 text-neutral-50" />
-            ) : (
-              <ArrowSmallUpIcon className="h-5 w-5 text-neutral-50" />
-            )}
-          </button>
+            loading={isSubmitting}
+          />
         </footer>
       </div>
       <Modal.CodeEditor

@@ -31,8 +31,6 @@ export interface Props {
   onNicknameClick: (mention: string) => void
 }
 interface State {
-  isProfileOpen: boolean
-  userId: string
   isUpdateMode: boolean
   isThreadOpen: boolean
   isSubmitting: boolean
@@ -48,17 +46,12 @@ const MessageChat: FC<Props> = ({
   onDeleteReply,
   onNicknameClick
 }) => {
-  const [
-    { isProfileOpen, userId, isUpdateMode, isThreadOpen, isSubmitting },
-    setState,
-    onChange
-  ] = useObjectState<State>({
-    isProfileOpen: false,
-    userId: '',
-    isUpdateMode: false,
-    isThreadOpen: false,
-    isSubmitting: false
-  })
+  const [{ isUpdateMode, isThreadOpen, isSubmitting }, setState, onChange] =
+    useObjectState<State>({
+      isUpdateMode: false,
+      isThreadOpen: false,
+      isSubmitting: false
+    })
   const [user, setUser] = useUser()
   const { query } = useRouter()
   const supabase = useSupabaseClient()
@@ -327,11 +320,6 @@ const MessageChat: FC<Props> = ({
           </div>
         </div>
       )}
-      <Modal.Profile
-        isOpen={isProfileOpen}
-        onClose={() => setState({ isProfileOpen: false, userId: '' })}
-        userId={userId}
-      />
       <Drawer.Thread
         isOpen={isThreadOpen}
         onClose={() => setState({ isThreadOpen: false })}

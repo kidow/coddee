@@ -2,6 +2,7 @@ import type { FC } from 'react'
 
 import MessageActions from './Actions'
 import MessageAvatar from './Avatar'
+import MessageButton from './Button'
 import MessageChat from './Chat'
 import MessageCodeBlock from './CodeBlock'
 import MessageParser from './Parser'
@@ -22,5 +23,6 @@ export default Object.assign(Message, {
   Chat: MessageChat,
   Reactions: MessageReactions,
   Avatar: MessageAvatar,
-  Actions: MessageActions
+  Actions: MessageActions,
+  Button: MessageButton
 })
