@@ -71,6 +71,7 @@ const Layout: FC<Props> = ({ children }) => {
       )
     `
       )
+      .order('created_at', { ascending: true })
       .order('created_at', { ascending: false, foreignTable: 'chats' })
       .limit(1, { foreignTable: 'chats' })
     if (error) {

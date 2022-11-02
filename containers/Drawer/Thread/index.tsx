@@ -1,13 +1,12 @@
 import { useEffect } from 'react'
 import type { FC } from 'react'
-import { Drawer, Modal } from 'containers'
+import { Drawer, Modal, Message } from 'containers'
 import { REGEXP, toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
 import dayjs from 'dayjs'
-import { CodePreview, Spinner, Textarea, Tooltip } from 'components'
+import { Spinner, Textarea, Tooltip } from 'components'
 import { useRouter } from 'next/router'
 import { ArrowSmallUpIcon } from '@heroicons/react/24/outline'
 import classnames from 'classnames'
-import { ChatMessage } from 'templates'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 export interface Props extends DrawerProps {
@@ -27,10 +26,7 @@ export interface Props extends DrawerProps {
 }
 interface State {
   content: string
-  isEmojiOpen: boolean
   isCodeEditorOpen: boolean
-  isProfileOpen: boolean
-  userId: string
   isSubmitting: boolean
   list: Array<
     NTable.Replies & {
@@ -38,9 +34,6 @@ interface State {
       reply_reactions: NTable.ReplyReactions[]
     }
   >
-  replyId: number
-  tempContent: string
-  isUpdateMode: boolean
 }
 
 const ThreadDrawer: FC<Props> = ({
@@ -52,33 +45,13 @@ const ThreadDrawer: FC<Props> = ({
   onDelete
 }) => {
   if (!isOpen) return null
-  const [
-    {
-      content,
-      isEmojiOpen,
-      isCodeEditorOpen,
-      isProfileOpen,
-      userId,
-      isSubmitting,
-      list,
-      replyId,
-      tempContent,
-      isUpdateMode
-    },
-    setState,
-    onChange
-  ] = useObjectState<State>({
-    content: '',
-    isEmojiOpen: false,
-    isCodeEditorOpen: false,
-    isProfileOpen: false,
-    userId: '',
-    isSubmitting: false,
-    list: [],
-    replyId: 0,
-    tempContent: '',
-    isUpdateMode: false
-  })
+  const [{ content, isCodeEditorOpen, isSubmitting, list }, setState] =
+    useObjectState<State>({
+      content: '',
+      isCodeEditorOpen: false,
+      isSubmitting: false,
+      list: []
+    })
   const supabase = useSupabaseClient()
   const [user, setUser] = useUser()
   const { query } = useRouter()
@@ -96,6 +69,7 @@ const ThreadDrawer: FC<Props> = ({
         created_at,
         updated_at,
         user_id,
+        chat_id,
         user:user_id (
             nickname,
             avatar_url
@@ -208,102 +182,26 @@ const ThreadDrawer: FC<Props> = ({
     }
   }
 
-  const updateReply = async (index: number) => {
-    const item = list[index]
-    if (!item.isUpdating) {
-      setState({
-        list: [
-          ...list
-            .slice(0, index)
-            .map((item) => ({ ...item, isUpdating: false })),
-          { ...item, isUpdating: true, tempContent: item.content },
-          ...list
-            .slice(index + 1)
-            .map((item) => ({ ...item, isUpdating: false }))
-        ]
-      })
-      return
-    }
-
-    if (!item.tempContent?.trim()) return
-    const { error } = await supabase
-      .from('replies')
-      .update({ content: item.tempContent })
-      .eq('id', item.id)
-    if (error) {
-      toast.error(TOAST_MESSAGE.API_ERROR)
-      return
-    }
-  }
-
-  const deleteReply = async (id: number) => {
-    const { error } = await supabase.from('replies').delete().eq('id', id)
-    if (error) {
-      console.error(error)
-      toast.error(TOAST_MESSAGE.API_ERROR)
-      return
-    }
-  }
-
-  const onReaction = async (text: string) => {
+  const onEmojiSelect = async (text: string) => {
     if (!user || !chat) return
 
-    if (!!replyId) {
-      const index = list.findIndex((item) => item.id === replyId)
-      if (index === -1) {
-        setState({ isEmojiOpen: false, replyId: 0 })
-        console.error('Reply index is empty')
-        return
-      }
-
-      const reactionIndex = list[index].reply_reactions.findIndex(
-        (item) => item.text === text
-      )
-      if (reactionIndex === -1) {
-        const { error } = await supabase.from('reply_reactions').insert({
-          user_id: user.id,
-          reply_id: replyId,
-          text,
-          chat_id: chat.id
-        })
-        if (error) {
-          console.error(error)
-          toast.error(TOAST_MESSAGE.API_ERROR)
-        }
-      } else {
-        const userIndex = list[index].reply_reactions[
-          reactionIndex
-        ].userList.findIndex((item) => item.id === user.id)
-        if (userIndex === -1) {
-          const { error } = await supabase.from('reply_reactions').insert({
-            user_id: user.id,
-            reply_id: replyId,
-            text,
-            chat_id: chat.id
-          })
-          if (error) {
-            console.error(error)
-            toast.error(TOAST_MESSAGE.API_ERROR)
-          }
-        } else {
-          const { error } = await supabase
-            .from('reply_reactions')
-            .delete()
-            .match({
-              user_id: user.id,
-              reply_id: replyId,
-              text,
-              chat_id: chat.id
-            })
-          if (error) {
-            console.error(error)
-            toast.error(TOAST_MESSAGE.API_ERROR)
-          }
-        }
+    const index = chat.reactions.findIndex((item) => item.text === text)
+    if (index === -1) {
+      const { error } = await supabase.from('reactions').insert({
+        user_id: user.id,
+        chat_id: chat.id,
+        text,
+        room_id: query.id
+      })
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
       }
     } else {
-      const index = chat.reactions.findIndex((item) => item.text === text)
-      if (index === -1) {
+      const userIndex = chat.reactions[index].userList.findIndex(
+        (item) => item.id === user.id
+      )
+      if (userIndex === -1) {
         const { error } = await supabase.from('reactions').insert({
           user_id: user.id,
           chat_id: chat.id,
@@ -315,73 +213,16 @@ const ThreadDrawer: FC<Props> = ({
           toast.error(TOAST_MESSAGE.API_ERROR)
         }
       } else {
-        const userIndex = chat.reactions[index].userList.findIndex(
-          (item) => item.id === user.id
-        )
-        if (userIndex === -1) {
-          const { error } = await supabase.from('reactions').insert({
-            user_id: user.id,
-            chat_id: chat.id,
-            text,
-            room_id: query.id
-          })
-          if (error) {
-            console.error(error)
-            toast.error(TOAST_MESSAGE.API_ERROR)
-          }
-        } else {
-          const { error } = await supabase.from('reactions').delete().match({
-            user_id: user.id,
-            chat_id: chat.id,
-            text,
-            room_id: query.id
-          })
-          if (error) {
-            console.error(error)
-            toast.error(TOAST_MESSAGE.API_ERROR)
-          }
+        const { error } = await supabase.from('reactions').delete().match({
+          user_id: user.id,
+          chat_id: chat.id,
+          text,
+          room_id: query.id
+        })
+        if (error) {
+          console.error(error)
+          toast.error(TOAST_MESSAGE.API_ERROR)
         }
-      }
-    }
-
-    setState({ isEmojiOpen: false, replyId: 0 })
-  }
-
-  const updateReplyReaction = async (index: number, reactionIndex: number) => {
-    if (!chat) return
-    if (!user) {
-      toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
-      return
-    }
-
-    const reply = list[index]
-    const reaction = reply.reply_reactions[reactionIndex]
-    const userIndex = reaction.userList?.findIndex(
-      (item) => item.id === user.id
-    )
-    if (userIndex === undefined) return
-
-    if (userIndex === -1) {
-      const { error } = await supabase.from('reply_reactions').insert({
-        user_id: user.id,
-        reply_id: reply.id,
-        text: reaction.text,
-        chat_id: chat.id
-      })
-      if (error) {
-        console.error(error)
-        toast.error(TOAST_MESSAGE.API_ERROR)
-      }
-    } else {
-      const { error } = await supabase.from('reply_reactions').delete().match({
-        user_id: user.id,
-        reply_id: reply.id,
-        text: reaction.text,
-        chat_id: chat.id
-      })
-      if (error) {
-        console.error(error)
-        toast.error(TOAST_MESSAGE.API_ERROR)
       }
     }
   }
@@ -592,13 +433,9 @@ const ThreadDrawer: FC<Props> = ({
       <Drawer isOpen={isOpen} onClose={onClose} position="right">
         <div>
           <div className="group relative flex items-start gap-3 p-4 hover:bg-neutral-50 dark:hover:bg-neutral-700">
-            <img
-              src={chat?.user?.avatar_url}
-              alt=""
-              className="mt-1 h-9 w-9 cursor-pointer rounded-full"
-              onClick={() =>
-                setState({ isProfileOpen: true, userId: chat?.user_id })
-              }
+            <Message.Avatar
+              url={chat?.user.avatar_url || ''}
+              userId={chat?.user_id || ''}
             />
             <div className="flex-1">
               <div className="flex items-center gap-2">
@@ -613,13 +450,13 @@ const ThreadDrawer: FC<Props> = ({
                 </span>
               </div>
               <div>
-                <ChatMessage.Parser
+                <Message.Parser
                   content={chat?.content || ''}
                   updatedAt={chat?.updated_at || ''}
                 />
               </div>
               {!!chat?.reactions?.length && (
-                <div className="group mt-1 flex flex-wrap gap-1 pr-16">
+                <Message.Reactions>
                   {chat.reactions.map((item, key) => (
                     <Tooltip.Reaction
                       userList={item.userList}
@@ -629,16 +466,14 @@ const ThreadDrawer: FC<Props> = ({
                       length={item?.userList.length}
                     />
                   ))}
-                  <Tooltip.AddReaction
-                    onClick={() => setState({ isEmojiOpen: true })}
-                  />
-                </div>
+                  <Tooltip.AddReaction onSelect={onEmojiSelect} />
+                </Message.Reactions>
               )}
             </div>
             <div className="absolute top-4 right-4 z-10 hidden rounded-lg border bg-white group-hover:flex dark:border-neutral-800 dark:bg-neutral-700">
               <div className="flex p-0.5">
                 <Tooltip.Actions.AddReaction
-                  onClick={() => setState({ isEmojiOpen: true })}
+                  onSelect={onEmojiSelect}
                   position="bottom"
                 />
                 {/* {chat?.user_id === user?.id && (
@@ -659,129 +494,7 @@ const ThreadDrawer: FC<Props> = ({
           )}
           <div>
             {list.map((item, key) => (
-              <div
-                key={item.id}
-                className="group relative flex items-start gap-3 py-2 pl-4 pr-6 hover:bg-neutral-50 dark:hover:bg-neutral-700"
-              >
-                <img
-                  src={item.user?.avatar_url}
-                  alt=""
-                  className="mt-1 h-9 w-9 cursor-pointer rounded-full"
-                  onClick={() =>
-                    setState({ isProfileOpen: true, userId: item.user_id })
-                  }
-                />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="flex cursor-pointer items-center text-sm font-medium">
-                      <span>{item.user?.nickname}</span>
-                      {item.user_id === user?.id && (
-                        <span className="ml-1 text-xs text-neutral-400">
-                          (나)
-                        </span>
-                      )}
-                    </span>
-                    <span className="text-xs text-neutral-400">
-                      {dayjs(item.created_at).locale('ko').fromNow()}
-                    </span>
-                  </div>
-                  <div>
-                    {item.isUpdating ? (
-                      <div>
-                        <Textarea
-                          className="rounded-lg bg-neutral-200 p-2 dark:bg-neutral-600 dark:text-neutral-200"
-                          value={item.tempContent}
-                          autoFocus
-                          onChange={(e) =>
-                            setState({
-                              list: [
-                                ...list.slice(0, key),
-                                { ...item, tempContent: e.target.value },
-                                ...list.slice(key + 1)
-                              ]
-                            })
-                          }
-                        />
-                        <div className="flex gap-2 text-xs text-blue-500">
-                          <button
-                            onClick={() =>
-                              setState({
-                                list: [
-                                  ...list.slice(0, key),
-                                  {
-                                    ...item,
-                                    tempContent: '',
-                                    isUpdating: false
-                                  },
-                                  ...list.slice(key + 1)
-                                ]
-                              })
-                            }
-                          >
-                            취소
-                          </button>
-                          <button onClick={() => updateReply(key)}>저장</button>
-                        </div>
-                      </div>
-                    ) : (
-                      <ChatMessage.Parser
-                        content={item.content}
-                        updatedAt={item.updated_at}
-                      />
-                    )}
-                  </div>
-                  {!!item.code_block && (
-                    <div className="border dark:border-transparent">
-                      <CodePreview
-                        original={item.code_block}
-                        defaultLanguage={item.language}
-                      />
-                    </div>
-                  )}
-                  {!!item.reply_reactions?.length && (
-                    <div className="mt-1 flex flex-wrap gap-1 pr-10">
-                      {item.reply_reactions.map((reaction, reactionKey) => (
-                        <Tooltip.Reaction
-                          userList={reaction.userList}
-                          key={reaction.id}
-                          onClick={() => updateReplyReaction(key, reactionKey)}
-                          text={reaction.text}
-                          length={reaction?.userList?.length}
-                        />
-                      ))}
-                      <Tooltip.AddReaction
-                        onClick={() =>
-                          setState({ isEmojiOpen: true, replyId: item.id })
-                        }
-                      />
-                    </div>
-                  )}
-                </div>
-                <div
-                  className={classnames(
-                    'absolute right-8 -top-4 z-10 hidden rounded-lg border bg-white dark:border-neutral-800 dark:bg-neutral-700',
-                    { 'group-hover:block': !item.isUpdating }
-                  )}
-                >
-                  <div className="flex p-0.5">
-                    <Tooltip.Actions.AddReaction
-                      onClick={() =>
-                        setState({ isEmojiOpen: true, replyId: item.id })
-                      }
-                    />
-                    {item.user_id === user?.id && (
-                      <>
-                        <Tooltip.Actions.Update
-                          onClick={() => updateReply(key)}
-                        />
-                        <Tooltip.Actions.Delete
-                          onClick={() => deleteReply(item.id)}
-                        />
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <Message.Reply reply={item} key={key} />
             ))}
           </div>
           <div className="p-4">
@@ -829,16 +542,6 @@ const ThreadDrawer: FC<Props> = ({
           </div>
         </div>
       </Drawer>
-      <Modal.Emoji
-        isOpen={isEmojiOpen}
-        onClose={() => setState({ isEmojiOpen: false, replyId: 0 })}
-        onSelect={onReaction}
-      />
-      <Modal.Profile
-        isOpen={isProfileOpen}
-        onClose={() => setState({ isProfileOpen: false, userId: '' })}
-        userId={userId}
-      />
       <Modal.CodeEditor
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}

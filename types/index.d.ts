@@ -64,8 +64,6 @@ namespace NTable {
     created_at: string
     updated_at: string
     deleted_at: string
-    isUpdating?: boolean
-    tempContent?: string
   }
   interface Languages {
     id: number
