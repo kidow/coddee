@@ -23,6 +23,7 @@ interface State {
         id: string
         name: string
       }
+      opengraphs: NTable.Opengraphs[]
       updated_at: string
     }
     created_at: string
@@ -87,6 +88,14 @@ const MentionsPage: NextPage = () => {
             user:user_id (
               nickname
             )
+          ),
+          opengraphs (
+            id,
+            title,
+            description,
+            url,
+            site_name,
+            image
           )
         ),
         created_at
@@ -286,6 +295,9 @@ const MentionsPage: NextPage = () => {
                     originalCode={item.chat.code_block}
                     defaultLanguage={item.chat.language}
                   />
+                  {item.chat.opengraphs?.map((item) => (
+                    <Message.Opengraph {...item} key={item.id} />
+                  ))}
                   {!!item.chat.reactions?.length && (
                     <Message.Reactions>
                       {item.chat.reactions.map((reaction, key) => (

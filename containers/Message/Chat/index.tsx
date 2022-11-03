@@ -2,7 +2,7 @@ import type { FC } from 'react'
 import dayjs from 'dayjs'
 import classnames from 'classnames'
 import { toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
-import { Drawer, Modal, Message } from 'containers'
+import { Drawer, Message } from 'containers'
 import { Tooltip } from 'components'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/router'
@@ -17,6 +17,7 @@ export interface Props {
       created_at: string
       user: { avatar_url: string }
     }>
+    opengraphs: NTable.Opengraphs[]
   }
   nextUserId: string
   nextCreatedAt: string
@@ -242,6 +243,9 @@ const MessageChat: FC<Props> = ({
             originalCode={chat.code_block}
             defaultLanguage={chat.language}
           />
+          {chat.opengraphs?.map((item) => (
+            <Message.Opengraph {...item} key={item.id} />
+          ))}
           {!!chat.reactions?.length && (
             <Message.Reactions>
               {chat.reactions.map((item, key) => (

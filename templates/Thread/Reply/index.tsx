@@ -9,6 +9,7 @@ export interface Props {
   reply: NTable.Replies & {
     user: NTable.Users
     reply_reactions: NTable.ReplyReactions[]
+    opengraphs: NTable.Opengraphs[]
   }
 }
 interface State {
@@ -201,6 +202,9 @@ const ThreadReply: FC<Props> = ({ reply }) => {
           originalCode={reply.code_block}
           defaultLanguage={reply.language}
         />
+        {reply.opengraphs?.map((item) => (
+          <Message.Opengraph {...item} key={item.id} />
+        ))}
         {!!reply.reply_reactions?.length && (
           <Message.Reactions>
             {reply.reply_reactions.map((item, key) => (

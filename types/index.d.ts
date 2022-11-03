@@ -108,6 +108,18 @@ namespace NTable {
     reply_id: number
     created_at: string
   }
+  interface Opengraphs {
+    id: number
+    chat_id: number
+    reply_id: number
+    room_id: string
+    title: string
+    description: string
+    image: string
+    url: string
+    site_name: string
+    created_at: string
+  }
 }
 
 namespace NToast {

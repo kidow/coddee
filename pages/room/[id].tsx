@@ -2,8 +2,6 @@ import { SEO, Spinner, Textarea } from 'components'
 import type { NextPage } from 'next'
 import {
   ArrowLeftIcon,
-  ArrowSmallUpIcon,
-  CodeBracketIcon,
   EllipsisVerticalIcon
 } from '@heroicons/react/24/outline'
 import {
@@ -39,6 +37,7 @@ interface State {
         created_at: string
         user: { avatar_url: string }
       }>
+      opengraphs: NTable.Opengraphs[]
     }
   >
   name: string
@@ -121,6 +120,14 @@ const RoomIdPage: NextPage = () => {
         user:user_id (
           avatar_url
         )
+      ),
+      opengraphs (
+        id,
+        title,
+        description,
+        site_name,
+        url,
+        image
       )
     `,
         { count: 'exact' }
@@ -250,6 +257,40 @@ const RoomIdPage: NextPage = () => {
           })
         )
       )
+    }
+
+    if (REGEXP.URL.test(content)) {
+      const urls = content.match(REGEXP.URL)
+      if (!urls) return
+
+      const res = await Promise.all(
+        urls.map((url) =>
+          fetch('/api/opengraph', {
+            method: 'POST',
+            headers: new Headers({
+              'Content-Type': 'application/json'
+            }),
+            body: JSON.stringify({ url })
+          })
+        )
+      )
+      const json = await Promise.all(res.map((result) => result.json()))
+      json
+        .filter((item) => item.success)
+        .forEach(({ data }) =>
+          supabase.from('opengraphs').insert({
+            title: data.title || data['og:title'] || data['twitter:title'],
+            description:
+              data.description ||
+              data['og:description'] ||
+              data['twitter:description'],
+            image: data.image || data['og:image'] || data['twitter:image'],
+            url: data.url || data['og:url'] || data['twitter:domain'],
+            site_name: data['og:site_name'] || '',
+            chat_id: chat.id,
+            room_id: query.id
+          })
+        )
     }
   }
 
@@ -467,8 +508,39 @@ const RoomIdPage: NextPage = () => {
       )
       .subscribe()
 
+    const opengraphs = supabase
+      .channel('public:opengraphs')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'opengraphs',
+          filter: `room_id=eq.${query.id}`
+        },
+        (payload: any) => {
+          const index = chatList.findIndex(
+            (item) => item.id === payload.new.chat_id
+          )
+          if (index === -1) return
+
+          setState({
+            chatList: [
+              ...chatList.slice(0, index),
+              {
+                ...chatList[index],
+                opengraphs: [...chatList[index].opengraphs, payload.new]
+              },
+              ...chatList.slice(index + 1)
+            ]
+          })
+        }
+      )
+      .subscribe()
+
     return () => {
       supabase.removeChannel(reactions)
+      supabase.removeChannel(opengraphs)
     }
   }, [chatList, query.id])
 

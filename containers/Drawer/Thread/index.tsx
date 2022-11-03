@@ -32,6 +32,7 @@ interface State {
     NTable.Replies & {
       user: NTable.Users
       reply_reactions: NTable.ReplyReactions[]
+      opengraphs: NTable.Opengraphs[]
     }
   >
   spamCount: number
@@ -86,6 +87,14 @@ const ThreadDrawer: FC<Props> = ({
           user:user_id (
               nickname
           )
+        ),
+        opengraphs (
+          id,
+          title,
+          description,
+          site_name,
+          url,
+          image
         )
     `
       )
@@ -189,6 +198,40 @@ const ThreadDrawer: FC<Props> = ({
           })
         )
       )
+    }
+
+    if (REGEXP.URL.test(content)) {
+      const urls = content.match(REGEXP.URL)
+      if (!urls) return
+
+      const res = await Promise.all(
+        urls.map((url) =>
+          fetch('/api/opengraph', {
+            method: 'POST',
+            headers: new Headers({
+              'Content-Type': 'application/json'
+            }),
+            body: JSON.stringify({ url })
+          })
+        )
+      )
+      const json = await Promise.all(res.map((result) => result.json()))
+      json
+        .filter((item) => item.success)
+        .forEach(({ data }) =>
+          supabase.from('opengraphs').insert({
+            title: data.title || data['og:title'] || data['twitter:title'],
+            description:
+              data.description ||
+              data['og:description'] ||
+              data['twitter:description'],
+            image: data.image || data['og:image'] || data['twitter:image'],
+            url: data.url || data['og:url'] || data['twitter:domain'],
+            site_name: data['og:site_name'] || '',
+            reply_id: reply.id,
+            room_id: query.id
+          })
+        )
     }
   }
 
@@ -438,9 +481,40 @@ const ThreadDrawer: FC<Props> = ({
       )
       .subscribe()
 
+    const opengraphs = supabase
+      .channel('public:opengraphs')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'oepngraphs',
+          filter: `chat_id=eq.${chat.id}`
+        },
+        (payload: any) => {
+          const index = list.findIndex(
+            (item) => item.id === payload.new.reply_id
+          )
+          if (index === -1) return
+
+          setState({
+            list: [
+              ...list.slice(0, index),
+              {
+                ...list[index],
+                opengraphs: [...list[index].opengraphs, payload.new]
+              },
+              ...list.slice(index + 1)
+            ]
+          })
+        }
+      )
+      .subscribe()
+
     return () => {
       supabase.removeChannel(replies)
       supabase.removeChannel(replyReactions)
+      supabase.removeChannel(opengraphs)
     }
   }, [list, chat])
   return (

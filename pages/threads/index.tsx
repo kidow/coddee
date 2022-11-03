@@ -20,10 +20,12 @@ interface State {
         NTable.Replies & {
           user: NTable.Users
           reply_reactions: NTable.ReplyReactions[]
+          opengraphs: NTable.Opengraphs[]
         }
       >
       reactions: Array<NTable.Reactions & { user: NTable.Users }>
       room: NTable.Rooms
+      opengraphs: NTable.Opengraphs[]
     }
   >
   isLoading: boolean
@@ -61,6 +63,7 @@ const ThreadsPage: NextPage = () => {
       code_block,
       language,
       user_id,
+      room_id,
       updated_at,
       user:user_id (
         id,
@@ -88,6 +91,14 @@ const ThreadsPage: NextPage = () => {
           user:user_id (
               nickname
           )
+        ),
+        opengraphs (
+          id,
+          title,
+          description,
+          site_name,
+          url,
+          image
         )
       ),
       reactions (
@@ -101,6 +112,14 @@ const ThreadsPage: NextPage = () => {
       room:room_id (
         id,
         name
+      ),
+      opengraphs (
+        id,
+        title,
+        description,
+        site_name,
+        url,
+        image
       )
     `,
         { count: 'exact' }

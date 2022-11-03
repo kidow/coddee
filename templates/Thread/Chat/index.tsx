@@ -6,7 +6,7 @@ import dayjs from 'dayjs'
 import Link from 'next/link'
 import { useMemo } from 'react'
 import type { FC } from 'react'
-import { toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
+import { REGEXP, toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
 import { Thread } from 'templates'
 
 export interface Props {
@@ -16,10 +16,12 @@ export interface Props {
       NTable.Replies & {
         user: NTable.Users
         reply_reactions: NTable.ReplyReactions[]
+        opengraphs: NTable.Opengraphs[]
       }
     >
     reactions: Array<NTable.Reactions & { user: NTable.Users }>
     room: NTable.Rooms
+    opengraphs: NTable.Opengraphs[]
   }
 }
 interface State {
@@ -99,13 +101,49 @@ const ThreadChat: FC<Props> = ({ chat }) => {
     }
 
     setState({ isSubmitting: true })
-    const { error } = await supabase
+    const { data: reply, error } = await supabase
       .from('replies')
       .insert({ user_id: user.id, chat_id: chat.id, content })
+      .select()
+      .single()
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
     } else setState({ content: '' })
+
+    if (REGEXP.URL.test(content)) {
+      const urls = content.match(REGEXP.URL)
+      if (!urls) return
+
+      const res = await Promise.all(
+        urls.map((url) =>
+          fetch('/api/opengraph', {
+            method: 'POST',
+            headers: new Headers({
+              'Content-Type': 'application/json'
+            }),
+            body: JSON.stringify({ url })
+          })
+        )
+      )
+      const json = await Promise.all(res.map((result) => result.json()))
+      json
+        .filter((item) => item.success)
+        .forEach(({ data }) =>
+          supabase.from('opengraphs').insert({
+            title: data.title || data['og:title'] || data['twitter:title'],
+            description:
+              data.description ||
+              data['og:description'] ||
+              data['twitter:description'],
+            image: data.image || data['og:image'] || data['twitter:image'],
+            url: data.url || data['og:url'] || data['twitter:domain'],
+            site_name: data['og:site_name'] || '',
+            reply_id: reply.id,
+            room_id: chat.room_id
+          })
+        )
+    }
   }
 
   const updateReaction = async (key: number) => {
@@ -262,6 +300,9 @@ const ThreadChat: FC<Props> = ({ chat }) => {
                 originalCode={chat.code_block}
                 defaultLanguage={chat.language}
               />
+              {chat.opengraphs?.map((item) => (
+                <Message.Opengraph {...item} key={item.id} />
+              ))}
               {!!chat.reactions?.length && (
                 <Message.Reactions>
                   {chat.reactions.map((item, key) => (
