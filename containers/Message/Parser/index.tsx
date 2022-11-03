@@ -1,7 +1,7 @@
+import { Modal } from 'containers'
 import { Fragment } from 'react'
 import type { FC } from 'react'
 import { REGEXP, useObjectState } from 'services'
-import { Modal } from 'containers'
 
 export interface Props {
   content: string
@@ -12,7 +12,7 @@ interface State {
   userId: string
 }
 
-const ChatMessageParser: FC<Props> = ({ content, updatedAt }) => {
+const MessageParser: FC<Props> = ({ content, updatedAt }) => {
   const [{ isProfileOpen, userId }, setState] = useObjectState<State>({
     isProfileOpen: false,
     userId: ''
@@ -79,4 +79,4 @@ const ChatMessageParser: FC<Props> = ({ content, updatedAt }) => {
   )
 }
 
-export default ChatMessageParser
+export default MessageParser

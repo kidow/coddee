@@ -1,7 +1,7 @@
 import { Fragment, useEffect } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
-import { supabase, useObjectState } from 'services'
+import { useObjectState } from 'services'
 import { Divider, Form } from 'components'
 import {
   ArrowTopRightOnSquareIcon,
@@ -11,6 +11,7 @@ import {
   MapPinIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 export interface Props extends ModalProps {
   userId: string
@@ -65,6 +66,7 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
     repository: 0,
     isLoading: true
   })
+  const supabase = useSupabaseClient()
 
   const get = async () => {
     const { data: user, error } = await supabase

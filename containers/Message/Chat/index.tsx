@@ -1,19 +1,12 @@
 import type { FC } from 'react'
 import dayjs from 'dayjs'
 import classnames from 'classnames'
-import {
-  supabase,
-  toast,
-  TOAST_MESSAGE,
-  useObjectState,
-  useUser
-} from 'services'
-import { Drawer, Modal } from 'containers'
-import { CodePreview, Textarea, Tooltip } from 'components'
+import { toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
+import { Drawer, Modal, Message } from 'containers'
+import { Tooltip } from 'components'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/router'
-
-import ChatMessageParser from './Parser'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 export interface Props {
   chat: NTable.Chats & {
@@ -38,16 +31,12 @@ export interface Props {
   onNicknameClick: (mention: string) => void
 }
 interface State {
-  isProfileOpen: boolean
-  userId: string
   isUpdateMode: boolean
-  content: string
-  isEmojiOpen: boolean
   isThreadOpen: boolean
   isSubmitting: boolean
 }
 
-const ChatMessage: FC<Props> = ({
+const MessageChat: FC<Props> = ({
   chat,
   nextCreatedAt,
   nextUserId,
@@ -57,30 +46,19 @@ const ChatMessage: FC<Props> = ({
   onDeleteReply,
   onNicknameClick
 }) => {
-  const [
-    {
-      isProfileOpen,
-      userId,
-      isUpdateMode,
-      content,
-      isEmojiOpen,
-      isThreadOpen,
-      isSubmitting
-    },
-    setState
-  ] = useObjectState<State>({
-    isProfileOpen: false,
-    userId: '',
-    isUpdateMode: false,
-    content: '',
-    isEmojiOpen: false,
-    isThreadOpen: false,
-    isSubmitting: false
-  })
+  const [{ isUpdateMode, isThreadOpen, isSubmitting }, setState, onChange] =
+    useObjectState<State>({
+      isUpdateMode: false,
+      isThreadOpen: false,
+      isSubmitting: false
+    })
   const [user, setUser] = useUser()
   const { query } = useRouter()
+  const supabase = useSupabaseClient()
 
-  const updateChat = async () => {
+  const updateChat = async (content: string) => {
+    if (isSubmitting) return
+
     const { data } = await supabase.auth.getUser()
     if (!!user && !data.user) {
       await supabase.auth.signOut()
@@ -90,7 +68,7 @@ const ChatMessage: FC<Props> = ({
     }
 
     if (!isUpdateMode) {
-      setState({ isUpdateMode: true, content: chat.content })
+      setState({ isUpdateMode: true })
       return
     }
 
@@ -172,7 +150,6 @@ const ChatMessage: FC<Props> = ({
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
-      setState({ isEmojiOpen: false })
     } else {
       const userIndex = chat.reactions[reactionIndex].userList.findIndex(
         (item) => item.id === user.id
@@ -189,7 +166,6 @@ const ChatMessage: FC<Props> = ({
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
-        setState({ isEmojiOpen: false })
       } else {
         const { error } = await supabase.from('reactions').delete().match({
           user_id: user.id,
@@ -202,7 +178,6 @@ const ChatMessage: FC<Props> = ({
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
-        setState({ isEmojiOpen: false })
       }
     }
   }
@@ -219,14 +194,7 @@ const ChatMessage: FC<Props> = ({
       >
         <div className="flex w-8 items-start justify-center">
           {chat.user_id !== nextUserId ? (
-            <img
-              src={chat.user.avatar_url}
-              alt=""
-              className="mt-1 h-8 w-8 cursor-pointer rounded-full"
-              onClick={() =>
-                setState({ isProfileOpen: true, userId: chat.user_id })
-              }
-            />
+            <Message.Avatar url={chat.user.avatar_url} userId={chat.user_id} />
           ) : (
             <span className="invisible mt-[5px] text-2xs text-neutral-400 group-hover:visible">
               {dayjs(chat.created_at).locale('ko').format('H:mm')}
@@ -236,7 +204,7 @@ const ChatMessage: FC<Props> = ({
         <div className="flex-1">
           {chat.user_id !== nextUserId && (
             <div className="flex items-center gap-2">
-              <span className="flex items-center text-sm font-medium">
+              <div className="flex items-center text-sm font-medium">
                 <span
                   onClick={() =>
                     onNicknameClick(
@@ -250,7 +218,7 @@ const ChatMessage: FC<Props> = ({
                 {chat.user_id === user?.id && (
                   <span className="ml-1 text-xs text-neutral-400">(나)</span>
                 )}
-              </span>
+              </div>
               <span className="text-xs text-neutral-400">
                 {dayjs(chat.created_at).locale('ko').format('A H:mm')}
               </span>
@@ -258,45 +226,24 @@ const ChatMessage: FC<Props> = ({
           )}
           <div>
             {isUpdateMode ? (
-              <div>
-                <div className="rounded-lg bg-neutral-200 p-2 dark:bg-neutral-600 dark:text-neutral-200">
-                  <Textarea
-                    value={content}
-                    name="content"
-                    autoFocus
-                    onChange={(e) => setState({ content: e.target.value })}
-                  />
-                </div>
-                <div className="flex gap-2 text-xs text-blue-500">
-                  <button
-                    onClick={() =>
-                      setState({ content: '', isUpdateMode: false })
-                    }
-                  >
-                    취소
-                  </button>
-                  <button disabled={isSubmitting} onClick={updateChat}>
-                    저장
-                  </button>
-                </div>
-              </div>
+              <Message.Update
+                content={chat.content}
+                onCancel={() => setState({ isUpdateMode: false })}
+                onSave={updateChat}
+              />
             ) : (
-              <ChatMessageParser
+              <Message.Parser
                 content={chat.content}
                 updatedAt={chat.updated_at}
               />
             )}
           </div>
-          {!!chat.code_block && (
-            <div className="border dark:border-transparent">
-              <CodePreview
-                original={chat.code_block}
-                defaultLanguage={chat.language}
-              />
-            </div>
-          )}
+          <Message.CodeBlock
+            originalCode={chat.code_block}
+            defaultLanguage={chat.language}
+          />
           {!!chat.reactions?.length && (
-            <div className="mt-1 flex gap-1">
+            <Message.Reactions>
               {chat.reactions.map((item, key) => (
                 <Tooltip.Reaction
                   userList={item.userList}
@@ -306,10 +253,8 @@ const ChatMessage: FC<Props> = ({
                   length={item?.userList.length}
                 />
               ))}
-              <Tooltip.AddReaction
-                onClick={() => setState({ isEmojiOpen: true })}
-              />
-            </div>
+              <Tooltip.AddReaction onSelect={onEmojiSelect} />
+            </Message.Reactions>
           )}
           {!!chat.replies?.length && (
             <div
@@ -348,24 +293,21 @@ const ChatMessage: FC<Props> = ({
           )}
         </div>
 
-        <div
-          className={classnames(
-            'absolute right-6 -top-4 z-10 hidden rounded-lg border bg-white dark:border-neutral-800 dark:bg-neutral-700',
-            { 'group-hover:block': !isUpdateMode }
-          )}
-        >
-          <div className="flex p-0.5">
-            <Tooltip.Actions.AddReaction
-              onClick={() => setState({ isEmojiOpen: true })}
-            />
-            <Tooltip.Actions.Thread
-              onClick={() => setState({ isThreadOpen: true })}
-            />
-            {chat.user_id === user?.id && (
-              <Tooltip.Actions.Update onClick={updateChat} />
-            )}
+        {!isUpdateMode && (
+          <div className="absolute right-6 -top-4 z-10 hidden rounded-lg border bg-white group-hover:block dark:border-neutral-800 dark:bg-neutral-700">
+            <div className="flex p-0.5">
+              <Tooltip.Actions.AddReaction onSelect={onEmojiSelect} />
+              <Tooltip.Actions.Thread
+                onClick={() => setState({ isThreadOpen: true })}
+              />
+              {chat.user_id === user?.id && (
+                <Tooltip.Actions.Update
+                  onClick={() => setState({ isUpdateMode: true })}
+                />
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
       {(!!dayjs(dayjs(chat.created_at).format('YYYY-MM-DD')).diff(
         dayjs(nextCreatedAt).format('YYYY-MM-DD'),
@@ -378,16 +320,6 @@ const ChatMessage: FC<Props> = ({
           </div>
         </div>
       )}
-      <Modal.Profile
-        isOpen={isProfileOpen}
-        onClose={() => setState({ isProfileOpen: false, userId: '' })}
-        userId={userId}
-      />
-      <Modal.Emoji
-        isOpen={isEmojiOpen}
-        onClose={() => setState({ isEmojiOpen: false })}
-        onSelect={onEmojiSelect}
-      />
       <Drawer.Thread
         isOpen={isThreadOpen}
         onClose={() => setState({ isThreadOpen: false })}
@@ -400,4 +332,4 @@ const ChatMessage: FC<Props> = ({
   )
 }
 
-export default Object.assign(ChatMessage, { Parser: ChatMessageParser })
+export default MessageChat

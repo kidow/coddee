@@ -7,7 +7,6 @@ import {
   EllipsisVerticalIcon
 } from '@heroicons/react/24/outline'
 import {
-  supabase,
   useObjectState,
   useUser,
   useIntersectionObserver,
@@ -17,10 +16,10 @@ import {
 } from 'services'
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { Modal } from 'containers'
+import { Message, Modal } from 'containers'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { ChatMessage } from 'templates'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 dayjs.extend(relativeTime)
 
@@ -83,6 +82,7 @@ const RoomIdPage: NextPage = () => {
   const [user, setUser] = useUser()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const supabase = useSupabaseClient()
 
   const getChatList = async (page: number = 1) => {
     if (!query.id || typeof query.id !== 'string') return
@@ -312,16 +312,24 @@ const RoomIdPage: NextPage = () => {
               ...chatList.slice(0, index),
               {
                 ...chatList[index],
-                isUpdating: false,
-                tempContent: '',
                 content: payload.new.content,
                 updated_at: payload.new.updated_at
               },
               ...chatList.slice(index + 1)
             ]
           })
-          toast.success('변경되었습니다.')
+          if (payload.new.user_id === user?.id) toast.success('변경되었습니다.')
         }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'chats',
+          filter: `room_id=eq.${query.id}`
+        },
+        (payload) => {}
       )
       .subscribe()
 
@@ -501,7 +509,7 @@ const RoomIdPage: NextPage = () => {
         </header>
         <main className="flex flex-1 flex-col-reverse py-3">
           {chatList.map((item, key, arr) => (
-            <ChatMessage
+            <Message.Chat
               chat={item}
               key={key}
               nextUserId={arr[key + 1]?.user_id}
@@ -565,23 +573,14 @@ const RoomIdPage: NextPage = () => {
               }
             }}
           />
-          <button
+          <Message.Button.Code
             onClick={() => setState({ isCodeEditorOpen: true })}
-            className="group rounded-full border bg-white p-1.5 hover:border-neutral-600 dark:border-neutral-600 dark:bg-transparent dark:hover:border-neutral-500"
-          >
-            <CodeBracketIcon className="h-5 w-5 text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-300" />
-          </button>
-          <button
-            className="rounded-full bg-blue-500 p-1.5 duration-150 hover:bg-blue-400 active:bg-blue-600 disabled:bg-neutral-400"
+          />
+          <Message.Button.Submit
             disabled={isSubmitting || !content}
             onClick={createChat}
-          >
-            {isSubmitting ? (
-              <Spinner className="h-5 w-5 text-neutral-50" />
-            ) : (
-              <ArrowSmallUpIcon className="h-5 w-5 text-neutral-50" />
-            )}
-          </button>
+            loading={isSubmitting}
+          />
         </footer>
       </div>
       <Modal.CodeEditor

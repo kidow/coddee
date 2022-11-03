@@ -3,7 +3,6 @@ import type { FC } from 'react'
 import { Modal } from 'containers'
 import classnames from 'classnames'
 import {
-  supabase,
   toast,
   TOAST_MESSAGE,
   useBackdrop,
@@ -19,6 +18,7 @@ import {
   MapPinIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 export interface Props extends ModalProps {}
 interface State {
@@ -81,6 +81,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     company: '',
     isLoading: true
   })
+  const supabase = useSupabaseClient()
   const [user, setUser] = useUser()
   const backdrop = useBackdrop()
 

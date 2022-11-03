@@ -2,15 +2,10 @@ import { useEffect } from 'react'
 import type { FC } from 'react'
 import Editor from '@monaco-editor/react'
 import { Modal } from 'containers'
-import {
-  supabase,
-  toast,
-  TOAST_MESSAGE,
-  useObjectState,
-  useUser
-} from 'services'
+import { toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
 import { Button, Select, Textarea } from 'components'
 import { useRouter } from 'next/router'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 export interface Props extends ModalProps {
   content?: string
@@ -40,6 +35,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
   })
   const [user, setUser] = useUser()
   const { query } = useRouter()
+  const supabase = useSupabaseClient()
 
   const getLanguages = async () => {
     const { data } = await supabase.from('languages').select('*')

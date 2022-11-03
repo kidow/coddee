@@ -1,45 +1,45 @@
 import 'styles/globals.css'
-import App from 'next/app'
-import { ErrorInfo } from 'react'
-import { Layout, Auth, Backdrop, Toast } from 'containers'
+import type { AppProps } from 'next/app'
+import { useEffect, useState } from 'react'
+import { Layout, Backdrop, Toast, ErrorBoundary, Auth } from 'containers'
 import { RecoilRoot } from 'recoil'
 import 'dayjs/locale/ko'
+import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { SessionContextProvider, Session } from '@supabase/auth-helpers-react'
 
 interface Props {}
-interface State {
-  hasError: boolean
-}
+interface State {}
 
-class MyApp extends App<Props, {}, State> {
-  state = {
-    hasError: false
-  }
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    if (error) this.setState({ hasError: true })
-  }
-  static getDerivedStateFromError() {
-    return { hasError: true }
-  }
-  componentDidMount() {
+function MyApp({
+  Component,
+  pageProps
+}: AppProps<{ initialSession: Session }>) {
+  const [supabaseClient] = useState(() => createBrowserSupabaseClient())
+
+  useEffect(() => {
     const theme = window.localStorage.getItem('theme')
     if (theme === 'dark') document.documentElement.classList.add('dark')
-  }
-  render() {
-    const { Component, pageProps } = this.props
-    return (
-      <>
-        <RecoilRoot>
-          <Auth>
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
-          </Auth>
-        </RecoilRoot>
-        <Backdrop />
-        <Toast />
-      </>
-    )
-  }
+  }, [])
+  return (
+    <>
+      <RecoilRoot>
+        <ErrorBoundary>
+          <SessionContextProvider
+            supabaseClient={supabaseClient}
+            initialSession={pageProps.initialSession}
+          >
+            <Auth>
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            </Auth>
+          </SessionContextProvider>
+        </ErrorBoundary>
+      </RecoilRoot>
+      <Backdrop />
+      <Toast />
+    </>
+  )
 }
 
 export default MyApp

@@ -1,7 +1,8 @@
 import type { FC } from 'react'
 import { Modal } from 'containers'
-import { supabase, useBackdrop, useObjectState } from 'services'
+import { useBackdrop, useObjectState } from 'services'
 import { Content } from 'templates'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 export interface Props extends ModalProps {}
 interface State {
@@ -16,6 +17,7 @@ const LoginModal: FC<Props> = ({ isOpen, onClose }) => {
     isContentOpen: false
   })
   const backdrop = useBackdrop()
+  const supabase = useSupabaseClient()
 
   const onLogin = async () => {
     backdrop(true)

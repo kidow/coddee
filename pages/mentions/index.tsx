@@ -1,18 +1,14 @@
 import { AtSymbolIcon } from '@heroicons/react/24/outline'
-import { CodePreview, SEO, Spinner, Tooltip } from 'components'
+import { SEO, Spinner, Tooltip } from 'components'
 import type { NextPage } from 'next'
 import { useEffect } from 'react'
-import {
-  supabase,
-  useIntersectionObserver,
-  useObjectState,
-  useUser
-} from 'services'
+import { useIntersectionObserver, useObjectState, useUser } from 'services'
 import dayjs from 'dayjs'
-import { ChatMessage } from 'templates'
-import { Modal } from 'containers'
+import { Message } from 'containers'
 import { useRouter } from 'next/router'
 import classnames from 'classnames'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import { HashtagIcon } from '@heroicons/react/20/solid'
 
 interface State {
   list: Array<{
@@ -36,37 +32,29 @@ interface State {
       nickname: string
     }
   }>
-  isProfileOpen: boolean
-  userId: string
   isLoading: boolean
   page: number
   total: number
 }
 
 const MentionsPage: NextPage = () => {
-  const [{ list, isProfileOpen, userId, isLoading, page, total }, setState] =
-    useObjectState<State>({
-      list: [],
-      isProfileOpen: false,
-      userId: '',
-      isLoading: true,
-      page: 1,
-      total: 0
-    })
+  const [{ list, isLoading, page, total }, setState] = useObjectState<State>({
+    list: [],
+    isLoading: true,
+    page: 1,
+    total: 0
+  })
   const [user] = useUser()
   const { push } = useRouter()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
+  const supabase = useSupabaseClient()
 
   const get = async (page: number = 1) => {
-    if (!user) {
+    const { data } = await supabase.auth.getUser()
+    if (!data.user) {
       setState({ isLoading: false })
       return
     }
-    // const { data } = await supabase.auth.getUser()
-    // if (!data.user) {
-    //   setState({ isLoading: false })
-    //   return
-    // }
     if (!isLoading) setState({ isLoading: true })
     const {
       data: mentions,
@@ -105,9 +93,8 @@ const MentionsPage: NextPage = () => {
       `,
         { count: 'exact' }
       )
-      .eq('mention_to', user.id)
+      .eq('mention_to', data.user.id)
       .order('created_at', { ascending: false })
-      .order('created_at', { ascending: true, foreignTable: 'chats:reactions' })
       .range((page - 1) * 20, page * 20 - 1)
     if (error) {
       console.error(error)
@@ -155,11 +142,79 @@ const MentionsPage: NextPage = () => {
       data.chat.reactions = reactions
     }
     setState({
-      list: [...list, ...(mentions as any[])],
+      list: page === 1 ? mentions : [...list, ...(mentions as any[])],
       isLoading: false,
       page,
       total: count || 0
     })
+  }
+
+  const onSubscribe = async () => {
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+    if (!user) return
+
+    supabase
+      .channel('public:mentions')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'mentions',
+          filter: `mention_to=eq.${user.id}`
+        },
+        async (payload) => {
+          const [
+            { data: user, error: userError },
+            { data: chat, error: chatError }
+          ] = await Promise.all([
+            supabase
+              .from('users')
+              .select('id, nickname, avatar_url')
+              .eq('id', payload.new.mention_from)
+              .single(),
+            supabase
+              .from('chats')
+              .select(
+                `
+              id,
+              content,
+              code_block,
+              langauge,
+              updated_at,
+              room:room_id (
+                id,
+                name
+              )
+            `
+              )
+              .eq('id', payload.new.chat_id)
+              .single()
+          ])
+          if (userError || chatError) {
+            if (userError) console.error(userError)
+            if (chatError) console.error(chatError)
+            return
+          }
+          setState({
+            list: [
+              {
+                id: payload.new.id,
+                created_at: payload.new.created_at,
+                user: user as any,
+                chat: {
+                  ...(chat as any),
+                  reactions: []
+                }
+              },
+              ...list
+            ]
+          })
+        }
+      )
+      .subscribe()
   }
 
   useEffect(() => {
@@ -169,6 +224,18 @@ const MentionsPage: NextPage = () => {
   useEffect(() => {
     if (isIntersecting && page * 20 < total) get(page + 1)
   }, [isIntersecting])
+
+  useEffect(() => {
+    onSubscribe()
+
+    return () => {
+      const channels = supabase.getChannels()
+      const mention = channels.find(
+        (item) => item.topic === 'realtime:public:mentions'
+      )
+      if (mention) supabase.removeChannel(mention)
+    }
+  }, [list])
   return (
     <>
       <SEO title="멘션" />
@@ -191,51 +258,36 @@ const MentionsPage: NextPage = () => {
                 })
               }
             >
-              <div className="text-sm font-semibold text-neutral-600">
-                {item.chat.room.name}
+              <div className="flex items-center gap-0.5 text-neutral-600">
+                <span>
+                  <HashtagIcon className="h-4 w-4" />
+                </span>
+                <span className="text-sm font-semibold">
+                  {item.chat.room.name}
+                </span>
               </div>
               <div className="flex items-start gap-3">
-                <img
-                  src={item.user.avatar_url}
-                  alt=""
-                  className="h-9 w-9 cursor-pointer rounded"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setState({ isProfileOpen: true, userId: item.user.id })
-                  }}
+                <Message.Avatar
+                  url={item.user.avatar_url}
+                  userId={item.user.id}
                 />
-                <div className="-mt-1 text-sm">
+                <div className="text-sm">
                   <div className="flex items-center gap-2">
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setState({
-                          isProfileOpen: true,
-                          userId: item.user.id
-                        })
-                      }}
-                      className="font-semibold"
-                    >
-                      {item.user.nickname}
-                    </span>
+                    <span className="font-semibold">{item.user.nickname}</span>
                     <span className="text-xs text-neutral-400">
                       {dayjs(item.created_at).locale('ko').fromNow()}
                     </span>
                   </div>
-                  <ChatMessage.Parser
+                  <Message.Parser
                     content={item.chat.content}
                     updatedAt={item.chat.updated_at}
                   />
-                  {!!item.chat.code_block && (
-                    <div className="border dark:border-transparent">
-                      <CodePreview
-                        original={item.chat.code_block}
-                        defaultLanguage={item.chat.language}
-                      />
-                    </div>
-                  )}
+                  <Message.CodeBlock
+                    originalCode={item.chat.code_block}
+                    defaultLanguage={item.chat.language}
+                  />
                   {!!item.chat.reactions?.length && (
-                    <div className="mt-1 flex gap-1">
+                    <Message.Reactions>
                       {item.chat.reactions.map((reaction, key) => (
                         <Tooltip.Reaction
                           userList={reaction.userList}
@@ -245,7 +297,7 @@ const MentionsPage: NextPage = () => {
                           length={reaction?.userList.length}
                         />
                       ))}
-                    </div>
+                    </Message.Reactions>
                   )}
                 </div>
               </div>
@@ -281,11 +333,6 @@ const MentionsPage: NextPage = () => {
           <div ref={ref} />
         </main>
       </div>
-      <Modal.Profile
-        isOpen={isProfileOpen}
-        onClose={() => setState({ isProfileOpen: false, userId: '' })}
-        userId={userId}
-      />
     </>
   )
 }

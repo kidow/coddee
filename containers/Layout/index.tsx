@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import type { FC } from 'react'
 import classnames from 'classnames'
 import Link from 'next/link'
-import { REGEXP, supabase, toast, useObjectState, useUser } from 'services'
+import { REGEXP, toast, useObjectState, useUser } from 'services'
 import { Modal, Drawer } from 'containers'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
@@ -17,6 +17,7 @@ import {
   UserIcon
 } from '@heroicons/react/24/outline'
 import { HomeIcon as HomeSolidIcon } from '@heroicons/react/24/solid'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 dayjs.extend(relativeTime)
 
@@ -53,6 +54,7 @@ const Layout: FC<Props> = ({ children }) => {
   })
   const [user] = useUser()
   const { query, pathname, replace, push } = useRouter()
+  const supabase = useSupabaseClient()
 
   const getRoomList = async () => {
     const { data, error } = await supabase
@@ -69,6 +71,7 @@ const Layout: FC<Props> = ({ children }) => {
       )
     `
       )
+      .order('created_at', { ascending: true })
       .order('created_at', { ascending: false, foreignTable: 'chats' })
       .limit(1, { foreignTable: 'chats' })
     if (error) {
