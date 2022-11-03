@@ -65,6 +65,7 @@ const ThreadsPage: NextPage = () => {
       user_id,
       room_id,
       updated_at,
+      deleted_at,
       user:user_id (
         id,
         nickname,
@@ -660,7 +661,7 @@ const ThreadsPage: NextPage = () => {
                 <div className="text-lg font-bold">
                   회원님이 속한 스레드를 확인할 수 있습니다.
                 </div>
-                <div className="text-sm text-neutral-600">
+                <div className="text-sm text-neutral-600 dark:text-neutral-500">
                   {!user
                     ? '로그인이 필요합니다.'
                     : '아직은 스레드가 하나도 없네요.'}

@@ -101,6 +101,7 @@ const RoomIdPage: NextPage = () => {
       code_block,
       created_at,
       updated_at,
+      deleted_at,
       user_id,
       user:user_id (
         nickname,
@@ -353,8 +354,9 @@ const RoomIdPage: NextPage = () => {
               ...chatList.slice(0, index),
               {
                 ...chatList[index],
-                content: payload.new.content,
-                updated_at: payload.new.updated_at
+                content: payload.new.content || payload.old.content,
+                updated_at: payload.new.updated_at || payload.old.updated_at,
+                deleted_at: payload.new.deleted_at
               },
               ...chatList.slice(index + 1)
             ]
@@ -370,7 +372,12 @@ const RoomIdPage: NextPage = () => {
           table: 'chats',
           filter: `room_id=eq.${query.id}`
         },
-        (payload) => {}
+        (payload) => {
+          setState({
+            chatList: chatList.filter((item) => item.id !== payload.old.id)
+          })
+          if (payload.old.user_id === user?.id) toast.success('삭제되었습니다.')
+        }
       )
       .subscribe()
 

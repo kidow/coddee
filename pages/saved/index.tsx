@@ -23,7 +23,7 @@ const SavedPage: NextPage = () => {
               <div className="text-lg font-bold">
                 회원님이 저장한 메시지들을 확인할 수 있습니다.
               </div>
-              <div className="text-sm text-neutral-600">
+              <div className="text-sm text-neutral-600 dark:text-neutral-500">
                 {!user ? '로그인이 필요합니다.' : '아직 준비 중입니다. :)'}
               </div>
             </div>

@@ -324,7 +324,7 @@ const MentionsPage: NextPage = () => {
                 <div className="text-lg font-bold">
                   회원님을 언급한 메시지들을 확인하실 수 있습니다.
                 </div>
-                <div className="text-sm text-neutral-600">
+                <div className="text-sm text-neutral-600 dark:text-neutral-500">
                   {!user
                     ? '로그인이 필요합니다.'
                     : '아직은 멘션이 하나도 없네요.'}

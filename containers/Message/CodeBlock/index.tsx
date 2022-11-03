@@ -5,7 +5,7 @@ import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
 import { useObjectState } from 'services'
 
 export interface Props extends EditorProps {
-  originalCode: string
+  originalCode?: string
 }
 interface State {
   isOpen: boolean
@@ -59,7 +59,7 @@ const MessageCodeBlock: FC<Props> = ({ originalCode, ...props }) => {
         </div>
       )}
       <button
-        className="text-xs text-neutral-600"
+        className="text-xs text-neutral-600 dark:text-neutral-400"
         onClick={() => setState({ isOpen: !isOpen })}
       >
         {isOpen ? '코드 닫기' : '코드 보기'}
