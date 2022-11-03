@@ -23,6 +23,19 @@ const MessageParser: FC<Props> = ({ content, updatedAt }) => {
         <Fragment key={key}>
           {value.split(' ').map((text, i, { length }) => {
             const space = i !== length - 1 ? ' ' : ''
+            if (REGEXP.EMAIL.test(text)) {
+              return (
+                <Fragment key={i}>
+                  <a
+                    href={`mailto:${text}`}
+                    className="text-blue-500 hover:underline dark:text-blue-400"
+                  >
+                    {text}
+                  </a>
+                  {space}
+                </Fragment>
+              )
+            }
             if (REGEXP.URL.test(text)) {
               return (
                 <Fragment key={i}>
