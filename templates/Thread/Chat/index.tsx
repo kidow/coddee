@@ -4,6 +4,7 @@ import { Textarea, Tooltip } from 'components'
 import { Message, Modal } from 'containers'
 import dayjs from 'dayjs'
 import Link from 'next/link'
+import { useMemo } from 'react'
 import type { FC } from 'react'
 import { toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
 import { Thread } from 'templates'
@@ -77,7 +78,35 @@ const ThreadChat: FC<Props> = ({ chat }) => {
     }
   }
 
-  const createReply = async () => {}
+  const createReply = async () => {
+    if (!user) {
+      toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
+      return
+    }
+
+    const { data } = await supabase.auth.getUser()
+    if (!!user && !data.user) {
+      await supabase.auth.signOut()
+      setUser(null)
+      toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
+      return
+    }
+
+    if (!content.trim()) return
+    if (content.length > 300) {
+      toast.info('300자 이상은 너무 길어요 :(')
+      return
+    }
+
+    setState({ isSubmitting: true })
+    const { error } = await supabase
+      .from('replies')
+      .insert({ user_id: user.id, chat_id: chat.id, content })
+    if (error) {
+      console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
+    } else setState({ content: '' })
+  }
 
   const updateReaction = async (key: number) => {
     if (!user) {
@@ -174,6 +203,12 @@ const ThreadChat: FC<Props> = ({ chat }) => {
       }
     }
   }
+
+  const participants: string = useMemo(() => {
+    if (!user) return ''
+
+    return ''
+  }, [user, chat])
   return (
     <>
       <div className="m-4">
@@ -205,7 +240,7 @@ const ThreadChat: FC<Props> = ({ chat }) => {
                     <span className="ml-1 text-xs text-neutral-400">(나)</span>
                   )}
                 </div>
-                <span className="'text-xs text-neutral-400">
+                <span className="text-xs text-neutral-400">
                   {dayjs(chat.created_at).locale('ko').fromNow()}
                 </span>
               </div>

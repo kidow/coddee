@@ -90,8 +90,6 @@ namespace NTable {
     code_block: string
     created_at: string
     updated_at: string
-    isUpdating?: boolean
-    tempContent?: string
   }
   interface ReplyReactions {
     id: number

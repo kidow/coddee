@@ -318,8 +318,18 @@ const RoomIdPage: NextPage = () => {
               ...chatList.slice(index + 1)
             ]
           })
-          toast.success('변경되었습니다.')
+          if (payload.new.user_id === user?.id) toast.success('변경되었습니다.')
         }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'chats',
+          filter: `room_id=eq.${query.id}`
+        },
+        (payload) => {}
       )
       .subscribe()
 

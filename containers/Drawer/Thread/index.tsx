@@ -299,15 +299,13 @@ const ThreadDrawer: FC<Props> = ({
               ...list.slice(0, index),
               {
                 ...list[index],
-                isUpdating: false,
-                tempContent: '',
                 content: payload.new.content,
                 updated_at: payload.new.updated_at
               },
               ...list.slice(index + 1)
             ]
           })
-          toast.success('변경되었습니다.')
+          if (payload.new.user_id === user?.id) toast.success('변경되었습니다.')
         }
       )
       .on(
@@ -321,7 +319,7 @@ const ThreadDrawer: FC<Props> = ({
         (payload) => {
           setState({ list: list.filter((item) => item.id !== payload.old.id) })
           onDelete(payload.old.id)
-          toast.success('삭제되었습니다.')
+          if (payload.old.user_id === user?.id) toast.success('삭제되었습니다.')
         }
       )
       .subscribe()

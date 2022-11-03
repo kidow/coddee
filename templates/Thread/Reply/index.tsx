@@ -58,9 +58,108 @@ const ThreadReply: FC<Props> = ({ reply }) => {
     }
   }
 
-  const updateReaction = async (key: number) => {}
+  const updateReaction = async (index: number) => {
+    if (!user) {
+      toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
+      return
+    }
 
-  const onEmojiSelect = async (text: string) => {}
+    const { data } = await supabase.auth.getUser()
+    if (!!user && !data.user) {
+      await supabase.auth.signOut()
+      setUser(null)
+      toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
+      return
+    }
+
+    const userIndex = reply.reply_reactions[index].userList?.findIndex(
+      (item) => item.id === user.id
+    )
+    if (userIndex === undefined) return
+
+    if (userIndex === -1) {
+      const { error } = await supabase.from('reply_reactions').insert({
+        user_id: user.id,
+        reply_id: reply.id,
+        text: reply.reply_reactions[index].text,
+        chat_id: reply.chat_id
+      })
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+      }
+    } else {
+      const { error } = await supabase.from('reply_reactions').delete().match({
+        user_id: user.id,
+        reply_id: reply.id,
+        text: reply.reply_reactions[index].text,
+        chat_id: reply.chat_id
+      })
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+      }
+    }
+  }
+
+  const onEmojiSelect = async (text: string) => {
+    if (!user) {
+      toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
+      return
+    }
+
+    const { data } = await supabase.auth.getUser()
+    if (!!user && !data.user) {
+      await supabase.auth.signOut()
+      setUser(null)
+      toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
+      return
+    }
+
+    const index = reply.reply_reactions.findIndex((item) => item.text === text)
+    if (index === -1) {
+      const { error } = await supabase.from('reply_reactions').insert({
+        user_id: user.id,
+        reply_id: reply.id,
+        text,
+        chat_id: reply.chat_id
+      })
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+      }
+    } else {
+      const userIndex = reply.reply_reactions[index].userList.findIndex(
+        (item) => item.id === user.id
+      )
+      if (userIndex === -1) {
+        const { error } = await supabase.from('reply_reactions').insert({
+          user_id: user.id,
+          reply_id: reply.id,
+          text,
+          chat_id: reply.chat_id
+        })
+        if (error) {
+          console.error(error)
+          toast.error(TOAST_MESSAGE.API_ERROR)
+        }
+      } else {
+        const { error } = await supabase
+          .from('reply_reactions')
+          .delete()
+          .match({
+            user_id: user.id,
+            reply_id: reply.id,
+            text,
+            chat_id: reply.chat_id
+          })
+        if (error) {
+          console.error(error)
+          toast.error(TOAST_MESSAGE.API_ERROR)
+        }
+      }
+    }
+  }
 
   const deleteReply = async () => {
     const { error } = await supabase.from('replies').delete().eq('id', reply.id)

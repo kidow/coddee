@@ -4,7 +4,7 @@ import type { NextPage } from 'next'
 import { useEffect } from 'react'
 import { useIntersectionObserver, useObjectState, useUser } from 'services'
 import dayjs from 'dayjs'
-import { Modal, Message } from 'containers'
+import { Message } from 'containers'
 import { useRouter } from 'next/router'
 import classnames from 'classnames'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
@@ -95,7 +95,6 @@ const MentionsPage: NextPage = () => {
       )
       .eq('mention_to', data.user.id)
       .order('created_at', { ascending: false })
-      .order('created_at', { ascending: true, foreignTable: 'chats:reactions' })
       .range((page - 1) * 20, page * 20 - 1)
     if (error) {
       console.error(error)
@@ -237,7 +236,6 @@ const MentionsPage: NextPage = () => {
       if (mention) supabase.removeChannel(mention)
     }
   }, [list])
-
   return (
     <>
       <SEO title="멘션" />
