@@ -65,7 +65,7 @@ const Drawer: FC<Props> = ({
             'animate-fade-in-bottom': position === 'top' && isOpen,
             'animate-fade-in-top': position === 'bottom' && isOpen,
             'animate-fade-out-right': position === 'right' && isClosed,
-            'md:w-96':
+            'md:w-[432px]':
               !className && (position === 'left' || position === 'right'),
             'md:h-96':
               !className && (position === 'top' || position === 'bottom'),

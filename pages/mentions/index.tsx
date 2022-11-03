@@ -23,6 +23,7 @@ interface State {
         id: string
         name: string
       }
+      opengraphs: NTable.Opengraphs[]
       updated_at: string
     }
     created_at: string
@@ -87,6 +88,14 @@ const MentionsPage: NextPage = () => {
             user:user_id (
               nickname
             )
+          ),
+          opengraphs (
+            id,
+            title,
+            description,
+            url,
+            site_name,
+            image
           )
         ),
         created_at
@@ -247,7 +256,7 @@ const MentionsPage: NextPage = () => {
           {list.map((item) => (
             <div
               key={item.id}
-              className="group m-4 cursor-pointer space-y-2 rounded-xl border p-3 hover:bg-neutral-100"
+              className="group m-4 cursor-pointer space-y-2 rounded-xl border p-3 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-700"
               onClick={() =>
                 push({
                   pathname: '/room/[id]',
@@ -258,7 +267,7 @@ const MentionsPage: NextPage = () => {
                 })
               }
             >
-              <div className="flex items-center gap-0.5 text-neutral-600">
+              <div className="flex items-center gap-0.5 text-neutral-600 dark:text-neutral-400">
                 <span>
                   <HashtagIcon className="h-4 w-4" />
                 </span>
@@ -286,6 +295,9 @@ const MentionsPage: NextPage = () => {
                     originalCode={item.chat.code_block}
                     defaultLanguage={item.chat.language}
                   />
+                  {item.chat.opengraphs?.map((item) => (
+                    <Message.Opengraph {...item} key={item.id} />
+                  ))}
                   {!!item.chat.reactions?.length && (
                     <Message.Reactions>
                       {item.chat.reactions.map((reaction, key) => (
@@ -312,7 +324,7 @@ const MentionsPage: NextPage = () => {
                 <div className="text-lg font-bold">
                   회원님을 언급한 메시지들을 확인하실 수 있습니다.
                 </div>
-                <div className="text-sm text-neutral-600">
+                <div className="text-sm text-neutral-600 dark:text-neutral-500">
                   {!user
                     ? '로그인이 필요합니다.'
                     : '아직은 멘션이 하나도 없네요.'}

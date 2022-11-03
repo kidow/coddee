@@ -2,11 +2,12 @@ import type { FC } from 'react'
 import dayjs from 'dayjs'
 import classnames from 'classnames'
 import { toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
-import { Drawer, Modal, Message } from 'containers'
+import { Drawer, Message } from 'containers'
 import { Tooltip } from 'components'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/router'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import { TrashIcon } from '@heroicons/react/24/outline'
 
 export interface Props {
   chat: NTable.Chats & {
@@ -17,6 +18,7 @@ export interface Props {
       created_at: string
       user: { avatar_url: string }
     }>
+    opengraphs: NTable.Opengraphs[]
   }
   nextUserId: string
   nextCreatedAt: string
@@ -85,8 +87,8 @@ const MessageChat: FC<Props> = ({
       .eq('id', chat.id)
     setState({ isSubmitting: false, isUpdateMode: false })
     if (error) {
+      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
-      return
     }
   }
 
@@ -130,6 +132,30 @@ const MessageChat: FC<Props> = ({
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
+      }
+    }
+  }
+
+  const deleteChat = async () => {
+    if (!!chat.replies.length) {
+      const { error } = await supabase
+        .from('chats')
+        .update({
+          // @ts-ignore
+          deleted_at: new Date().toISOString().toLocaleString('ko-KR')
+        })
+        .eq('id', chat.id)
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+        return
+      }
+    } else {
+      const { error } = await supabase.from('chats').delete().eq('id', chat.id)
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+        return
       }
     }
   }
@@ -193,7 +219,11 @@ const MessageChat: FC<Props> = ({
         )}
       >
         <div className="flex w-8 items-start justify-center">
-          {chat.user_id !== nextUserId ? (
+          {!!chat.deleted_at ? (
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 dark:group-hover:bg-neutral-600">
+              <TrashIcon className="h-5 w-5 text-neutral-400" />
+            </span>
+          ) : chat.user_id !== nextUserId ? (
             <Message.Avatar url={chat.user.avatar_url} userId={chat.user_id} />
           ) : (
             <span className="invisible mt-[5px] text-2xs text-neutral-400 group-hover:visible">
@@ -202,7 +232,7 @@ const MessageChat: FC<Props> = ({
           )}
         </div>
         <div className="flex-1">
-          {chat.user_id !== nextUserId && (
+          {!chat.deleted_at && chat.user_id !== nextUserId && (
             <div className="flex items-center gap-2">
               <div className="flex items-center text-sm font-medium">
                 <span
@@ -225,7 +255,11 @@ const MessageChat: FC<Props> = ({
             </div>
           )}
           <div>
-            {isUpdateMode ? (
+            {!!chat.deleted_at ? (
+              <div className="flex h-8 items-center text-sm text-neutral-400">
+                이 메시지는 삭제되었습니다.
+              </div>
+            ) : isUpdateMode ? (
               <Message.Update
                 content={chat.content}
                 onCancel={() => setState({ isUpdateMode: false })}
@@ -242,6 +276,9 @@ const MessageChat: FC<Props> = ({
             originalCode={chat.code_block}
             defaultLanguage={chat.language}
           />
+          {chat.opengraphs?.map((item) => (
+            <Message.Opengraph {...item} key={item.id} />
+          ))}
           {!!chat.reactions?.length && (
             <Message.Reactions>
               {chat.reactions.map((item, key) => (
@@ -293,7 +330,7 @@ const MessageChat: FC<Props> = ({
           )}
         </div>
 
-        {!isUpdateMode && (
+        {!chat.deleted_at && !isUpdateMode && (
           <div className="absolute right-6 -top-4 z-10 hidden rounded-lg border bg-white group-hover:block dark:border-neutral-800 dark:bg-neutral-700">
             <div className="flex p-0.5">
               <Tooltip.Actions.AddReaction onSelect={onEmojiSelect} />
@@ -301,9 +338,12 @@ const MessageChat: FC<Props> = ({
                 onClick={() => setState({ isThreadOpen: true })}
               />
               {chat.user_id === user?.id && (
-                <Tooltip.Actions.Update
-                  onClick={() => setState({ isUpdateMode: true })}
-                />
+                <>
+                  <Tooltip.Actions.Update
+                    onClick={() => setState({ isUpdateMode: true })}
+                  />
+                  <Tooltip.Actions.Delete onClick={deleteChat} />
+                </>
               )}
             </div>
           </div>

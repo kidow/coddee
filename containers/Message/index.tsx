@@ -9,6 +9,7 @@ import MessageParser from './Parser'
 import MessageReactions from './Reactions'
 import MessageReply from './Reply'
 import MessageUpdate from './Update'
+import MessageOpengraph from './Opengraph'
 
 export interface Props {}
 interface State {}
@@ -24,5 +25,6 @@ export default Object.assign(Message, {
   Reactions: MessageReactions,
   Avatar: MessageAvatar,
   Actions: MessageActions,
-  Button: MessageButton
+  Button: MessageButton,
+  Opengraph: MessageOpengraph
 })

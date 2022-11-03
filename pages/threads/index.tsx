@@ -20,10 +20,12 @@ interface State {
         NTable.Replies & {
           user: NTable.Users
           reply_reactions: NTable.ReplyReactions[]
+          opengraphs: NTable.Opengraphs[]
         }
       >
       reactions: Array<NTable.Reactions & { user: NTable.Users }>
       room: NTable.Rooms
+      opengraphs: NTable.Opengraphs[]
     }
   >
   isLoading: boolean
@@ -61,7 +63,9 @@ const ThreadsPage: NextPage = () => {
       code_block,
       language,
       user_id,
+      room_id,
       updated_at,
+      deleted_at,
       user:user_id (
         id,
         nickname,
@@ -88,6 +92,14 @@ const ThreadsPage: NextPage = () => {
           user:user_id (
               nickname
           )
+        ),
+        opengraphs (
+          id,
+          title,
+          description,
+          site_name,
+          url,
+          image
         )
       ),
       reactions (
@@ -101,6 +113,14 @@ const ThreadsPage: NextPage = () => {
       room:room_id (
         id,
         name
+      ),
+      opengraphs (
+        id,
+        title,
+        description,
+        site_name,
+        url,
+        image
       )
     `,
         { count: 'exact' }
@@ -641,7 +661,7 @@ const ThreadsPage: NextPage = () => {
                 <div className="text-lg font-bold">
                   회원님이 속한 스레드를 확인할 수 있습니다.
                 </div>
-                <div className="text-sm text-neutral-600">
+                <div className="text-sm text-neutral-600 dark:text-neutral-500">
                   {!user
                     ? '로그인이 필요합니다.'
                     : '아직은 스레드가 하나도 없네요.'}

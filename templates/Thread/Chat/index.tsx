@@ -6,7 +6,7 @@ import dayjs from 'dayjs'
 import Link from 'next/link'
 import { useMemo } from 'react'
 import type { FC } from 'react'
-import { toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
+import { REGEXP, toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
 import { Thread } from 'templates'
 
 export interface Props {
@@ -16,10 +16,12 @@ export interface Props {
       NTable.Replies & {
         user: NTable.Users
         reply_reactions: NTable.ReplyReactions[]
+        opengraphs: NTable.Opengraphs[]
       }
     >
     reactions: Array<NTable.Reactions & { user: NTable.Users }>
     room: NTable.Rooms
+    opengraphs: NTable.Opengraphs[]
   }
 }
 interface State {
@@ -99,13 +101,49 @@ const ThreadChat: FC<Props> = ({ chat }) => {
     }
 
     setState({ isSubmitting: true })
-    const { error } = await supabase
+    const { data: reply, error } = await supabase
       .from('replies')
       .insert({ user_id: user.id, chat_id: chat.id, content })
+      .select()
+      .single()
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
     } else setState({ content: '' })
+
+    if (REGEXP.URL.test(content)) {
+      const urls = content.match(REGEXP.URL)
+      if (!urls) return
+
+      const res = await Promise.all(
+        urls.map((url) =>
+          fetch('/api/opengraph', {
+            method: 'POST',
+            headers: new Headers({
+              'Content-Type': 'application/json'
+            }),
+            body: JSON.stringify({ url })
+          })
+        )
+      )
+      const json = await Promise.all(res.map((result) => result.json()))
+      json
+        .filter((item) => item.success)
+        .forEach(({ data }) =>
+          supabase.from('opengraphs').insert({
+            title: data.title || data['og:title'] || data['twitter:title'],
+            description:
+              data.description ||
+              data['og:description'] ||
+              data['twitter:description'],
+            image: data.image || data['og:image'] || data['twitter:image'],
+            url: data.url || data['og:url'] || data['twitter:domain'],
+            site_name: data['og:site_name'] || '',
+            reply_id: reply.id,
+            room_id: chat.room_id
+          })
+        )
+    }
   }
 
   const updateReaction = async (key: number) => {
@@ -213,12 +251,12 @@ const ThreadChat: FC<Props> = ({ chat }) => {
     <>
       <div className="m-4">
         <div className="ml-2 mb-2 space-y-1">
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 text-neutral-700 dark:text-neutral-400">
             <span>
               <HashtagIcon className="h-4 w-4" />
             </span>
             <Link href={`/room/${chat.room_id}`}>
-              <a className="text-sm font-bold text-neutral-700 hover:underline">
+              <a className="text-sm font-bold hover:underline">
                 {chat.room.name}
               </a>
             </Link>
@@ -229,68 +267,85 @@ const ThreadChat: FC<Props> = ({ chat }) => {
               '나만'}
           </div>
         </div>
-        <div className="rounded-xl border py-2">
+        <div className="rounded-xl border py-2 dark:border-neutral-700">
           <div className="group relative flex gap-3 py-1 px-4 hover:bg-neutral-50 dark:hover:bg-neutral-700">
-            <Message.Avatar url={chat.user.avatar_url} userId={chat.user.id} />
-            <div className="flex-1">
-              <div className="flex items-center gap-1">
-                <div className="flex items-center text-sm font-medium">
-                  <span>{chat.user.nickname}</span>
-                  {chat.user_id === user?.id && (
-                    <span className="ml-1 text-xs text-neutral-400">(나)</span>
+            <Message.Avatar
+              url={chat.user.avatar_url}
+              userId={chat.user.id}
+              deletedAt={chat.deleted_at}
+            />
+            {!!chat?.deleted_at ? (
+              <div className="mt-0.5 flex h-9 items-center text-sm text-neutral-400">
+                이 메시지는 삭제되었습니다.
+              </div>
+            ) : (
+              <div className="flex-1">
+                <div className="flex items-center gap-1">
+                  <div className="flex items-center text-sm font-medium">
+                    <span>{chat.user.nickname}</span>
+                    {chat.user_id === user?.id && (
+                      <span className="ml-1 text-xs text-neutral-400">
+                        (나)
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs text-neutral-400">
+                    {dayjs(chat.created_at).locale('ko').fromNow()}
+                  </span>
+                </div>
+                <div>
+                  {isUpdateMode ? (
+                    <Message.Update
+                      content={chat.content}
+                      onCancel={() => setState({ isUpdateMode: false })}
+                      onSave={updateChat}
+                    />
+                  ) : (
+                    <Message.Parser
+                      content={chat.content}
+                      updatedAt={chat.updated_at}
+                    />
                   )}
                 </div>
-                <span className="text-xs text-neutral-400">
-                  {dayjs(chat.created_at).locale('ko').fromNow()}
-                </span>
-              </div>
-              <div>
-                {isUpdateMode ? (
-                  <Message.Update
-                    content={chat.content}
-                    onCancel={() => setState({ isUpdateMode: false })}
-                    onSave={updateChat}
-                  />
-                ) : (
-                  <Message.Parser
-                    content={chat.content}
-                    updatedAt={chat.updated_at}
-                  />
+                <Message.CodeBlock
+                  originalCode={chat.code_block}
+                  defaultLanguage={chat.language}
+                />
+                {chat.opengraphs?.map((item) => (
+                  <Message.Opengraph {...item} key={item.id} />
+                ))}
+                {!!chat.reactions?.length && (
+                  <Message.Reactions>
+                    {chat.reactions.map((item, key) => (
+                      <Tooltip.Reaction
+                        userList={item.userList}
+                        key={key}
+                        onClick={() => updateReaction(key)}
+                        text={item.text}
+                        length={item?.userList.length}
+                      />
+                    ))}
+                    <Tooltip.AddReaction onSelect={onEmojiSelect} />
+                  </Message.Reactions>
                 )}
               </div>
-              <Message.CodeBlock
-                originalCode={chat.code_block}
-                defaultLanguage={chat.language}
-              />
-              {!!chat.reactions?.length && (
-                <Message.Reactions>
-                  {chat.reactions.map((item, key) => (
-                    <Tooltip.Reaction
-                      userList={item.userList}
-                      key={key}
-                      onClick={() => updateReaction(key)}
-                      text={item.text}
-                      length={item?.userList.length}
-                    />
-                  ))}
-                  <Tooltip.AddReaction onSelect={onEmojiSelect} />
-                </Message.Reactions>
-              )}
-            </div>
-            {!isUpdateMode && (
+            )}
+            {!chat?.deleted_at && !isUpdateMode && (
               <div className="absolute right-6 -top-4 z-10 hidden rounded-lg border bg-white group-hover:block dark:border-neutral-800 dark:bg-neutral-700">
                 <div className="flex p-0.5">
                   <Tooltip.Actions.AddReaction onSelect={onEmojiSelect} />
                   {chat.user_id === user?.id && (
-                    <Tooltip.Actions.Update
-                      onClick={() => setState({ isUpdateMode: true })}
-                    />
+                    <>
+                      <Tooltip.Actions.Update
+                        onClick={() => setState({ isUpdateMode: true })}
+                      />
+                    </>
                   )}
                 </div>
               </div>
             )}
           </div>
-          <hr className="my-2" />
+          <hr className="my-2 dark:border-neutral-700" />
           {chat.replies.length > 3 && !isMoreOpen && (
             <div className="flex h-6 items-center pl-4">
               <span
@@ -307,7 +362,7 @@ const ThreadChat: FC<Props> = ({ chat }) => {
               <Thread.Reply reply={item} key={key} />
             ))}
           <div className="mt-2 px-4">
-            <div className="flex items-center gap-3 rounded-xl border py-2 px-3">
+            <div className="flex items-center gap-3 rounded-xl border py-2 px-3 dark:border-neutral-700">
               <Textarea
                 value={content}
                 onChange={(e) => setState({ content: e.target.value })}

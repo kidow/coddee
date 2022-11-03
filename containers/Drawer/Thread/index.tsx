@@ -14,6 +14,7 @@ export interface Props extends DrawerProps {
     | (NTable.Chats & {
         user: NTable.Users
         reactions: NTable.Reactions[]
+        opengraphs: NTable.Opengraphs[]
       })
     | null
   updateReaction: (reactionIndex: number) => void
@@ -32,9 +33,12 @@ interface State {
     NTable.Replies & {
       user: NTable.Users
       reply_reactions: NTable.ReplyReactions[]
+      opengraphs: NTable.Opengraphs[]
     }
   >
   spamCount: number
+  isUpdateMode: boolean
+  isUpdating: boolean
 }
 
 const ThreadDrawer: FC<Props> = ({
@@ -47,14 +51,24 @@ const ThreadDrawer: FC<Props> = ({
 }) => {
   if (!isOpen) return null
   const [
-    { content, isCodeEditorOpen, isSubmitting, list, spamCount },
+    {
+      content,
+      isCodeEditorOpen,
+      isSubmitting,
+      list,
+      spamCount,
+      isUpdateMode,
+      isUpdating
+    },
     setState
   ] = useObjectState<State>({
     content: '',
     isCodeEditorOpen: false,
     isSubmitting: false,
     list: [],
-    spamCount: 0
+    spamCount: 0,
+    isUpdateMode: false,
+    isUpdating: false
   })
   const supabase = useSupabaseClient()
   const [user, setUser] = useUser()
@@ -86,6 +100,14 @@ const ThreadDrawer: FC<Props> = ({
           user:user_id (
               nickname
           )
+        ),
+        opengraphs (
+          id,
+          title,
+          description,
+          site_name,
+          url,
+          image
         )
     `
       )
@@ -190,6 +212,40 @@ const ThreadDrawer: FC<Props> = ({
         )
       )
     }
+
+    if (REGEXP.URL.test(content)) {
+      const urls = content.match(REGEXP.URL)
+      if (!urls) return
+
+      const res = await Promise.all(
+        urls.map((url) =>
+          fetch('/api/opengraph', {
+            method: 'POST',
+            headers: new Headers({
+              'Content-Type': 'application/json'
+            }),
+            body: JSON.stringify({ url })
+          })
+        )
+      )
+      const json = await Promise.all(res.map((result) => result.json()))
+      json
+        .filter((item) => item.success)
+        .forEach(({ data }) =>
+          supabase.from('opengraphs').insert({
+            title: data.title || data['og:title'] || data['twitter:title'],
+            description:
+              data.description ||
+              data['og:description'] ||
+              data['twitter:description'],
+            image: data.image || data['og:image'] || data['twitter:image'],
+            url: data.url || data['og:url'] || data['twitter:domain'],
+            site_name: data['og:site_name'] || '',
+            reply_id: reply.id,
+            room_id: query.id
+          })
+        )
+    }
   }
 
   const onEmojiSelect = async (text: string) => {
@@ -234,6 +290,65 @@ const ThreadDrawer: FC<Props> = ({
           toast.error(TOAST_MESSAGE.API_ERROR)
         }
       }
+    }
+  }
+
+  const updateChat = async (content: string) => {
+    if (isUpdating) return
+
+    const { data } = await supabase.auth.getUser()
+    if (!!user && !data.user) {
+      await supabase.auth.signOut()
+      setUser(null)
+      toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
+      return
+    }
+
+    if (!isUpdateMode) {
+      setState({ isUpdateMode: true })
+      return
+    }
+
+    if (!content.trim()) return
+    if (content.length > 300) {
+      toast.info('300자 이상은 너무 길어요 :(')
+      return
+    }
+
+    setState({ isUpdating: true })
+    const { error } = await supabase
+      .from('chats')
+      .update({ content })
+      .eq('id', chat?.id)
+    setState({ isUpdating: false, isUpdateMode: false })
+    if (error) {
+      console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
+    }
+  }
+
+  const deleteChat = async () => {
+    if (!!list.length) {
+      const { error } = await supabase
+        .from('chats')
+        .update({
+          // @ts-ignore
+          deleted_at: new Date().toISOString().toLocaleString('ko-KR')
+        })
+        .eq('id', chat?.id)
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+        return
+      }
+    } else {
+      const { error } = await supabase.from('chats').delete().eq('id', chat?.id)
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+        return
+      }
+      onClose()
     }
   }
 
@@ -438,9 +553,40 @@ const ThreadDrawer: FC<Props> = ({
       )
       .subscribe()
 
+    const opengraphs = supabase
+      .channel('public:opengraphs')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'oepngraphs',
+          filter: `chat_id=eq.${chat.id}`
+        },
+        (payload: any) => {
+          const index = list.findIndex(
+            (item) => item.id === payload.new.reply_id
+          )
+          if (index === -1) return
+
+          setState({
+            list: [
+              ...list.slice(0, index),
+              {
+                ...list[index],
+                opengraphs: [...list[index].opengraphs, payload.new]
+              },
+              ...list.slice(index + 1)
+            ]
+          })
+        }
+      )
+      .subscribe()
+
     return () => {
       supabase.removeChannel(replies)
       supabase.removeChannel(replyReactions)
+      supabase.removeChannel(opengraphs)
     }
   }, [list, chat])
   return (
@@ -451,54 +597,83 @@ const ThreadDrawer: FC<Props> = ({
             <Message.Avatar
               url={chat?.user.avatar_url || ''}
               userId={chat?.user_id || ''}
+              deletedAt={chat?.deleted_at}
             />
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="flex items-center text-sm font-medium">
-                  {chat?.user?.nickname}
-                  {chat?.user_id === user?.id && (
-                    <span className="ml-1 text-xs text-neutral-400">(나)</span>
-                  )}
-                </span>
-                <span className="text-xs text-neutral-400">
-                  {dayjs(chat?.created_at).locale('ko').format('A H:mm')}
-                </span>
+            {!!chat?.deleted_at ? (
+              <div className="mt-0.5 flex h-9 items-center text-sm text-neutral-400">
+                이 메시지는 삭제되었습니다.
               </div>
-              <div>
-                <Message.Parser
-                  content={chat?.content || ''}
-                  updatedAt={chat?.updated_at || ''}
-                />
-              </div>
-              {!!chat?.reactions?.length && (
-                <Message.Reactions>
-                  {chat.reactions.map((item, key) => (
-                    <Tooltip.Reaction
-                      userList={item.userList}
-                      key={item.id}
-                      onClick={() => updateReaction(key)}
-                      text={item.text}
-                      length={item?.userList.length}
+            ) : (
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center text-sm font-medium">
+                    {chat?.user?.nickname}
+                    {chat?.user_id === user?.id && (
+                      <span className="ml-1 text-xs text-neutral-400">
+                        (나)
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-xs text-neutral-400">
+                    {dayjs(chat?.created_at).locale('ko').format('A H:mm')}
+                  </span>
+                </div>
+                <div>
+                  {isUpdateMode ? (
+                    <Message.Update
+                      content={chat?.content || ''}
+                      onCancel={() => setState({ isUpdateMode: false })}
+                      onSave={updateChat}
                     />
-                  ))}
-                  <Tooltip.AddReaction onSelect={onEmojiSelect} />
-                </Message.Reactions>
-              )}
-            </div>
-            <div className="absolute top-4 right-4 z-10 hidden rounded-lg border bg-white group-hover:flex dark:border-neutral-800 dark:bg-neutral-700">
-              <div className="flex p-0.5">
-                <Tooltip.Actions.AddReaction
-                  onSelect={onEmojiSelect}
-                  position="bottom"
+                  ) : (
+                    <Message.Parser
+                      content={chat?.content || ''}
+                      updatedAt={chat?.updated_at || ''}
+                    />
+                  )}
+                </div>
+                <Message.CodeBlock
+                  originalCode={chat?.code_block}
+                  defaultLanguage={chat?.language}
                 />
-                {/* {chat?.user_id === user?.id && (
-                  <Tooltip.Actions.Update
-                    onClick={() => {}}
+                {chat?.opengraphs?.map((item) => (
+                  <Message.Opengraph {...item} key={item.id} />
+                ))}
+                {!!chat?.reactions?.length && (
+                  <Message.Reactions>
+                    {chat.reactions.map((item, key) => (
+                      <Tooltip.Reaction
+                        userList={item.userList}
+                        key={item.id}
+                        onClick={() => updateReaction(key)}
+                        text={item.text}
+                        length={item?.userList.length}
+                      />
+                    ))}
+                    <Tooltip.AddReaction onSelect={onEmojiSelect} />
+                  </Message.Reactions>
+                )}
+              </div>
+            )}
+            {!chat?.deleted_at && !isUpdateMode && (
+              <div className="absolute top-4 right-4 z-10 hidden rounded-lg border bg-white group-hover:flex dark:border-neutral-800 dark:bg-neutral-700">
+                <div className="flex p-0.5">
+                  <Tooltip.Actions.AddReaction
+                    onSelect={onEmojiSelect}
                     position="bottom"
                   />
-                )} */}
+                  {chat?.user_id === user?.id && (
+                    <>
+                      <Tooltip.Actions.Update
+                        onClick={() => setState({ isUpdateMode: true })}
+                        position="bottom"
+                      />
+                      <Tooltip.Actions.Delete onClick={deleteChat} />
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
           {!!list.length && (
             <div className="relative m-4 border-t dark:border-neutral-700">

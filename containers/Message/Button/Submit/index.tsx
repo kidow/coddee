@@ -12,7 +12,7 @@ interface State {}
 const MessageSubmitButton: FC<Props> = ({ onClick, disabled, loading }) => {
   return (
     <button
-      className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 p-1.5 duration-150 hover:bg-blue-400 active:bg-blue-600 disabled:bg-neutral-400"
+      className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 p-1.5 duration-150 hover:bg-blue-400 active:bg-blue-600 disabled:bg-neutral-400 dark:disabled:bg-neutral-600"
       onClick={onClick}
       disabled={disabled}
     >

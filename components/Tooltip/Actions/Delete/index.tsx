@@ -57,7 +57,14 @@ const DeleteTooltipAction: FC<Props> = ({ onClick }) => {
           >
             취소
           </Button>
-          <Button size="sm" theme="danger" onClick={onClick}>
+          <Button
+            size="sm"
+            theme="danger"
+            onClick={() => {
+              onClick()
+              setState({ isOpen: false })
+            }}
+          >
             삭제
           </Button>
         </div>
