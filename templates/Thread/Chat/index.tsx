@@ -251,12 +251,12 @@ const ThreadChat: FC<Props> = ({ chat }) => {
     <>
       <div className="m-4">
         <div className="ml-2 mb-2 space-y-1">
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 text-neutral-700 dark:text-neutral-400">
             <span>
               <HashtagIcon className="h-4 w-4" />
             </span>
             <Link href={`/room/${chat.room_id}`}>
-              <a className="text-sm font-bold text-neutral-700 hover:underline">
+              <a className="text-sm font-bold hover:underline">
                 {chat.room.name}
               </a>
             </Link>
@@ -267,7 +267,7 @@ const ThreadChat: FC<Props> = ({ chat }) => {
               '나만'}
           </div>
         </div>
-        <div className="rounded-xl border py-2">
+        <div className="rounded-xl border py-2 dark:border-neutral-700">
           <div className="group relative flex gap-3 py-1 px-4 hover:bg-neutral-50 dark:hover:bg-neutral-700">
             <Message.Avatar url={chat.user.avatar_url} userId={chat.user.id} />
             <div className="flex-1">
@@ -331,7 +331,7 @@ const ThreadChat: FC<Props> = ({ chat }) => {
               </div>
             )}
           </div>
-          <hr className="my-2" />
+          <hr className="my-2 dark:border-neutral-700" />
           {chat.replies.length > 3 && !isMoreOpen && (
             <div className="flex h-6 items-center pl-4">
               <span
@@ -348,7 +348,7 @@ const ThreadChat: FC<Props> = ({ chat }) => {
               <Thread.Reply reply={item} key={key} />
             ))}
           <div className="mt-2 px-4">
-            <div className="flex items-center gap-3 rounded-xl border py-2 px-3">
+            <div className="flex items-center gap-3 rounded-xl border py-2 px-3 dark:border-neutral-700">
               <Textarea
                 value={content}
                 onChange={(e) => setState({ content: e.target.value })}

@@ -256,7 +256,7 @@ const MentionsPage: NextPage = () => {
           {list.map((item) => (
             <div
               key={item.id}
-              className="group m-4 cursor-pointer space-y-2 rounded-xl border p-3 hover:bg-neutral-100"
+              className="group m-4 cursor-pointer space-y-2 rounded-xl border p-3 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-700"
               onClick={() =>
                 push({
                   pathname: '/room/[id]',
@@ -267,7 +267,7 @@ const MentionsPage: NextPage = () => {
                 })
               }
             >
-              <div className="flex items-center gap-0.5 text-neutral-600">
+              <div className="flex items-center gap-0.5 text-neutral-600 dark:text-neutral-400">
                 <span>
                   <HashtagIcon className="h-4 w-4" />
                 </span>
