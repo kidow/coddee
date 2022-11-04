@@ -3,7 +3,7 @@ import {
   DocumentDuplicateIcon
 } from '@heroicons/react/24/outline'
 import type { FC } from 'react'
-import { copyText, toast } from 'services'
+import { copyText, EventListener, toast } from 'services'
 
 export interface Props extends NTable.Opengraphs {}
 interface State {}
@@ -36,6 +36,7 @@ const ChatOpengraph: FC<Props> = ({
           alt=""
           className="max-w-xs cursor-pointer rounded-lg"
           tabIndex={-1}
+          onClick={() => EventListener.emit('image', { url: image })}
         />
         <ul className="absolute right-2 top-2 hidden rounded border bg-white p-0.5 group-hover/opengraph:flex dark:border-neutral-800 dark:bg-neutral-900">
           <li>

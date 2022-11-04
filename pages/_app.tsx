@@ -1,7 +1,7 @@
 import 'styles/globals.css'
 import type { AppProps } from 'next/app'
 import { useEffect, useState } from 'react'
-import { Layout, Backdrop, Toast, ErrorBoundary, Auth } from 'containers'
+import { Layout, Backdrop, Toast, ErrorBoundary, Auth, Modal } from 'containers'
 import { RecoilRoot } from 'recoil'
 import 'dayjs/locale/ko'
 import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
@@ -38,6 +38,7 @@ function MyApp({
       </RecoilRoot>
       <Backdrop />
       <Toast />
+      <Modal.Image />
     </>
   )
 }
