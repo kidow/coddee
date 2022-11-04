@@ -120,6 +120,13 @@ namespace NTable {
     site_name: string
     created_at: string
   }
+  interface Saves {
+    id: number
+    user_id: string
+    chat_id: number
+    reply_id: number
+    created_at: string
+  }
 }
 
 namespace NToast {

@@ -15,6 +15,7 @@ export interface Props extends DrawerProps {
         user: NTable.Users
         reactions: NTable.Reactions[]
         opengraphs: NTable.Opengraphs[]
+        saves: NTable.Saves[]
       })
     | null
   updateReaction: (reactionIndex: number) => void
@@ -34,6 +35,7 @@ interface State {
       user: NTable.Users
       reply_reactions: NTable.ReplyReactions[]
       opengraphs: NTable.Opengraphs[]
+      saves: NTable.Saves[]
     }
   >
   spamCount: number
@@ -108,6 +110,9 @@ const ThreadDrawer: FC<Props> = ({
           site_name,
           url,
           image
+        ),
+        saves!saves_reply_id_fkey (
+          id
         )
     `
       )
@@ -684,7 +689,19 @@ const ThreadDrawer: FC<Props> = ({
           )}
           <div>
             {list.map((item, key) => (
-              <Message.Reply reply={item} key={key} />
+              <Message.Reply
+                reply={item}
+                key={key}
+                onSave={(data) =>
+                  setState({
+                    list: [
+                      ...list.slice(0, key),
+                      { ...item, saves: data ? [data] : [] },
+                      ...list.slice(key + 1)
+                    ]
+                  })
+                }
+              />
             ))}
           </div>
           <div className="p-4">

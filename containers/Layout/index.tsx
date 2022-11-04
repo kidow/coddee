@@ -402,11 +402,11 @@ const Layout: FC<Props> = ({ children }) => {
                   </Link>
                 </li>
                 <li className="flex-1">
-                  <Link href="/saved">
+                  <Link href="/saves">
                     <a
                       className={classnames(
                         'flex h-full w-full items-center justify-center text-neutral-600 dark:text-neutral-400',
-                        pathname === '/saved'
+                        pathname === '/saves'
                           ? 'bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-200'
                           : 'hover:bg-neutral-50 active:bg-neutral-100 dark:hover:bg-neutral-700 dark:active:bg-neutral-600'
                       )}
@@ -418,7 +418,7 @@ const Layout: FC<Props> = ({ children }) => {
                         <div className="relative text-xs">
                           <span
                             className={classnames({
-                              'font-bold': pathname === '/saved'
+                              'font-bold': pathname === '/saves'
                             })}
                           >
                             저장

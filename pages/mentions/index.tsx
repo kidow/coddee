@@ -96,6 +96,9 @@ const MentionsPage: NextPage = () => {
             url,
             site_name,
             image
+          ),
+          saves (
+            id
           )
         ),
         created_at
@@ -113,8 +116,6 @@ const MentionsPage: NextPage = () => {
     for (const data of mentions) {
       let reactions: Array<{
         id: number
-        room_id: string
-        chat_id: number
         text: string
         userList: Array<{ id: string; nickname: string }>
       }> = []
@@ -128,8 +129,6 @@ const MentionsPage: NextPage = () => {
           if (index === -1) {
             reactions.push({
               id: reaction.id,
-              room_id: reaction.room_id,
-              chat_id: reaction.chat_id,
               text: reaction.text,
               userList: [
                 { id: reaction.user_id, nickname: reaction.user.nickname }
