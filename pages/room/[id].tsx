@@ -331,7 +331,7 @@ const RoomIdPage: NextPage = () => {
           if (data)
             setState({
               chatList: [
-                { ...payload.new, user: data, reactions: [] },
+                { ...payload.new, user: data, reactions: [], saves: [] },
                 ...chatList
               ],
               count: count + 1

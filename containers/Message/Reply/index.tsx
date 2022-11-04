@@ -4,6 +4,7 @@ import { Message } from 'containers'
 import dayjs from 'dayjs'
 import type { FC } from 'react'
 import { toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
+import classnames from 'classnames'
 
 export interface Props {
   reply: NTable.Replies & {
@@ -210,7 +211,12 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
     }
   }
   return (
-    <div className="group relative flex items-start gap-3 py-2 pl-4 pr-6 hover:bg-neutral-50 dark:hover:bg-neutral-700">
+    <div
+      className={classnames(
+        'group relative flex items-start gap-3 py-2 pl-4 pr-6 hover:bg-neutral-50 dark:hover:bg-neutral-700',
+        { 'bg-red-50': !!reply.saves?.length }
+      )}
+    >
       <Message.Avatar url={reply.user.avatar_url} userId={reply.user_id} />
       <div className="flex-1">
         <div className="flex items-center gap-2">

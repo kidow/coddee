@@ -393,7 +393,10 @@ const ThreadDrawer: FC<Props> = ({
           }
           if (data) {
             setState({
-              list: [...list, { ...payload.new, user: data, reactions: [] }]
+              list: [
+                ...list,
+                { ...payload.new, user: data, reactions: [], saves: [] }
+              ]
             })
             onCreate({
               id: payload.new.id,
