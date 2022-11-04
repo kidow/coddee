@@ -38,6 +38,7 @@ interface State {
         user: { avatar_url: string }
       }>
       opengraphs: NTable.Opengraphs[]
+      saves: NTable.Saves[]
     }
   >
   name: string
@@ -129,6 +130,9 @@ const RoomIdPage: NextPage = () => {
         site_name,
         url,
         image
+      ),
+      saves (
+        id
       )
     `,
         { count: 'exact' }
@@ -622,6 +626,15 @@ const RoomIdPage: NextPage = () => {
                     content.length > 0
                       ? `${content} ${mention} `
                       : `${mention} `
+                })
+              }
+              onSave={(data) =>
+                setState({
+                  chatList: [
+                    ...chatList.slice(0, key),
+                    { ...item, saves: data ? [data] : [] },
+                    ...chatList.slice(key + 1)
+                  ]
                 })
               }
             />

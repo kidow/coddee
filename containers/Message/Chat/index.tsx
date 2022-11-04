@@ -19,6 +19,7 @@ export interface Props {
       user: { avatar_url: string }
     }>
     opengraphs: NTable.Opengraphs[]
+    saves: NTable.Saves[]
   }
   nextUserId: string
   nextCreatedAt: string
@@ -31,6 +32,7 @@ export interface Props {
   }) => void
   onDeleteReply: (id: string) => void
   onNicknameClick: (mention: string) => void
+  onSave: (data?: NTable.Saves) => void
 }
 interface State {
   isUpdateMode: boolean
@@ -46,9 +48,10 @@ const MessageChat: FC<Props> = ({
   index,
   onCreateReply,
   onDeleteReply,
-  onNicknameClick
+  onNicknameClick,
+  onSave
 }) => {
-  const [{ isUpdateMode, isThreadOpen, isSubmitting }, setState, onChange] =
+  const [{ isUpdateMode, isThreadOpen, isSubmitting }, setState] =
     useObjectState<State>({
       isUpdateMode: false,
       isThreadOpen: false,
@@ -207,6 +210,45 @@ const MessageChat: FC<Props> = ({
       }
     }
   }
+
+  const onSaveChat = async () => {
+    if (!user) {
+      toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
+      return
+    }
+
+    const { data } = await supabase.auth.getUser()
+    if (!!user && !data.user) {
+      await supabase.auth.signOut()
+      setUser(null)
+      toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
+      return
+    }
+
+    if (!!chat.saves?.length) {
+      const { error } = await supabase
+        .from('saves')
+        .delete()
+        .eq('id', chat.saves[0].id)
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+      }
+      onSave()
+    } else {
+      const { data, error } = await supabase
+        .from('saves')
+        .insert({ user_id: user.id, chat_id: chat.id })
+        .select()
+        .single()
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+        return
+      }
+      onSave(data)
+    }
+  }
   return (
     <>
       <div
@@ -214,7 +256,9 @@ const MessageChat: FC<Props> = ({
         className={classnames(
           'group relative flex gap-3 py-1 px-5 hover:bg-neutral-50 dark:hover:bg-neutral-700',
           {
-            'animate-bounce bg-blue-50': window.location.hash === `#${chat.id}`
+            'bg-red-50': !!chat.saves.length,
+            'z-10 animate-bounce bg-blue-50':
+              window.location.hash === `#${chat.id}` && !chat.deleted_at
           }
         )}
       >
@@ -337,6 +381,10 @@ const MessageChat: FC<Props> = ({
               <Tooltip.Actions.Thread
                 onClick={() => setState({ isThreadOpen: true })}
               />
+              <Tooltip.Actions.Save
+                onClick={onSaveChat}
+                isSaved={!!chat.saves?.length}
+              />
               {chat.user_id === user?.id && (
                 <>
                   <Tooltip.Actions.Update
@@ -354,7 +402,7 @@ const MessageChat: FC<Props> = ({
         'day'
       ) ||
         index === total - 1) && (
-        <div className="relative z-10 mx-5 flex items-center justify-center py-5 text-xs before:absolute before:h-px before:w-full before:bg-neutral-200 dark:before:bg-neutral-700">
+        <div className="relative z-[9] mx-5 flex items-center justify-center py-5 text-xs before:absolute before:h-px before:w-full before:bg-neutral-200 dark:before:bg-neutral-700">
           <div className="absolute bottom-1/2 left-1/2 z-10 translate-y-[calc(50%-1px)] -translate-x-[46px] select-none bg-white px-5 text-neutral-400 dark:bg-neutral-800">
             {dayjs(chat.created_at).format('MM월 DD일')}
           </div>

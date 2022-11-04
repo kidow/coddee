@@ -10,14 +10,16 @@ export interface Props {
     user: NTable.Users
     reply_reactions: NTable.ReplyReactions[]
     opengraphs: NTable.Opengraphs[]
+    saves: NTable.Saves[]
   }
+  onSave: (data?: NTable.Saves) => void
 }
 interface State {
   isUpdateMode: boolean
   isSubmitting: boolean
 }
 
-const MessageReply: FC<Props> = ({ reply }) => {
+const MessageReply: FC<Props> = ({ reply, onSave }) => {
   const [{ isUpdateMode, isSubmitting }, setState] = useObjectState<State>({
     isUpdateMode: false,
     isSubmitting: false
@@ -169,6 +171,44 @@ const MessageReply: FC<Props> = ({ reply }) => {
       }
     }
   }
+
+  const onSaveReply = async () => {
+    if (!user) {
+      toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
+      return
+    }
+    const { data } = await supabase.auth.getUser()
+    if (!!user && !data.user) {
+      await supabase.auth.signOut()
+      setUser(null)
+      toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
+      return
+    }
+
+    if (!!reply.saves?.length) {
+      const { error } = await supabase
+        .from('saves')
+        .delete()
+        .eq('id', reply.saves[0].id)
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+      }
+      onSave()
+    } else {
+      const { data, error } = await supabase
+        .from('saves')
+        .insert({ user_id: user.id, reply_id: reply.id })
+        .select()
+        .single()
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+        return
+      }
+      onSave(data)
+    }
+  }
   return (
     <div className="group relative flex items-start gap-3 py-2 pl-4 pr-6 hover:bg-neutral-50 dark:hover:bg-neutral-700">
       <Message.Avatar url={reply.user.avatar_url} userId={reply.user_id} />
@@ -222,6 +262,10 @@ const MessageReply: FC<Props> = ({ reply }) => {
       </div>
       <Message.Actions>
         <Tooltip.Actions.AddReaction onSelect={onEmojiSelect} />
+        <Tooltip.Actions.Save
+          onClick={onSaveReply}
+          isSaved={!!reply.saves?.length}
+        />
         {reply.user_id === user?.id && (
           <>
             <Tooltip.Actions.Update onClick={() => updateReply()} />

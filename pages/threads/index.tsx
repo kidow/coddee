@@ -121,6 +121,9 @@ const ThreadsPage: NextPage = () => {
         site_name,
         url,
         image
+      ),
+      saves (
+        id
       )
     `,
         { count: 'exact' }
@@ -138,7 +141,6 @@ const ThreadsPage: NextPage = () => {
     for (const chat of data) {
       let reactions: Array<{
         id: number
-        chat_id: number
         text: string
         userList: Array<{ id: string; nickname: string }>
       }> = []
@@ -152,7 +154,6 @@ const ThreadsPage: NextPage = () => {
           if (index === -1) {
             reactions.push({
               id: reaction.id,
-              chat_id: reaction.chat_id,
               text: reaction.text,
               userList: [
                 { id: reaction.user_id, nickname: reaction.user.nickname }
@@ -641,6 +642,10 @@ const ThreadsPage: NextPage = () => {
       supabase.removeChannel(replyReactions)
     }
   }, [list])
+
+  useEffect(() => {
+    if (isIntersecting && page * 8 < total) get(page + 1)
+  }, [isIntersecting])
   return (
     <>
       <SEO title="스레드" />
