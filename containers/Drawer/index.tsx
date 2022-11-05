@@ -39,7 +39,7 @@ const Drawer: FC<Props> = ({
   }, [isOpen])
 
   useEffect(() => {
-    if (isClosed) setTimeout(() => onClose(), 190)
+    if (isClosed) setTimeout(() => onClose(), 150)
   }, [isClosed])
   return createPortal(
     <div

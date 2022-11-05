@@ -1,6 +1,6 @@
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { Tooltip } from 'components'
-import { Message } from 'containers'
+import { Message, Modal } from 'containers'
 import dayjs from 'dayjs'
 import type { FC } from 'react'
 import { toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
@@ -15,13 +15,16 @@ export interface Props {
 interface State {
   isUpdateMode: boolean
   isSubmitting: boolean
+  isCodeEditorOpen: boolean
 }
 
 const ThreadReply: FC<Props> = ({ reply }) => {
-  const [{ isSubmitting, isUpdateMode }, setState] = useObjectState<State>({
-    isSubmitting: false,
-    isUpdateMode: false
-  })
+  const [{ isSubmitting, isUpdateMode, isCodeEditorOpen }, setState] =
+    useObjectState<State>({
+      isSubmitting: false,
+      isUpdateMode: false,
+      isCodeEditorOpen: false
+    })
   const [user, setUser] = useUser()
   const supabase = useSupabaseClient()
 
@@ -169,67 +172,92 @@ const ThreadReply: FC<Props> = ({ reply }) => {
       toast.error(TOAST_MESSAGE.API_ERROR)
     }
   }
+
+  const updateCodeReply = async (payload: {
+    content: string
+    codeBlock: string
+    language: string
+  }) => {
+    const { error } = await supabase.from('replies').update({
+      content: payload.content,
+      code_block: payload.codeBlock,
+      language: payload.language
+    })
+    if (error) {
+      console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
+      return
+    }
+    setState({ isCodeEditorOpen: false })
+  }
   return (
-    <div className="group relative flex gap-3 py-2 px-4 hover:bg-neutral-50 dark:hover:bg-neutral-700">
-      <Message.Avatar url={reply.user.avatar_url} userId={reply.user.id} />
-      <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center text-sm font-medium">
-            <span>{reply.user.nickname}</span>
-            {reply.user_id === user?.id && (
-              <span className="ml-1 text-xs text-neutral-400">(나)</span>
+    <>
+      <div className="group relative flex gap-3 py-2 px-4 hover:bg-neutral-50 dark:hover:bg-neutral-700">
+        <Message.Avatar url={reply.user.avatar_url} userId={reply.user.id} />
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center text-sm font-medium">
+              <span>{reply.user.nickname}</span>
+              {reply.user_id === user?.id && (
+                <span className="ml-1 text-xs text-neutral-400">(나)</span>
+              )}
+            </div>
+            <span className="text-xs text-neutral-400">
+              {dayjs(reply.created_at).locale('ko').fromNow()}
+            </span>
+          </div>
+          <div>
+            {isUpdateMode ? (
+              <Message.Update
+                content={reply.content}
+                onCancel={() => setState({ isUpdateMode: false })}
+                onSave={updateReply}
+              />
+            ) : (
+              <Message.Parser
+                content={reply.content}
+                updatedAt={reply.updated_at}
+              />
             )}
           </div>
-          <span className="text-xs text-neutral-400">
-            {dayjs(reply.created_at).locale('ko').fromNow()}
-          </span>
-        </div>
-        <div>
-          {isUpdateMode ? (
-            <Message.Update
-              content={reply.content}
-              onCancel={() => setState({ isUpdateMode: false })}
-              onSave={updateReply}
-            />
-          ) : (
-            <Message.Parser
-              content={reply.content}
-              updatedAt={reply.updated_at}
-            />
+          <Message.CodeBlock
+            originalCode={reply.code_block}
+            language={reply.language}
+          />
+          {reply.opengraphs?.map((item) => (
+            <Message.Opengraph {...item} key={item.id} />
+          ))}
+          {!!reply.reply_reactions?.length && (
+            <Message.Reactions>
+              {reply.reply_reactions.map((item, key) => (
+                <Tooltip.Reaction
+                  userList={item.userList}
+                  key={key}
+                  onClick={() => updateReaction(key)}
+                  text={item.text}
+                  length={item?.userList.length}
+                />
+              ))}
+              <Tooltip.AddReaction onSelect={onEmojiSelect} />
+            </Message.Reactions>
           )}
         </div>
-        <Message.CodeBlock
-          originalCode={reply.code_block}
-          defaultLanguage={reply.language}
-        />
-        {reply.opengraphs?.map((item) => (
-          <Message.Opengraph {...item} key={item.id} />
-        ))}
-        {!!reply.reply_reactions?.length && (
-          <Message.Reactions>
-            {reply.reply_reactions.map((item, key) => (
-              <Tooltip.Reaction
-                userList={item.userList}
-                key={key}
-                onClick={() => updateReaction(key)}
-                text={item.text}
-                length={item?.userList.length}
-              />
-            ))}
-            <Tooltip.AddReaction onSelect={onEmojiSelect} />
-          </Message.Reactions>
-        )}
+        <Message.Actions>
+          <Tooltip.Actions.AddReaction onSelect={onEmojiSelect} />
+          {reply.user_id === user?.id && (
+            <>
+              <Tooltip.Actions.Update onClick={() => updateReply()} />
+              <Tooltip.Actions.Delete onClick={deleteReply} />
+            </>
+          )}
+        </Message.Actions>
       </div>
-      <Message.Actions>
-        <Tooltip.Actions.AddReaction onSelect={onEmojiSelect} />
-        {reply.user_id === user?.id && (
-          <>
-            <Tooltip.Actions.Update onClick={() => updateReply()} />
-            <Tooltip.Actions.Delete onClick={deleteReply} />
-          </>
-        )}
-      </Message.Actions>
-    </div>
+      <Modal.CodeEditor
+        isOpen={isCodeEditorOpen}
+        onClose={() => setState({ isCodeEditorOpen: false })}
+        onSubmit={updateCodeReply}
+      />
+    </>
   )
 }
 

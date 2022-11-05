@@ -11,6 +11,7 @@ import LoginModal from './Login'
 import SearchModal from './Search'
 import EmojiModal from './Emoji'
 import MentionModal from './Mention'
+import ImageModal from './Image'
 
 interface Props extends ReactProps, ModalProps {}
 interface State {}
@@ -123,5 +124,6 @@ export default Object.assign(Modal, {
   Login: LoginModal,
   Search: SearchModal,
   Emoji: EmojiModal,
-  Mention: MentionModal
+  Mention: MentionModal,
+  Image: ImageModal
 })

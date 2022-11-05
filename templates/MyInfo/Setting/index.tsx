@@ -1,6 +1,6 @@
 import { Button, Form, Radio } from 'components'
 import type { FC } from 'react'
-import { useObjectState } from 'services'
+import { EventListener, useObjectState } from 'services'
 
 export interface Props {}
 interface State {
@@ -26,7 +26,7 @@ const MyInfoSetting: FC<Props> = () => {
         <Radio
           value={theme}
           onChange={(value) => {
-            window.localStorage.setItem('theme', value)
+            EventListener.emit('theme', value)
             if (value === 'dark') document.documentElement.classList.add('dark')
             else document.documentElement.classList.remove('dark')
             setState({ theme: value })

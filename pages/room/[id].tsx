@@ -10,7 +10,8 @@ import {
   useIntersectionObserver,
   toast,
   TOAST_MESSAGE,
-  REGEXP
+  REGEXP,
+  backdrop
 } from 'services'
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
@@ -63,7 +64,7 @@ const RoomIdPage: NextPage = () => {
       spamCount
     },
     setState,
-    onChange,
+    _,
     resetState
   ] = useObjectState<State>({
     content: '',
@@ -245,20 +246,24 @@ const RoomIdPage: NextPage = () => {
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
-    } else setState({ content: '' })
+    }
+    onRegex(content, chat.id)
+    setState({ content: '' })
+  }
 
+  const onRegex = async (content: string, id: number) => {
     if (REGEXP.MENTION.test(content)) {
       const mentions = content
         .match(REGEXP.MENTION)
-        ?.filter((id) => id !== user.id)
+        ?.filter((id) => id !== user?.id)
       if (!mentions) return
 
       await Promise.all(
         mentions.map((id) =>
           supabase.from('mentions').insert({
             mention_to: id.slice(-37, -1),
-            mention_from: user.id,
-            chat_id: chat.id
+            mention_from: user?.id,
+            chat_id: id
           })
         )
       )
@@ -292,11 +297,37 @@ const RoomIdPage: NextPage = () => {
             image: data.image || data['og:image'] || data['twitter:image'],
             url: data.url || data['og:url'] || data['twitter:domain'],
             site_name: data['og:site_name'] || '',
-            chat_id: chat.id,
+            chat_id: id,
             room_id: query.id
           })
         )
     }
+  }
+
+  const createCodeChat = async (payload: {
+    content: string
+    codeBlock: string
+    language: string
+  }) => {
+    const { data, error } = await supabase
+      .from('chats')
+      .insert({
+        user_id: user?.id,
+        room_id: query.id,
+        content: payload.content,
+        code_block: payload.codeBlock,
+        language: payload.language
+      })
+      .select()
+      .single()
+    backdrop(false)
+    if (error) {
+      console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
+      return
+    }
+    onRegex(content, data.id)
+    setState({ isCodeEditorOpen: false, content: '' })
   }
 
   useEffect(() => {
@@ -331,7 +362,7 @@ const RoomIdPage: NextPage = () => {
           if (data)
             setState({
               chatList: [
-                { ...payload.new, user: data, reactions: [] },
+                { ...payload.new, user: data, reactions: [], saves: [] },
                 ...chatList
               ],
               count: count + 1
@@ -360,6 +391,8 @@ const RoomIdPage: NextPage = () => {
                 ...chatList[index],
                 content: payload.new.content || payload.old.content,
                 updated_at: payload.new.updated_at || payload.old.updated_at,
+                code_block: payload.new.code_block || payload.old.code_block,
+                language: payload.new.language || payload.old.language,
                 deleted_at: payload.new.deleted_at
               },
               ...chatList.slice(index + 1)
@@ -679,6 +712,7 @@ const RoomIdPage: NextPage = () => {
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}
         content={content}
+        onSubmit={createCodeChat}
       />
     </>
   )

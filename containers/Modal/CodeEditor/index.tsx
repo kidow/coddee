@@ -2,52 +2,58 @@ import { useEffect } from 'react'
 import type { FC } from 'react'
 import Editor from '@monaco-editor/react'
 import { Modal } from 'containers'
-import { toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
+import {
+  backdrop,
+  toast,
+  TOAST_MESSAGE,
+  useObjectState,
+  useTheme,
+  useUser
+} from 'services'
 import { Button, Select, Textarea } from 'components'
-import { useRouter } from 'next/router'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 export interface Props extends ModalProps {
   content?: string
   language?: string
   codeBlock?: string
+  onSubmit: (payload: {
+    content: string
+    codeBlock: string
+    language: string
+  }) => void
 }
 interface State {
   content: string
   language: string
   codeBlock: string
-  isSubmitting: boolean
   languageList: NTable.Languages[]
 }
 
 const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
   if (!isOpen) return null
-  const [
-    { content, language, codeBlock, isSubmitting, languageList },
-    setState,
-    onChange
-  ] = useObjectState<State>({
-    content: props.content || '',
-    language: props.language || '',
-    codeBlock: props.codeBlock || '',
-    isSubmitting: false,
-    languageList: []
-  })
+  const [{ content, language, codeBlock, languageList }, setState, onChange] =
+    useObjectState<State>({
+      content: props.content || '',
+      language: props.language || '',
+      codeBlock: props.codeBlock || '',
+      languageList: []
+    })
   const [user, setUser] = useUser()
-  const { query } = useRouter()
   const supabase = useSupabaseClient()
+  const theme = useTheme()
 
   const getLanguages = async () => {
     const { data } = await supabase.from('languages').select('*')
     setState({ languageList: data || [] })
   }
 
-  const create = async () => {
-    const { data } = await supabase.auth.getUser()
+  const onSubmit = async () => {
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
     }
+    const { data } = await supabase.auth.getUser()
     if (!!user && !data.user) {
       await supabase.auth.signOut()
       setUser(null)
@@ -55,21 +61,13 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
       onClose()
       return
     }
-
-    if (!codeBlock && !content) return
-    setState({ isSubmitting: true })
-    const { error } = await supabase.from('chats').insert({
-      content,
-      language,
-      code_block: codeBlock,
-      user_id: user?.id,
-      room_id: query.id
-    })
-    setState({ isSubmitting: false })
-    if (error) {
-      console.error(error)
-      toast.error(TOAST_MESSAGE.API_ERROR)
-    } else onClose()
+    if (!content.trim()) return
+    if (content.length > 300) {
+      toast.info('300자 이상은 너무 길어요 :(')
+      return
+    }
+    backdrop(true)
+    props.onSubmit({ content, codeBlock, language })
   }
 
   useEffect(() => {
@@ -89,7 +87,16 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
           className="inline-block"
           value={language}
           name="language"
-          onChange={onChange}
+          onChange={(e) => {
+            setState({
+              language: e.target.value,
+              ...(e.target.selectedIndex !== 0
+                ? {
+                    codeBlock: languageList[e.target.selectedIndex - 1].template
+                  }
+                : {})
+            })
+          }}
         >
           <option value="">언어 선택</option>
           {languageList.map((item, key) => (
@@ -124,8 +131,8 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
             </Button>
             <Button
               theme="primary"
-              disabled={isSubmitting || !user || (!content && !codeBlock)}
-              onClick={create}
+              disabled={!content && !codeBlock}
+              onClick={onSubmit}
             >
               등록
             </Button>
@@ -142,18 +149,14 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
             onChange={(codeBlock) => setState({ codeBlock })}
             defaultValue={props.codeBlock}
             value={codeBlock}
-            theme={
-              window.localStorage.getItem('theme') === 'dark'
-                ? 'vs-dark'
-                : 'light'
-            }
-            options={{ fontSize: 14 }}
+            theme={theme === 'dark' ? 'vs-dark' : 'light'}
+            options={{ fontSize: 14, minimap: { enabled: false } }}
           />
         </div>
-        <div>
+        <div className="border p-2 focus-within:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900">
           <Textarea
             value={content}
-            className="w-full border p-2 focus:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900"
+            className="w-full"
             placeholder="서로를 존중하는 매너를 보여주세요 :)"
             onChange={(e) => setState({ content: e.target.value })}
           />

@@ -1,6 +1,6 @@
 import type { FC } from 'react'
 import { Modal } from 'containers'
-import { useBackdrop, useObjectState } from 'services'
+import { backdrop, useObjectState } from 'services'
 import { Content } from 'templates'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
@@ -16,7 +16,6 @@ const LoginModal: FC<Props> = ({ isOpen, onClose }) => {
     mode: 'terms',
     isContentOpen: false
   })
-  const backdrop = useBackdrop()
   const supabase = useSupabaseClient()
 
   const onLogin = async () => {

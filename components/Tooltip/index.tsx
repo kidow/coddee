@@ -2,7 +2,7 @@ import { Children, cloneElement, useRef, useEffect, useMemo } from 'react'
 import type { ReactElement, MouseEvent, ReactNode, FC } from 'react'
 import classnames from 'classnames'
 import type { Argument } from 'classnames'
-import { useObjectState } from 'services'
+import { useObjectState, useTheme } from 'services'
 import { createPortal } from 'react-dom'
 
 import AddReactionTooltip from './AddReaction'
@@ -12,8 +12,6 @@ import TooltipActions from './Actions'
 export interface Props extends ReactProps {
   content: ReactNode
   position?: 'top' | 'right' | 'bottom' | 'left'
-  border?: boolean
-  theme?: 'dark' | 'light'
   arrow?: boolean
   padding?: boolean
   className?: Argument
@@ -32,8 +30,6 @@ interface State {
 const Tooltip: FC<Props> = ({
   content,
   children,
-  border = true,
-  theme = 'light',
   arrow = true,
   position = 'top',
   padding = true,
@@ -64,6 +60,7 @@ const Tooltip: FC<Props> = ({
     tooltipWidth: 0
   })
   const ref = useRef<HTMLDivElement>(null)
+  const theme = useTheme()
   const child = Children.only(
     typeof children === 'string' ? (
       <div tabIndex={-1}>{children}</div>
@@ -108,6 +105,8 @@ const Tooltip: FC<Props> = ({
     () => !!tooltipHeight && !!tooltipWidth,
     [tooltipHeight, tooltipWidth]
   )
+
+  const border: boolean = useMemo(() => theme !== 'dark', [theme])
 
   useEffect(() => {
     if (isOpen && ref.current) {

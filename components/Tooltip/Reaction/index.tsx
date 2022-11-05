@@ -29,8 +29,6 @@ const ReactionTooltip: FC<Props> = ({ userList, onClick, text, length }) => {
           : `${userList[0].nickname} 님이 반응하였습니다.`
       }
       size="sm"
-      theme={window.localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'}
-      border={window.localStorage.getItem('theme') !== 'dark'}
       className={classnames(
         'inline-flex h-6 items-center gap-1 rounded-xl border px-1.5 dark:border-transparent dark:bg-neutral-900',
         isMine

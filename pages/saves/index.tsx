@@ -312,9 +312,7 @@ const SavedPage: NextPage = () => {
                     originalCode={
                       item.chat?.code_block || item.reply?.code_block || ''
                     }
-                    defaultLanguage={
-                      item.chat?.language || item.reply?.language || ''
-                    }
+                    language={item.chat?.language || item.reply?.language || ''}
                   />
                   {item.chat?.opengraphs?.map((item) => (
                     <Message.Opengraph {...item} key={item.id} />

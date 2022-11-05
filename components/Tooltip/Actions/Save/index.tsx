@@ -2,6 +2,7 @@ import { BookmarkIcon } from '@heroicons/react/24/solid'
 import { Tooltip } from 'components'
 import type { FC } from 'react'
 import classnames from 'classnames'
+import { useTheme } from 'services'
 
 export interface Props {
   onClick: () => void
@@ -10,12 +11,11 @@ export interface Props {
 interface State {}
 
 const SaveTooltipAction: FC<Props> = ({ onClick, isSaved }) => {
+  const theme = useTheme()
   return (
     <Tooltip
       content={isSaved ? '저장 취소' : '저장'}
       size="sm"
-      theme={window.localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'}
-      border={window.localStorage.getItem('theme') !== 'dark'}
       className="flex h-7 w-7 items-center justify-center rounded hover:bg-neutral-100 dark:hover:bg-neutral-600"
     >
       <button onClick={onClick}>

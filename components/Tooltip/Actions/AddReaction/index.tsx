@@ -1,7 +1,7 @@
 import { Tooltip } from 'components'
 import type { FC } from 'react'
 import { FaceSmileIcon } from '@heroicons/react/24/solid'
-import { useObjectState } from 'services'
+import { useObjectState, useTheme } from 'services'
 import { Modal } from 'containers'
 
 export interface Props {
@@ -17,16 +17,13 @@ const AddReactionTooltipAction: FC<Props> = ({
   position = 'top'
 }) => {
   const [{ isOpen }, setState] = useObjectState<State>({ isOpen: false })
+  const theme = useTheme()
   return (
     <>
       <Tooltip
         position={position}
         content="반응 추가"
         size="sm"
-        theme={
-          window.localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'
-        }
-        border={window.localStorage.getItem('theme') !== 'dark'}
         className="flex h-7 w-7 items-center justify-center rounded hover:bg-neutral-100 dark:hover:bg-neutral-600"
       >
         <button onClick={() => setState({ isOpen: true })}>

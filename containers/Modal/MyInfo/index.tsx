@@ -3,9 +3,9 @@ import type { FC } from 'react'
 import { Modal } from 'containers'
 import classnames from 'classnames'
 import {
+  backdrop,
   toast,
   TOAST_MESSAGE,
-  useBackdrop,
   useObjectState,
   useUser
 } from 'services'
@@ -83,7 +83,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
   })
   const supabase = useSupabaseClient()
   const [user, setUser] = useUser()
-  const backdrop = useBackdrop()
 
   const get = async () => {
     const { data } = await supabase.auth.getUser()
