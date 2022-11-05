@@ -10,7 +10,7 @@ import {
 } from 'services'
 import { Drawer, Message, Modal } from 'containers'
 import { Tooltip } from 'components'
-import { ChevronRightIcon } from '@heroicons/react/20/solid'
+import { BookmarkIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/router'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { TrashIcon } from '@heroicons/react/24/outline'
@@ -294,6 +294,11 @@ const MessageChat: FC<Props> = ({
           }
         )}
       >
+        {!!chat.saves.length && (
+          <span className="absolute left-1 top-2">
+            <BookmarkIcon className="h-4 w-4 text-red-500" />
+          </span>
+        )}
         <div className="flex w-8 items-start justify-center">
           {!!chat.deleted_at ? (
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 dark:group-hover:bg-neutral-600">

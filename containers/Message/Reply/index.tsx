@@ -11,6 +11,7 @@ import {
   useUser
 } from 'services'
 import classnames from 'classnames'
+import { BookmarkIcon } from '@heroicons/react/20/solid'
 
 export interface Props {
   reply: NTable.Replies & {
@@ -244,6 +245,11 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
           { 'bg-red-50': !!reply.saves?.length }
         )}
       >
+        {!!reply.saves?.length && (
+          <span className="absolute top-2 right-3">
+            <BookmarkIcon className="h-4 w-4 text-red-500" />
+          </span>
+        )}
         <Message.Avatar url={reply.user.avatar_url} userId={reply.user_id} />
         <div className="flex-1">
           <div className="flex items-center gap-2">
