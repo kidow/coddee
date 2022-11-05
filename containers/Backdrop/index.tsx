@@ -21,7 +21,7 @@ const Backdrop: FC = () => {
     <div role="progressbar">
       <div className="fixed inset-0 z-[9999] cursor-progress bg-black opacity-30" />
       <span className="fixed left-1/2 top-1/2 z-[9999] -translate-x-1/2 -translate-y-1/2 cursor-progress">
-        <Spinner className="h-10 w-10" />
+        <Spinner className="h-16 w-16" />
       </span>
     </div>,
     document.body

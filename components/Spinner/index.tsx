@@ -1,9 +1,7 @@
 import type { FC } from 'react'
-import classnames from 'classnames'
-import type { Argument } from 'classnames'
 
 export interface Props {
-  className?: Argument
+  className?: string
 }
 
 const Spinner: FC<Props> = ({ className }) => {
@@ -11,7 +9,7 @@ const Spinner: FC<Props> = ({ className }) => {
     <svg
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
-      className={classnames('opacity-25', className)}
+      className={className}
       width="200px"
       height="200px"
       viewBox="0 0 100 100"
@@ -19,19 +17,19 @@ const Spinner: FC<Props> = ({ className }) => {
     >
       <path
         d="M82 50A32 32 0 1 1 23.533421623214014 32.01333190873183 L21.71572875253809 21.7157287525381 L32.013331908731814 23.53342162321403 A32 32 0 0 1 82 50"
-        stroke-width="5"
-        stroke="#000"
+        strokeWidth="5"
+        stroke="#525252"
         fill="none"
       ></path>
       <circle
         cx="50"
         cy="50"
         r="20"
-        stroke-width="5"
-        stroke="#000"
-        stroke-dasharray="31.41592653589793 31.41592653589793"
+        strokeWidth="5"
+        stroke="#525252"
+        strokeDasharray="31.41592653589793 31.41592653589793"
         fill="none"
-        stroke-linecap="round"
+        strokeLinecap="round"
       >
         <animateTransform
           attributeName="transform"

@@ -23,6 +23,21 @@ const ImageModal: FC<Props> = () => {
     [isOpen]
   )
 
+  const onEscape = (e: KeyboardEvent) => {
+    if (e.code === 'Escape') {
+      setState({ isOpen: false })
+      window.removeEventListener('keydown', onEscape)
+    }
+  }
+
+  useEffect(() => {
+    if (!isOpen) return
+    window.addEventListener('keydown', onEscape)
+    return () => {
+      window.removeEventListener('keydown', onEscape)
+    }
+  }, [isOpen])
+
   useEffect(() => {
     EventListener.add('image', onImage)
     return () => EventListener.remove('image', onImage)
