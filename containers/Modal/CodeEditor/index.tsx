@@ -85,7 +85,16 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
           className="inline-block"
           value={language}
           name="language"
-          onChange={onChange}
+          onChange={(e) => {
+            setState({
+              language: e.target.value,
+              ...(e.target.selectedIndex !== 0
+                ? {
+                    codeBlock: languageList[e.target.selectedIndex - 1].template
+                  }
+                : {})
+            })
+          }}
         >
           <option value="">언어 선택</option>
           {languageList.map((item, key) => (
