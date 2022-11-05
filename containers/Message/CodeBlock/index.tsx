@@ -2,7 +2,7 @@ import type { FC } from 'react'
 import Editor from '@monaco-editor/react'
 import type { EditorProps } from '@monaco-editor/react'
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
-import { useObjectState } from 'services'
+import { copyText, toast, useObjectState } from 'services'
 
 export interface Props extends EditorProps {
   originalCode?: string
@@ -36,7 +36,7 @@ const MessageCodeBlock: FC<Props> = ({ originalCode, ...props }) => {
     editor.layout()
   }
   return (
-    <div>
+    <div className="text-xs text-neutral-600 dark:text-neutral-400">
       {isOpen && (
         <div className="border dark:border-transparent">
           <Editor
@@ -58,12 +58,31 @@ const MessageCodeBlock: FC<Props> = ({ originalCode, ...props }) => {
           />
         </div>
       )}
-      <button
-        className="text-xs text-neutral-600 dark:text-neutral-400"
-        onClick={() => setState({ isOpen: !isOpen })}
-      >
-        {isOpen ? '코드 닫기' : '코드 보기'}
-      </button>
+      <div className="mt-1 flex items-center gap-1">
+        <button onClick={() => setState({ isOpen: !isOpen })}>
+          {isOpen ? '코드 닫기' : '코드 보기'}
+        </button>
+        {!!props.language && (
+          <>
+            <span>·</span>
+            <span>{props.language}</span>
+          </>
+        )}
+        {!!isOpen && (
+          <>
+            <span>·</span>
+            <button
+              onClick={() =>
+                copyText(originalCode)?.then(() =>
+                  toast.success('복사되었습니다.')
+                )
+              }
+            >
+              복사
+            </button>
+          </>
+        )}
+      </div>
     </div>
   )
 }

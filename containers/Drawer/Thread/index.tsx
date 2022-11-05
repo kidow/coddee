@@ -1,13 +1,20 @@
 import { useEffect } from 'react'
 import type { FC } from 'react'
 import { Drawer, Modal, Message } from 'containers'
-import { REGEXP, toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
-import dayjs from 'dayjs'
-import { Spinner, Textarea, Tooltip } from 'components'
+import {
+  backdrop,
+  REGEXP,
+  toast,
+  TOAST_MESSAGE,
+  useObjectState,
+  useUser
+} from 'services'
+import { Spinner, Textarea } from 'components'
 import { useRouter } from 'next/router'
-import { ArrowSmallUpIcon } from '@heroicons/react/24/outline'
+import { ArrowSmallUpIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
 import classnames from 'classnames'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import ThreadDrawerChat from './Chat'
 
 export interface Props extends DrawerProps {
   chat:
@@ -39,8 +46,6 @@ interface State {
     }
   >
   spamCount: number
-  isUpdateMode: boolean
-  isUpdating: boolean
 }
 
 const ThreadDrawer: FC<Props> = ({
@@ -53,24 +58,14 @@ const ThreadDrawer: FC<Props> = ({
 }) => {
   if (!isOpen) return null
   const [
-    {
-      content,
-      isCodeEditorOpen,
-      isSubmitting,
-      list,
-      spamCount,
-      isUpdateMode,
-      isUpdating
-    },
+    { content, isCodeEditorOpen, isSubmitting, list, spamCount },
     setState
   ] = useObjectState<State>({
     content: '',
     isCodeEditorOpen: false,
     isSubmitting: false,
     list: [],
-    spamCount: 0,
-    isUpdateMode: false,
-    isUpdating: false
+    spamCount: 0
   })
   const supabase = useSupabaseClient()
   const [user, setUser] = useUser()
@@ -198,21 +193,51 @@ const ThreadDrawer: FC<Props> = ({
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
-    } else setState({ content: '' })
+    }
+    onRegex(content, reply.id)
+    setState({ content: '' })
+  }
 
+  const createCodeReply = async (payload: {
+    content: string
+    codeBlock: string
+    language: string
+  }) => {
+    const { data, error } = await supabase
+      .from('replies')
+      .insert({
+        user_id: user?.id,
+        chat_id: chat?.id,
+        content: payload.content,
+        code_block: payload.codeBlock,
+        language: payload.language
+      })
+      .select()
+      .single()
+    backdrop(false)
+    if (error) {
+      console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
+      return
+    }
+    onRegex(payload.content, data.id)
+    setState({ content: '', isCodeEditorOpen: false })
+  }
+
+  const onRegex = async (content: string, id: number) => {
     if (REGEXP.MENTION.test(content)) {
       const mentions = content
         .match(REGEXP.MENTION)
-        ?.filter((id) => id !== user.id)
+        ?.filter((id) => id !== user?.id)
       if (!mentions) return
 
       await Promise.all(
         mentions.map((id) =>
           supabase.from('mentions').insert({
             mention_to: id.slice(-37, -1),
-            mention_from: user.id,
-            chat_id: chat.id,
-            reply_id: reply.id
+            mention_from: user?.id,
+            chat_id: chat?.id,
+            reply_id: id
           })
         )
       )
@@ -246,114 +271,10 @@ const ThreadDrawer: FC<Props> = ({
             image: data.image || data['og:image'] || data['twitter:image'],
             url: data.url || data['og:url'] || data['twitter:domain'],
             site_name: data['og:site_name'] || '',
-            reply_id: reply.id,
+            reply_id: id,
             room_id: query.id
           })
         )
-    }
-  }
-
-  const onEmojiSelect = async (text: string) => {
-    if (!user || !chat) return
-
-    const index = chat.reactions.findIndex((item) => item.text === text)
-    if (index === -1) {
-      const { error } = await supabase.from('reactions').insert({
-        user_id: user.id,
-        chat_id: chat.id,
-        text,
-        room_id: query.id
-      })
-      if (error) {
-        console.error(error)
-        toast.error(TOAST_MESSAGE.API_ERROR)
-      }
-    } else {
-      const userIndex = chat.reactions[index].userList.findIndex(
-        (item) => item.id === user.id
-      )
-      if (userIndex === -1) {
-        const { error } = await supabase.from('reactions').insert({
-          user_id: user.id,
-          chat_id: chat.id,
-          text,
-          room_id: query.id
-        })
-        if (error) {
-          console.error(error)
-          toast.error(TOAST_MESSAGE.API_ERROR)
-        }
-      } else {
-        const { error } = await supabase.from('reactions').delete().match({
-          user_id: user.id,
-          chat_id: chat.id,
-          text,
-          room_id: query.id
-        })
-        if (error) {
-          console.error(error)
-          toast.error(TOAST_MESSAGE.API_ERROR)
-        }
-      }
-    }
-  }
-
-  const updateChat = async (content: string) => {
-    if (isUpdating) return
-
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
-      await supabase.auth.signOut()
-      setUser(null)
-      toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
-      return
-    }
-
-    if (!isUpdateMode) {
-      setState({ isUpdateMode: true })
-      return
-    }
-
-    if (!content.trim()) return
-    if (content.length > 300) {
-      toast.info('300자 이상은 너무 길어요 :(')
-      return
-    }
-
-    setState({ isUpdating: true })
-    const { error } = await supabase
-      .from('chats')
-      .update({ content })
-      .eq('id', chat?.id)
-    setState({ isUpdating: false, isUpdateMode: false })
-    if (error) {
-      console.error(error)
-      toast.error(TOAST_MESSAGE.API_ERROR)
-    }
-  }
-
-  const deleteChat = async () => {
-    if (!!list.length) {
-      const { error } = await supabase
-        .from('chats')
-        .update({
-          // @ts-ignore
-          deleted_at: new Date().toISOString().toLocaleString('ko-KR')
-        })
-        .eq('id', chat?.id)
-      if (error) {
-        console.error(error)
-        toast.error(TOAST_MESSAGE.API_ERROR)
-        return
-      }
-    } else {
-      const { error } = await supabase.from('chats').delete().eq('id', chat?.id)
-      if (error) {
-        console.error(error)
-        toast.error(TOAST_MESSAGE.API_ERROR)
-        return
-      }
-      onClose()
     }
   }
 
@@ -423,7 +344,9 @@ const ThreadDrawer: FC<Props> = ({
               {
                 ...list[index],
                 content: payload.new.content,
-                updated_at: payload.new.updated_at
+                updated_at: payload.new.updated_at,
+                code_block: payload.new.code_block,
+                language: payload.new.language
               },
               ...list.slice(index + 1)
             ]
@@ -601,88 +524,12 @@ const ThreadDrawer: FC<Props> = ({
     <>
       <Drawer isOpen={isOpen} onClose={onClose} position="right">
         <div>
-          <div className="group relative flex items-start gap-3 p-4 hover:bg-neutral-50 dark:hover:bg-neutral-700">
-            <Message.Avatar
-              url={chat?.user.avatar_url || ''}
-              userId={chat?.user_id || ''}
-              deletedAt={chat?.deleted_at}
-            />
-            {!!chat?.deleted_at ? (
-              <div className="mt-0.5 flex h-9 items-center text-sm text-neutral-400">
-                이 메시지는 삭제되었습니다.
-              </div>
-            ) : (
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="flex items-center text-sm font-medium">
-                    {chat?.user?.nickname}
-                    {chat?.user_id === user?.id && (
-                      <span className="ml-1 text-xs text-neutral-400">
-                        (나)
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-xs text-neutral-400">
-                    {dayjs(chat?.created_at).locale('ko').format('A H:mm')}
-                  </span>
-                </div>
-                <div>
-                  {isUpdateMode ? (
-                    <Message.Update
-                      content={chat?.content || ''}
-                      onCancel={() => setState({ isUpdateMode: false })}
-                      onSave={updateChat}
-                    />
-                  ) : (
-                    <Message.Parser
-                      content={chat?.content || ''}
-                      updatedAt={chat?.updated_at || ''}
-                    />
-                  )}
-                </div>
-                <Message.CodeBlock
-                  originalCode={chat?.code_block}
-                  defaultLanguage={chat?.language}
-                />
-                {chat?.opengraphs?.map((item) => (
-                  <Message.Opengraph {...item} key={item.id} />
-                ))}
-                {!!chat?.reactions?.length && (
-                  <Message.Reactions>
-                    {chat.reactions.map((item, key) => (
-                      <Tooltip.Reaction
-                        userList={item.userList}
-                        key={item.id}
-                        onClick={() => updateReaction(key)}
-                        text={item.text}
-                        length={item?.userList.length}
-                      />
-                    ))}
-                    <Tooltip.AddReaction onSelect={onEmojiSelect} />
-                  </Message.Reactions>
-                )}
-              </div>
-            )}
-            {!chat?.deleted_at && !isUpdateMode && (
-              <div className="absolute top-4 right-4 z-10 hidden rounded-lg border bg-white group-hover:flex dark:border-neutral-800 dark:bg-neutral-700">
-                <div className="flex p-0.5">
-                  <Tooltip.Actions.AddReaction
-                    onSelect={onEmojiSelect}
-                    position="bottom"
-                  />
-                  {chat?.user_id === user?.id && (
-                    <>
-                      <Tooltip.Actions.Update
-                        onClick={() => setState({ isUpdateMode: true })}
-                        position="bottom"
-                      />
-                      <Tooltip.Actions.Delete onClick={deleteChat} />
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          <ThreadDrawerChat
+            chat={chat}
+            updateReaction={updateReaction}
+            onClose={onClose}
+            replyLength={list.length}
+          />
           {!!list.length && (
             <div className="relative m-4 border-t dark:border-neutral-700">
               <span className="absolute left-0 top-1/2 -translate-y-1/2 bg-white pr-2 text-xs text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500">
@@ -721,15 +568,15 @@ const ThreadDrawer: FC<Props> = ({
                   }
                 }}
               />
-              {/* <button
+              <button
                 onClick={() => setState({ isCodeEditorOpen: true })}
                 className="rounded-full border border-transparent p-1.5 text-neutral-500 hover:border-neutral-500 hover:bg-neutral-50"
               >
                 <CodeBracketIcon className="h-5 w-5" />
-              </button> */}
+              </button>
               <button
                 className={classnames(
-                  'rounded-full border border-transparent p-1.5 hover:text-neutral-50',
+                  'rounded-full border border-transparent p-1.5 duration-150 hover:text-neutral-50',
                   { 'bg-blue-500': !!user && !!content }
                 )}
                 disabled={isSubmitting || !content}
@@ -756,6 +603,7 @@ const ThreadDrawer: FC<Props> = ({
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}
         content={content}
+        onSubmit={createCodeReply}
       />
     </>
   )

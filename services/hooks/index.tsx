@@ -57,9 +57,6 @@ export function useObjectState<T>(
   return [state, onChange, onEventChange, resetState]
 }
 
-export const useBackdrop = () => (open: boolean) =>
-  EventListener.emit('backdrop', { open })
-
 export const useUser = (): [
   NTable.Users | null,
   SetterOrUpdater<NTable.Users | null>

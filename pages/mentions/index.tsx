@@ -190,7 +190,7 @@ const MentionsPage: NextPage = () => {
               id,
               content,
               code_block,
-              langauge,
+              language,
               updated_at,
               room:room_id (
                 id,
@@ -292,7 +292,7 @@ const MentionsPage: NextPage = () => {
                   />
                   <Message.CodeBlock
                     originalCode={item.chat.code_block}
-                    defaultLanguage={item.chat.language}
+                    language={item.chat.language}
                   />
                   {item.chat.opengraphs?.map((item) => (
                     <Message.Opengraph {...item} key={item.id} />

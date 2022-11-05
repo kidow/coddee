@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import type { FC } from 'react'
 import Editor from '@monaco-editor/react'
 import { Button, Input } from 'components'
-import { toast, useBackdrop, useObjectState } from 'services'
+import { backdrop, toast, useObjectState } from 'services'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
@@ -24,7 +24,6 @@ const MyInfoLanguageList: FC<Props> = () => {
       template: '',
       langaugeList: []
     })
-  const backdrop = useBackdrop()
   const supabase = useSupabaseClient()
 
   const get = async () => {

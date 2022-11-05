@@ -1,8 +1,14 @@
 import type { FC } from 'react'
 import dayjs from 'dayjs'
 import classnames from 'classnames'
-import { toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
-import { Drawer, Message } from 'containers'
+import {
+  backdrop,
+  toast,
+  TOAST_MESSAGE,
+  useObjectState,
+  useUser
+} from 'services'
+import { Drawer, Message, Modal } from 'containers'
 import { Tooltip } from 'components'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/router'
@@ -38,6 +44,7 @@ interface State {
   isUpdateMode: boolean
   isThreadOpen: boolean
   isSubmitting: boolean
+  isCodeEditorOpen: boolean
 }
 
 const MessageChat: FC<Props> = ({
@@ -51,12 +58,15 @@ const MessageChat: FC<Props> = ({
   onNicknameClick,
   onSave
 }) => {
-  const [{ isUpdateMode, isThreadOpen, isSubmitting }, setState] =
-    useObjectState<State>({
-      isUpdateMode: false,
-      isThreadOpen: false,
-      isSubmitting: false
-    })
+  const [
+    { isUpdateMode, isThreadOpen, isSubmitting, isCodeEditorOpen },
+    setState
+  ] = useObjectState<State>({
+    isUpdateMode: false,
+    isThreadOpen: false,
+    isSubmitting: false,
+    isCodeEditorOpen: false
+  })
   const [user, setUser] = useUser()
   const { query } = useRouter()
   const supabase = useSupabaseClient()
@@ -249,6 +259,28 @@ const MessageChat: FC<Props> = ({
       onSave(data)
     }
   }
+
+  const updateCodeChat = async (payload: {
+    content: string
+    codeBlock: string
+    language: string
+  }) => {
+    const { error } = await supabase
+      .from('chats')
+      .update({
+        content: payload.content,
+        code_block: payload.codeBlock,
+        language: payload.language
+      })
+      .eq('id', chat.id)
+    backdrop(false)
+    if (error) {
+      console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
+      return
+    }
+    setState({ isCodeEditorOpen: false })
+  }
   return (
     <>
       <div
@@ -318,7 +350,7 @@ const MessageChat: FC<Props> = ({
           </div>
           <Message.CodeBlock
             originalCode={chat.code_block}
-            defaultLanguage={chat.language}
+            language={chat.language}
           />
           {chat.opengraphs?.map((item) => (
             <Message.Opengraph {...item} key={item.id} />
@@ -388,7 +420,12 @@ const MessageChat: FC<Props> = ({
               {chat.user_id === user?.id && (
                 <>
                   <Tooltip.Actions.Update
-                    onClick={() => setState({ isUpdateMode: true })}
+                    onClick={() =>
+                      setState({
+                        isUpdateMode: !chat.code_block,
+                        isCodeEditorOpen: !!chat.code_block
+                      })
+                    }
                   />
                   <Tooltip.Actions.Delete onClick={deleteChat} />
                 </>
@@ -415,6 +452,14 @@ const MessageChat: FC<Props> = ({
         updateReaction={updateReaction}
         onCreate={onCreateReply}
         onDelete={onDeleteReply}
+      />
+      <Modal.CodeEditor
+        isOpen={isCodeEditorOpen}
+        onClose={() => setState({ isCodeEditorOpen: false })}
+        content={chat.content}
+        codeBlock={chat.code_block}
+        language={chat.language}
+        onSubmit={updateCodeChat}
       />
     </>
   )

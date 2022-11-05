@@ -88,19 +88,6 @@ module.exports = {
           to: {
             transform: 'translateX(150%)'
           }
-        },
-        'zoom-in': {
-          from: {
-            opacity: 0,
-            transform: 'scale(0.3)'
-          },
-          to: { opacity: 1, transform: 'none' }
-        },
-        'zoom-out': {
-          to: {
-            opacity: 0,
-            transform: 'scale(0)'
-          }
         }
       },
       animation: {
@@ -109,9 +96,7 @@ module.exports = {
         'fade-in-bottom': 'fade-in-bottom 0.2s linear',
         'fade-in-left': 'fade-in-left 0.2s linear',
         'fade-in-top': 'fade-in-top 0.2s linear',
-        'fade-out-right': 'fade-out-right 0.2s linear',
-        'zoom-in': 'zoom-in 0.15s linear',
-        'zoom-out': 'zoom-out 0.15s linear'
+        'fade-out-right': 'fade-out-right 0.2s linear'
       }
     }
   },

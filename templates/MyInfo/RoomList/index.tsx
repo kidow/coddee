@@ -1,13 +1,7 @@
 import { Button, Input } from 'components'
 import { useEffect } from 'react'
 import type { FC } from 'react'
-import {
-  base64ToFile,
-  fileToBase64,
-  toast,
-  useBackdrop,
-  useObjectState
-} from 'services'
+import { backdrop, base64ToFile, fileToBase64, useObjectState } from 'services'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
@@ -24,7 +18,6 @@ const MyInfoRoomList: FC<Props> = () => {
     name: '',
     list: []
   })
-  const backdrop = useBackdrop()
   const supabase = useSupabaseClient()
 
   const onUploadLogo = (index?: number) => {

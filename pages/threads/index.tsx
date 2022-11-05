@@ -441,7 +441,9 @@ const ThreadsPage: NextPage = () => {
                   {
                     ...list[chatIndex].replies[replyIndex],
                     content: payload.new.content,
-                    updated_at: payload.new.updated_at
+                    updated_at: payload.new.updated_at,
+                    code_block: payload.new.code_block,
+                    language: payload.new.language
                   },
                   ...list[chatIndex].replies.slice(replyIndex + 1)
                 ]
@@ -655,7 +657,7 @@ const ThreadsPage: NextPage = () => {
         </header>
         <main className="flex-1">
           {list.map((item, key) => (
-            <Thread.Chat chat={item} key={key} />
+            <Thread chat={item} key={key} />
           ))}
           {!isLoading && !list.length && (
             <div className="flex h-full items-center justify-center">
