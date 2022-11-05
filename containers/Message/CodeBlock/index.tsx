@@ -2,7 +2,7 @@ import type { FC } from 'react'
 import Editor from '@monaco-editor/react'
 import type { EditorProps } from '@monaco-editor/react'
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
-import { copyText, toast, useObjectState } from 'services'
+import { copyText, toast, useObjectState, useTheme } from 'services'
 
 export interface Props extends EditorProps {
   originalCode?: string
@@ -14,11 +14,11 @@ interface State {
 
 const MessageCodeBlock: FC<Props> = ({ originalCode, ...props }) => {
   if (!originalCode) return null
-
   const [{ isOpen }, setState] = useObjectState<State>({
     isOpen: false,
     theme: 'light'
   })
+  const theme = useTheme()
 
   const onMount = (
     editor: Monaco.editor.IStandaloneCodeEditor,
@@ -42,11 +42,7 @@ const MessageCodeBlock: FC<Props> = ({ originalCode, ...props }) => {
           <Editor
             {...props}
             onMount={onMount}
-            theme={
-              window.localStorage.getItem('theme') === 'dark'
-                ? 'vs-dark'
-                : 'light'
-            }
+            theme={theme === 'dark' ? 'vs-dark' : 'light'}
             options={{
               readOnly: true,
               scrollbar: { vertical: 'hidden', alwaysConsumeMouseWheel: false },

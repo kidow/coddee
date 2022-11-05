@@ -11,3 +11,8 @@ export const userListState = atom<
   key: 'userListState',
   default: []
 })
+
+export const themeState = atom<'light' | 'dark'>({
+  key: 'themeState',
+  default: 'light'
+})

@@ -3,7 +3,7 @@ import { TrashIcon } from '@heroicons/react/24/solid'
 import { Tooltip, Button } from 'components'
 import { Modal } from 'containers'
 import type { FC } from 'react'
-import { useObjectState } from 'services'
+import { useObjectState, useTheme } from 'services'
 
 export interface Props {
   onClick: () => void
@@ -14,15 +14,12 @@ interface State {
 
 const DeleteTooltipAction: FC<Props> = ({ onClick }) => {
   const [{ isOpen }, setState] = useObjectState<State>({ isOpen: false })
+  const theme = useTheme()
   return (
     <>
       <Tooltip
         content="삭제"
         size="sm"
-        theme={
-          window.localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'
-        }
-        border={window.localStorage.getItem('theme') !== 'dark'}
         className="group/tooltip flex h-7 w-7 items-center justify-center rounded hover:bg-neutral-100 dark:hover:bg-neutral-600"
       >
         <button onClick={() => setState({ isOpen: true })}>

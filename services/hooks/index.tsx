@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, RefObject } from 'react'
-import { EventListener, userState } from 'services'
+import { EventListener, themeState, userState } from 'services'
 import { useRecoilState } from 'recoil'
 import type { SetterOrUpdater } from 'recoil'
 
@@ -79,4 +79,22 @@ export function useIntersectionObserver<T extends HTMLElement>(): [
   }, [ref.current])
 
   return [ref, entry?.isIntersecting || false]
+}
+
+export const useTheme = () => {
+  const [theme, setTheme] = useRecoilState(themeState)
+
+  const onTheme = ({ detail }: any) => {
+    window.localStorage.setItem('theme', detail)
+    setTheme(detail)
+  }
+
+  useEffect(() => {
+    setTheme(window.localStorage.getItem('theme') as 'light' | 'dark')
+
+    EventListener.add('theme', onTheme)
+    return () => EventListener.remove('theme', onTheme)
+  }, [])
+
+  return theme
 }

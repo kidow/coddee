@@ -7,6 +7,7 @@ import {
   toast,
   TOAST_MESSAGE,
   useObjectState,
+  useTheme,
   useUser
 } from 'services'
 import { Button, Select, Textarea } from 'components'
@@ -40,6 +41,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
     })
   const [user, setUser] = useUser()
   const supabase = useSupabaseClient()
+  const theme = useTheme()
 
   const getLanguages = async () => {
     const { data } = await supabase.from('languages').select('*')
@@ -147,11 +149,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
             onChange={(codeBlock) => setState({ codeBlock })}
             defaultValue={props.codeBlock}
             value={codeBlock}
-            theme={
-              window.localStorage.getItem('theme') === 'dark'
-                ? 'vs-dark'
-                : 'light'
-            }
+            theme={theme === 'dark' ? 'vs-dark' : 'light'}
             options={{ fontSize: 14, minimap: { enabled: false } }}
           />
         </div>

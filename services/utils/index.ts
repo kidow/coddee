@@ -51,5 +51,4 @@ export const copyText = (text: string) => {
   return window.navigator.clipboard.writeText(text)
 }
 
-export const backdrop = (open: boolean) =>
-  EventListener.emit('backdrop', { open })
+export const backdrop = (open: boolean) => EventListener.emit('backdrop', open)

@@ -8,7 +8,7 @@ const Backdrop: FC = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false)
 
   const onBackdrop = useCallback(
-    ({ detail }: any) => setIsOpen(!!detail.open),
+    ({ detail }: any) => setIsOpen(!!detail),
     [isOpen]
   )
 
