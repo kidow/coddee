@@ -3,7 +3,8 @@ import {
   DocumentDuplicateIcon
 } from '@heroicons/react/24/outline'
 import type { FC } from 'react'
-import { copyText, EventListener, toast } from 'services'
+import { EventListener, toast } from 'services'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 export interface Props extends NTable.Opengraphs {}
 interface State {}
@@ -48,14 +49,14 @@ const ChatOpengraph: FC<Props> = ({
             </button>
           </li>
           <li>
-            <button
-              onClick={() =>
-                copyText(url)?.then(() => toast.success('복사되었습니다.'))
-              }
-              className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-300"
+            <CopyToClipboard
+              onCopy={() => toast.success('복사되었습니다.')}
+              text={url}
             >
-              <DocumentDuplicateIcon className="h-4 w-4" />
-            </button>
+              <button className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-300">
+                <DocumentDuplicateIcon className="h-4 w-4" />
+              </button>
+            </CopyToClipboard>
           </li>
         </ul>
       </div>

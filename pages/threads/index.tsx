@@ -66,6 +66,8 @@ const ThreadsPage: NextPage = () => {
       room_id,
       updated_at,
       deleted_at,
+      modified_code,
+      modified_language,
       user:user_id (
         id,
         nickname,
@@ -80,6 +82,8 @@ const ThreadsPage: NextPage = () => {
         user_id,
         updated_at,
         chat_id,
+        modified_code,
+        modified_language,
         user:user_id (
           id,
           avatar_url,
@@ -683,7 +687,7 @@ const ThreadsPage: NextPage = () => {
                 !!list.length ? 'h-12' : 'h-full'
               )}
             >
-              <Spinner className="h-5 w-5 text-neutral-300 dark:text-neutral-400" />
+              <Spinner className="h-8 w-8 text-neutral-300 dark:text-neutral-400" />
             </div>
           )}
           <div ref={ref} />

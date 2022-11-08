@@ -131,7 +131,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
             </Button>
             <Button
               theme="primary"
-              disabled={!content && !codeBlock}
+              disabled={!content || !codeBlock}
               onClick={onSubmit}
             >
               등록
@@ -150,7 +150,11 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
             defaultValue={props.codeBlock}
             value={codeBlock}
             theme={theme === 'dark' ? 'vs-dark' : 'light'}
-            options={{ fontSize: 14, minimap: { enabled: false } }}
+            options={{
+              wordWrap: 'on',
+              fontSize: 14,
+              minimap: { enabled: false }
+            }}
           />
         </div>
         <div className="border p-2 focus-within:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900">

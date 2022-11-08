@@ -2,7 +2,13 @@ import { useEffect } from 'react'
 import type { FC } from 'react'
 import classnames from 'classnames'
 import Link from 'next/link'
-import { REGEXP, toast, useObjectState, useUser } from 'services'
+import {
+  languageListState,
+  REGEXP,
+  toast,
+  useObjectState,
+  useUser
+} from 'services'
 import { Modal, Drawer } from 'containers'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
@@ -18,6 +24,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { HomeIcon as HomeSolidIcon } from '@heroicons/react/24/solid'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import { useRecoilState } from 'recoil'
 
 dayjs.extend(relativeTime)
 
@@ -55,6 +62,7 @@ const Layout: FC<Props> = ({ children }) => {
   const [user] = useUser()
   const { query, pathname, replace, push } = useRouter()
   const supabase = useSupabaseClient()
+  const [languageList, setLanguageList] = useRecoilState(languageListState)
 
   const getRoomList = async () => {
     const { data, error } = await supabase
@@ -91,8 +99,21 @@ const Layout: FC<Props> = ({ children }) => {
     })
   }
 
+  const getLanguageList = async () => {
+    if (!!languageList.length) return
+
+    const { data, error } = await supabase
+      .from('languages')
+      .select('*')
+      .order('label', { ascending: true })
+
+    if (error) console.error(error)
+    else setLanguageList(data)
+  }
+
   useEffect(() => {
     getRoomList()
+    getLanguageList()
   }, [])
 
   useEffect(() => {

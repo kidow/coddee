@@ -101,6 +101,8 @@ const RoomIdPage: NextPage = () => {
       content,
       language,
       code_block,
+      modified_code,
+      modified_language,
       created_at,
       updated_at,
       deleted_at,
@@ -326,7 +328,7 @@ const RoomIdPage: NextPage = () => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onRegex(content, data.id)
+    onRegex(payload.content, data.id)
     setState({ isCodeEditorOpen: false, content: '' })
   }
 

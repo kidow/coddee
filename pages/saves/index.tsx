@@ -5,6 +5,8 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import {
+  backdrop,
+  EventListener,
   toast,
   TOAST_MESSAGE,
   useIntersectionObserver,
@@ -81,6 +83,8 @@ const SavedPage: NextPage = () => {
         room_id,
         created_at,
         updated_at,
+        modified_code,
+        modified_language,
         reactions (
           id,
           text,
@@ -115,6 +119,8 @@ const SavedPage: NextPage = () => {
         chat_id,
         created_at,
         updated_at,
+        modified_code,
+        modified_language,
         reply_reactions (
           id,
           text,
@@ -241,6 +247,66 @@ const SavedPage: NextPage = () => {
     setState({ list: list.filter((item) => item.id !== id) })
   }
 
+  const createModifiedCodeChatOrReply = async (payload: {
+    content: string
+    codeBlock: string
+    language: string
+    chat:
+      | (NTable.Chats & {
+          reactions: NTable.Reactions[]
+          opengraphs: NTable.Opengraphs[]
+          room: NTable.Rooms
+          user: NTable.Users
+        })
+      | null
+    reply:
+      | (NTable.Replies & {
+          reply_reactions: NTable.ReplyReactions[]
+          opengraphs: NTable.Opengraphs[]
+          chat: {
+            room: NTable.Rooms
+          }
+          user: NTable.Users
+        })
+      | null
+  }) => {
+    if (payload.chat) {
+      const { error } = await supabase.from('chats').insert({
+        content: payload.content,
+        code_block: payload.chat.code_block,
+        language: payload.chat.language,
+        modified_code: payload.codeBlock,
+        modified_language: payload.language,
+        user_id: user?.id,
+        room_id: payload.chat.room_id
+      })
+      backdrop(false)
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+        return
+      }
+    }
+    if (payload.reply) {
+      const { error } = await supabase.from('replies').insert({
+        content: payload.content,
+        code_block: payload.reply.code_block,
+        langauge: payload.reply.language,
+        modified_code: payload.codeBlock,
+        modified_language: payload.language,
+        chat_id: payload.reply.chat_id,
+        user_id: user?.id
+      })
+      backdrop(false)
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+        return
+      }
+    }
+    EventListener.emit('message:codeblock')
+  }
+
   useEffect(() => {
     get()
   }, [])
@@ -313,6 +379,23 @@ const SavedPage: NextPage = () => {
                       item.chat?.code_block || item.reply?.code_block || ''
                     }
                     language={item.chat?.language || item.reply?.language || ''}
+                    onSubmit={(payload) =>
+                      createModifiedCodeChatOrReply({
+                        ...payload,
+                        chat: item.chat,
+                        reply: item.reply
+                      })
+                    }
+                    mention={`@[${
+                      item.chat?.user.nickname || item.reply?.user.nickname
+                    }](${item.chat?.user_id || item.reply?.user_id})`}
+                    modifiedCode={
+                      item.chat?.modified_code || item.reply?.modified_code
+                    }
+                    modifiedLanguage={
+                      item.chat?.modified_language ||
+                      item.reply?.modified_language
+                    }
                   />
                   {item.chat?.opengraphs?.map((item) => (
                     <Message.Opengraph {...item} key={item.id} />
@@ -380,7 +463,7 @@ const SavedPage: NextPage = () => {
                 !!list.length ? 'h-12' : 'h-full'
               )}
             >
-              <Spinner className="h-5 w-5 text-neutral-300 dark:text-neutral-400" />
+              <Spinner className="h-8 w-8 text-neutral-300 dark:text-neutral-400" />
             </div>
           )}
           <div ref={ref} />
