@@ -85,6 +85,8 @@ const ThreadDrawer: FC<Props> = ({
         updated_at,
         user_id,
         chat_id,
+        modified_code,
+        modified_language,
         user:user_id (
           id,
           nickname,

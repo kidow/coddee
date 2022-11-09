@@ -5,6 +5,7 @@ import dayjs from 'dayjs'
 import type { FC } from 'react'
 import {
   backdrop,
+  EventListener,
   toast,
   TOAST_MESSAGE,
   useObjectState,
@@ -193,6 +194,29 @@ const ThreadChat: FC<Props> = ({ chat }) => {
     }
     setState({ isCodeEditorOpen: false })
   }
+
+  const createModifiedCodeChat = async (payload: {
+    content: string
+    codeBlock: string
+    language: string
+  }) => {
+    const { error } = await supabase.from('chats').insert({
+      content: payload.content,
+      code_block: chat.code_block,
+      language: chat.language,
+      modified_code: payload.codeBlock,
+      modified_language: payload.language,
+      user_id: user?.id,
+      room_id: chat.room_id
+    })
+    backdrop(false)
+    if (error) {
+      console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
+      return
+    }
+    EventListener.emit('message:codeblock')
+  }
   return (
     <>
       <div className="group relative flex gap-3 py-1 px-4 hover:bg-neutral-50 dark:hover:bg-neutral-700">
@@ -235,6 +259,10 @@ const ThreadChat: FC<Props> = ({ chat }) => {
             <Message.CodeBlock
               originalCode={chat.code_block}
               language={chat.language}
+              onSubmit={createModifiedCodeChat}
+              mention={`@[${chat.user.nickname}](${chat.user_id})`}
+              modifiedCode={chat.modified_code}
+              modifiedLanguage={chat.modified_language}
             />
             {chat.opengraphs?.map((item) => (
               <Message.Opengraph {...item} key={item.id} />

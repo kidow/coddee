@@ -60,6 +60,8 @@ namespace NTable {
     room_id: string
     content: string
     code_block: string
+    modified_code: string
+    modified_language: string
     language: string
     created_at: string
     updated_at: string
@@ -90,6 +92,8 @@ namespace NTable {
     code_block: string
     created_at: string
     updated_at: string
+    modified_code: string
+    modified_language: string
   }
   interface ReplyReactions {
     id: number

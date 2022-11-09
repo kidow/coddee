@@ -44,11 +44,4 @@ export function throttle(func: Function, wait: number) {
   }
 }
 
-export const copyText = (text: string) => {
-  if (typeof window === 'undefined' || typeof window.navigator === 'undefined')
-    return
-
-  return window.navigator.clipboard.writeText(text)
-}
-
 export const backdrop = (open: boolean) => EventListener.emit('backdrop', open)

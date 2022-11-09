@@ -16,3 +16,8 @@ export const themeState = atom<'light' | 'dark'>({
   key: 'themeState',
   default: 'light'
 })
+
+export const languageListState = atom<NTable.Languages[]>({
+  key: 'languageListState',
+  default: []
+})

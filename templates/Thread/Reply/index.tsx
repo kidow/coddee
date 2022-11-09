@@ -3,7 +3,14 @@ import { Tooltip } from 'components'
 import { Message, Modal } from 'containers'
 import dayjs from 'dayjs'
 import type { FC } from 'react'
-import { toast, TOAST_MESSAGE, useObjectState, useUser } from 'services'
+import {
+  backdrop,
+  EventListener,
+  toast,
+  TOAST_MESSAGE,
+  useObjectState,
+  useUser
+} from 'services'
 
 export interface Props {
   reply: NTable.Replies & {
@@ -190,6 +197,29 @@ const ThreadReply: FC<Props> = ({ reply }) => {
     }
     setState({ isCodeEditorOpen: false })
   }
+
+  const createModifiedCodeReply = async (payload: {
+    content: string
+    codeBlock: string
+    language: string
+  }) => {
+    const { error } = await supabase.from('replies').insert({
+      content: payload.content,
+      code_block: reply.code_block,
+      language: reply.language,
+      modified_code: payload.codeBlock,
+      modified_language: payload.language,
+      chat_id: reply.chat_id,
+      user_id: user?.id
+    })
+    backdrop(false)
+    if (error) {
+      console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
+      return
+    }
+    EventListener.emit('message:codeblock')
+  }
   return (
     <>
       <div className="group relative flex gap-3 py-2 px-4 hover:bg-neutral-50 dark:hover:bg-neutral-700">
@@ -223,6 +253,10 @@ const ThreadReply: FC<Props> = ({ reply }) => {
           <Message.CodeBlock
             originalCode={reply.code_block}
             language={reply.language}
+            onSubmit={createModifiedCodeReply}
+            mention={`@[${reply.user.nickname}](${reply.user_id})`}
+            modifiedCode={reply.modified_code}
+            modifiedLanguage={reply.modified_language}
           />
           {reply.opengraphs?.map((item) => (
             <Message.Opengraph {...item} key={item.id} />

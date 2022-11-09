@@ -2,7 +2,15 @@ import { AtSymbolIcon } from '@heroicons/react/24/outline'
 import { SEO, Spinner, Tooltip } from 'components'
 import type { NextPage } from 'next'
 import { useEffect } from 'react'
-import { useIntersectionObserver, useObjectState, useUser } from 'services'
+import {
+  backdrop,
+  EventListener,
+  toast,
+  TOAST_MESSAGE,
+  useIntersectionObserver,
+  useObjectState,
+  useUser
+} from 'services'
 import dayjs from 'dayjs'
 import { Message } from 'containers'
 import { useRouter } from 'next/router'
@@ -25,6 +33,8 @@ interface State {
       }
       opengraphs: NTable.Opengraphs[]
       updated_at: string
+      modified_code: string
+      modified_language: string
     }
     created_at: string
     user: {
@@ -76,6 +86,8 @@ const MentionsPage: NextPage = () => {
           content,
           code_block,
           language,
+          modified_code,
+          modified_language,
           updated_at,
           room:room_id (
             id,
@@ -155,6 +167,32 @@ const MentionsPage: NextPage = () => {
       page,
       total: count || 0
     })
+  }
+
+  const createModifiedCodeChat = async (payload: {
+    content: string
+    codeBlock: string
+    language: string
+    originalCode: string
+    originalLanguage: string
+    roomId: string
+  }) => {
+    const { error } = await supabase.from('chats').insert({
+      content: payload.content,
+      code_block: payload.originalCode,
+      language: payload.originalLanguage,
+      modified_code: payload.codeBlock,
+      modified_language: payload.language,
+      user_id: user?.id,
+      room_id: payload.roomId
+    })
+    backdrop(false)
+    if (error) {
+      console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
+      return
+    }
+    EventListener.emit('message:codeblock')
   }
 
   const onSubscribe = async () => {
@@ -293,6 +331,17 @@ const MentionsPage: NextPage = () => {
                   <Message.CodeBlock
                     originalCode={item.chat.code_block}
                     language={item.chat.language}
+                    onSubmit={(payload) =>
+                      createModifiedCodeChat({
+                        ...payload,
+                        originalCode: item.chat.code_block,
+                        originalLanguage: item.chat.language,
+                        roomId: item.chat.room.id
+                      })
+                    }
+                    mention={`@[${item.user.nickname}](${item.user.avatar_url})`}
+                    modifiedCode={item.chat.modified_code}
+                    modifiedLanguage={item.chat.modified_language}
                   />
                   {item.chat.opengraphs?.map((item) => (
                     <Message.Opengraph {...item} key={item.id} />
@@ -338,7 +387,7 @@ const MentionsPage: NextPage = () => {
                 !!list.length ? 'h-12' : 'h-full'
               )}
             >
-              <Spinner className="h-5 w-5 text-neutral-300 dark:text-neutral-400" />
+              <Spinner className="h-8 w-8 text-neutral-300 dark:text-neutral-400" />
             </div>
           )}
           <div ref={ref} />
