@@ -422,7 +422,7 @@ const MessageChat: FC<Props> = ({
                     />
                   ))}
                 </div>
-                <span className="text-sm font-semibold text-neutral-600 hover:underline dark:text-blue-400">
+                <span className="text-sm font-semibold text-neutral-600 dark:text-blue-400">
                   {chat.replies.length}개의 댓글
                 </span>
                 <div className="text-sm text-neutral-400 group-hover/reply:hidden">

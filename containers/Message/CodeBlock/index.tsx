@@ -154,7 +154,8 @@ const MessageCodeBlock: FC<Props> = ({
                   scrollBeyondLastLine: false,
                   minimap: { enabled: false },
                   fontSize: 14,
-                  wordWrap: 'on'
+                  wordWrap: 'on',
+                  lineNumbers: 'off'
                 }}
                 onMount={onDiffMount}
               />
@@ -172,7 +173,8 @@ const MessageCodeBlock: FC<Props> = ({
                   scrollBeyondLastLine: false,
                   minimap: { enabled: false },
                   fontSize: 14,
-                  wordWrap: 'on'
+                  wordWrap: 'on',
+                  lineNumbers: 'off'
                 }}
                 value={originalCode}
               />
@@ -214,7 +216,7 @@ const MessageCodeBlock: FC<Props> = ({
                   })
                 }
               >
-                리뷰
+                답장
               </button>
             </>
           )}
@@ -223,7 +225,7 @@ const MessageCodeBlock: FC<Props> = ({
       <Modal
         isOpen={isDiffEditorOpen}
         onClose={() => setState({ isDiffEditorOpen: false })}
-        title="코드 리뷰"
+        title="코드 답장"
         maxWidth="max-w-6xl"
         footer={
           <div className="flex items-center justify-between">
@@ -263,9 +265,11 @@ const MessageCodeBlock: FC<Props> = ({
         <div className="space-y-4">
           <div className="flex">
             <div className="flex-1">
-              <div className="flex h-[42px] w-[74px] items-center rounded border border-neutral-300 bg-white px-3 capitalize text-neutral-800 dark:border-neutral-700 dark:bg-black dark:text-neutral-400">
-                {language}
-              </div>
+              {!!language && (
+                <div className="flex h-[42px] w-[74px] items-center rounded border border-neutral-300 bg-white px-3 capitalize text-neutral-800 dark:border-neutral-700 dark:bg-black dark:text-neutral-400">
+                  {language}
+                </div>
+              )}
             </div>
             <div className="flex-1">
               <Select
@@ -274,6 +278,7 @@ const MessageCodeBlock: FC<Props> = ({
                 onChange={onChange}
                 className="inline-block"
               >
+                <option>언어 선택</option>
                 {languageList.map((item) => (
                   <option key={item.id} value={item.value}>
                     {item.label}

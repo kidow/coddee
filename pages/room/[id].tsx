@@ -681,7 +681,7 @@ const RoomIdPage: NextPage = () => {
           )}
           {isLoading && (
             <div className="mb-4 flex items-center justify-center">
-              <Spinner className="h-5 w-5 text-neutral-200 dark:text-neutral-400" />
+              <Spinner className="h-8 w-8 text-neutral-200 dark:text-neutral-400" />
             </div>
           )}
           <div ref={ref} />

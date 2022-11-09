@@ -199,8 +199,10 @@ const Layout: FC<Props> = ({ children }) => {
                   .eq('chat_id', payload.new.chat_id)
               ])
               if (
-                chat?.user_id === user?.id ||
-                replies?.findIndex((item) => item.user_id === user?.id) !== -1
+                payload.new.user_id !== user?.id &&
+                (chat?.user_id === user?.id ||
+                  replies?.findIndex((item) => item.user_id === user?.id) !==
+                    -1)
               ) {
                 setState({ isNewThreadCreated: true })
               }
