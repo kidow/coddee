@@ -246,8 +246,8 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
   }) => {
     const { error } = await supabase.from('replies').insert({
       content: payload.content,
-      code_block: reply.code_block,
-      language: reply.language,
+      code_block: reply.modified_code || reply.code_block,
+      language: reply.modified_language || reply.language,
       modified_code: payload.codeBlock,
       modified_language: payload.language
     })

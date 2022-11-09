@@ -273,8 +273,8 @@ const SavedPage: NextPage = () => {
     if (payload.chat) {
       const { error } = await supabase.from('chats').insert({
         content: payload.content,
-        code_block: payload.chat.code_block,
-        language: payload.chat.language,
+        code_block: payload.chat.modified_code || payload.chat.code_block,
+        language: payload.chat.modified_language || payload.chat.language,
         modified_code: payload.codeBlock,
         modified_language: payload.language,
         user_id: user?.id,
@@ -290,8 +290,8 @@ const SavedPage: NextPage = () => {
     if (payload.reply) {
       const { error } = await supabase.from('replies').insert({
         content: payload.content,
-        code_block: payload.reply.code_block,
-        langauge: payload.reply.language,
+        code_block: payload.reply.modified_code || payload.reply.code_block,
+        langauge: payload.reply.modified_language || payload.reply.language,
         modified_code: payload.codeBlock,
         modified_language: payload.language,
         chat_id: payload.reply.chat_id,
