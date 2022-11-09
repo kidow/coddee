@@ -60,6 +60,10 @@ const HomePage: NextPage = () => {
         <Link href="/privacy">
           <a>개인정보처리방침</a>
         </Link>
+        <div className="w-px bg-neutral-200 dark:bg-neutral-700" />
+        <Link href="/release">
+          <a>업데이트 내역</a>
+        </Link>
       </div>
       <div className="mt-4 px-4">
         <a
