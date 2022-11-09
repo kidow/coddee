@@ -132,7 +132,7 @@ const MessageCodeBlock: FC<Props> = ({
     if (!isDiffEditorOpen) return
     EventListener.add('message:codeblock', listener)
     return () => EventListener.remove('message:codeblock', listener)
-  }, [])
+  }, [isDiffEditorOpen])
   return (
     <>
       <div className="text-xs text-neutral-600 dark:text-neutral-400">
@@ -142,7 +142,7 @@ const MessageCodeBlock: FC<Props> = ({
               <DiffEditor
                 original={originalCode}
                 modified={modifiedCode}
-                originalLanguage={language}
+                originalLanguage={props.language}
                 modifiedLanguage={modifiedLanguage}
                 theme={theme === 'dark' ? 'vs-dark' : 'light'}
                 options={{
@@ -191,10 +191,10 @@ const MessageCodeBlock: FC<Props> = ({
               <span>{modifiedLanguage}</span>
             </>
           ) : (
-            !!language && (
+            !!props.language && (
               <>
                 <span>·</span>
-                <span>{language}</span>
+                <span>{props.language}</span>
               </>
             )
           )}
@@ -212,7 +212,9 @@ const MessageCodeBlock: FC<Props> = ({
                 onClick={() =>
                   setState({
                     isDiffEditorOpen: true,
-                    codeBlock: modifiedCode || originalCode
+                    codeBlock: modifiedCode || originalCode,
+                    content: `${mention} `,
+                    language: props.language
                   })
                 }
               >
@@ -224,7 +226,14 @@ const MessageCodeBlock: FC<Props> = ({
       </div>
       <Modal
         isOpen={isDiffEditorOpen}
-        onClose={() => setState({ isDiffEditorOpen: false })}
+        onClose={() =>
+          setState({
+            isDiffEditorOpen: false,
+            content: '',
+            language: '',
+            codeBlock: ''
+          })
+        }
         title="코드 답장"
         maxWidth="max-w-6xl"
         footer={
@@ -265,9 +274,9 @@ const MessageCodeBlock: FC<Props> = ({
         <div className="space-y-4">
           <div className="flex">
             <div className="flex-1">
-              {!!language && (
-                <div className="flex h-[42px] w-[74px] items-center rounded border border-neutral-300 bg-white px-3 capitalize text-neutral-800 dark:border-neutral-700 dark:bg-black dark:text-neutral-400">
-                  {language}
+              {!!props.language && (
+                <div className="inline-flex h-[42px] items-center rounded border border-neutral-300 bg-white px-3 capitalize text-neutral-800 dark:border-neutral-700 dark:bg-black dark:text-neutral-400">
+                  {props.language}
                 </div>
               )}
             </div>
@@ -278,7 +287,7 @@ const MessageCodeBlock: FC<Props> = ({
                 onChange={onChange}
                 className="inline-block"
               >
-                <option>언어 선택</option>
+                <option value="">언어 선택</option>
                 {languageList.map((item) => (
                   <option key={item.id} value={item.value}>
                     {item.label}
@@ -287,11 +296,11 @@ const MessageCodeBlock: FC<Props> = ({
               </Select>
             </div>
           </div>
-          <div>
+          <div className="border dark:border-transparent">
             <DiffEditor
               original={originalCode}
               modified={codeBlock}
-              originalLanguage={language}
+              originalLanguage={props.language}
               modifiedLanguage={language}
               height="300px"
               theme={theme === 'dark' ? 'vs-dark' : 'light'}
