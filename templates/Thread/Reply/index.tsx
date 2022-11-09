@@ -205,8 +205,8 @@ const ThreadReply: FC<Props> = ({ reply }) => {
   }) => {
     const { error } = await supabase.from('replies').insert({
       content: payload.content,
-      code_block: reply.code_block,
-      language: reply.language,
+      code_block: reply.modified_code || reply.code_block,
+      language: reply.modified_language || reply.language,
       modified_code: payload.codeBlock,
       modified_language: payload.language,
       chat_id: reply.chat_id,

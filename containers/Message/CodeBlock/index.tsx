@@ -14,7 +14,7 @@ import {
 } from 'services'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { Modal } from 'containers'
-import { Button, Select, Textarea } from 'components'
+import { Button, Select, Spinner, Textarea } from 'components'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useRecoilValue } from 'recoil'
 
@@ -126,7 +126,8 @@ const MessageCodeBlock: FC<Props> = ({
     props.onSubmit({ content, codeBlock, language })
   }
 
-  const listener = () => setState({ isDiffEditorOpen: false })
+  const listener = () =>
+    setState({ isDiffEditorOpen: false, isCollapse: false })
 
   useEffect(() => {
     if (!isDiffEditorOpen) return
@@ -158,6 +159,9 @@ const MessageCodeBlock: FC<Props> = ({
                   lineNumbers: 'off'
                 }}
                 onMount={onDiffMount}
+                loading={
+                  <Spinner className="h-5 w-5 text-neutral-300 dark:text-neutral-400" />
+                }
               />
             ) : (
               <Editor
@@ -177,6 +181,9 @@ const MessageCodeBlock: FC<Props> = ({
                   lineNumbers: 'off'
                 }}
                 value={originalCode}
+                loading={
+                  <Spinner className="h-5 w-5 text-neutral-300 dark:text-neutral-400" />
+                }
               />
             )}
           </div>
@@ -209,14 +216,14 @@ const MessageCodeBlock: FC<Props> = ({
               </CopyToClipboard>
               <span>·</span>
               <button
-                onClick={() =>
+                onClick={() => {
                   setState({
                     isDiffEditorOpen: true,
                     codeBlock: modifiedCode || originalCode,
                     content: `${mention} `,
                     language: props.language
                   })
-                }
+                }}
               >
                 답장
               </button>
@@ -298,7 +305,7 @@ const MessageCodeBlock: FC<Props> = ({
           </div>
           <div className="border dark:border-transparent">
             <DiffEditor
-              original={originalCode}
+              original={modifiedCode || originalCode}
               modified={codeBlock}
               originalLanguage={props.language}
               modifiedLanguage={language}
@@ -309,6 +316,16 @@ const MessageCodeBlock: FC<Props> = ({
                 minimap: { enabled: false },
                 wordWrap: 'on'
               }}
+              loading={
+                <Spinner className="h-5 w-5 text-neutral-300 dark:text-neutral-400" />
+              }
+              onMount={(editor, monaco) =>
+                editor.getModifiedEditor().onDidChangeModelContent(() =>
+                  setState({
+                    codeBlock: editor.getModifiedEditor().getValue()
+                  })
+                )
+              }
             />
           </div>
           <div className="border p-2 focus-within:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900">

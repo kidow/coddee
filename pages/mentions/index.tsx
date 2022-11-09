@@ -176,11 +176,13 @@ const MentionsPage: NextPage = () => {
     originalCode: string
     originalLanguage: string
     roomId: string
+    modifiedCode: string
+    modifiedLanguage: string
   }) => {
     const { error } = await supabase.from('chats').insert({
       content: payload.content,
-      code_block: payload.originalCode,
-      language: payload.originalLanguage,
+      code_block: payload.modifiedCode || payload.originalCode,
+      language: payload.modifiedLanguage || payload.originalLanguage,
       modified_code: payload.codeBlock,
       modified_language: payload.language,
       user_id: user?.id,
@@ -336,7 +338,9 @@ const MentionsPage: NextPage = () => {
                         ...payload,
                         originalCode: item.chat.code_block,
                         originalLanguage: item.chat.language,
-                        roomId: item.chat.room.id
+                        roomId: item.chat.room.id,
+                        modifiedCode: item.chat.modified_code,
+                        modifiedLanguage: item.chat.modified_language
                       })
                     }
                     mention={`@[${item.user.nickname}](${item.user.avatar_url})`}

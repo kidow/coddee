@@ -290,8 +290,8 @@ const MessageChat: FC<Props> = ({
   }) => {
     const { error } = await supabase.from('chats').insert({
       content: payload.content,
-      code_block: chat.code_block,
-      language: chat.language,
+      code_block: chat.modified_code || chat.code_block,
+      language: chat.modified_language || chat.language,
       modified_code: payload.codeBlock,
       modified_language: payload.language,
       user_id: user?.id,
