@@ -40,12 +40,6 @@ export interface Props {
   onDeleteReply: (id: string) => void
   onNicknameClick: (mention: string) => void
   onSave: (data?: NTable.Saves) => void
-  onUpdate: (payload: {
-    id: number
-    content: string
-    updatedAt: string
-  }) => void
-  onDelete: (id: number) => void
 }
 interface State {
   isUpdateMode: boolean
@@ -63,9 +57,7 @@ const MessageChat: FC<Props> = ({
   onCreateReply,
   onDeleteReply,
   onNicknameClick,
-  onSave,
-  onUpdate,
-  onDelete
+  onSave
 }) => {
   const [
     { isUpdateMode, isThreadOpen, isSubmitting, isCodeEditorOpen },
@@ -115,7 +107,11 @@ const MessageChat: FC<Props> = ({
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onUpdate({ id: chat.id, content, updatedAt: result.updated_at })
+    EventListener.emit('chats:update', {
+      id: chat.id,
+      content,
+      updatedAt: result.updated_at
+    })
   }
 
   const updateReaction = async (key: number) => {
@@ -199,7 +195,7 @@ const MessageChat: FC<Props> = ({
         return
       }
     }
-    onDelete(chat.id)
+    EventListener.emit('chats:delete', { id: chat.id })
   }
 
   const onEmojiSelect = async (text: string) => {
@@ -519,7 +515,6 @@ const MessageChat: FC<Props> = ({
         isOpen={isThreadOpen}
         onClose={() => setState({ isThreadOpen: false })}
         chat={chat}
-        updateReaction={updateReaction}
         onCreate={onCreateReply}
         onDelete={onDeleteReply}
       />

@@ -22,7 +22,6 @@ export interface Props {
         saves: NTable.Saves[]
       })
     | null
-  updateReaction: (reactionIndex: number) => void
   replyLength: number
   onClose: () => void
 }
@@ -32,12 +31,7 @@ interface State {
   isCodeEditorOpen: boolean
 }
 
-const ThreadDrawerChat: FC<Props> = ({
-  chat,
-  updateReaction,
-  replyLength,
-  onClose
-}) => {
+const ThreadDrawerChat: FC<Props> = ({ chat, replyLength, onClose }) => {
   const [{ isUpdateMode, isUpdating, isCodeEditorOpen }, setState] =
     useObjectState<State>({
       isUpdateMode: false,
@@ -71,15 +65,23 @@ const ThreadDrawerChat: FC<Props> = ({
     }
 
     setState({ isUpdating: true })
-    const { error } = await supabase
+    const { data: result, error } = await supabase
       .from('chats')
       .update({ content })
       .eq('id', chat?.id)
+      .select('updated_at')
+      .single()
     setState({ isUpdating: false, isUpdateMode: false })
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
+      return
     }
+    EventListener.emit('chats:update', {
+      id: chat?.id,
+      content,
+      updatedAt: result.updated_at
+    })
   }
 
   const onEmojiSelect = async (text: string) => {
@@ -87,31 +89,43 @@ const ThreadDrawerChat: FC<Props> = ({
 
     const index = chat.reactions.findIndex((item) => item.text === text)
     if (index === -1) {
-      const { error } = await supabase.from('reactions').insert({
-        user_id: user.id,
-        chat_id: chat.id,
-        text,
-        room_id: query.id
-      })
-      if (error) {
-        console.error(error)
-        toast.error(TOAST_MESSAGE.API_ERROR)
-      }
-    } else {
-      const userIndex = chat.reactions[index].userList.findIndex(
-        (item) => item.id === user.id
-      )
-      if (userIndex === -1) {
-        const { error } = await supabase.from('reactions').insert({
+      const { data, error } = await supabase
+        .from('reactions')
+        .insert({
           user_id: user.id,
           chat_id: chat.id,
           text,
           room_id: query.id
         })
+        .select()
+        .single()
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+        return
+      }
+      EventListener.emit('reactions:create', { text, chatId: chat.id, data })
+    } else {
+      const userIndex = chat.reactions[index].userList.findIndex(
+        (item) => item.id === user.id
+      )
+      if (userIndex === -1) {
+        const { data, error } = await supabase
+          .from('reactions')
+          .insert({
+            user_id: user.id,
+            chat_id: chat.id,
+            text,
+            room_id: query.id
+          })
+          .select()
+          .single()
         if (error) {
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
+          return
         }
+        EventListener.emit('reactions:create', { text, chatId: chat.id, data })
       } else {
         const { error } = await supabase.from('reactions').delete().match({
           user_id: user.id,
@@ -122,25 +136,30 @@ const ThreadDrawerChat: FC<Props> = ({
         if (error) {
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
+          return
         }
+        EventListener.emit('reactions:delete', { text, chatId: chat.id })
       }
     }
   }
 
   const deleteChat = async () => {
     if (!!replyLength) {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('chats')
         .update({
           // @ts-ignore
           deleted_at: new Date().toISOString().toLocaleString('ko-KR')
         })
         .eq('id', chat?.id)
+        .select('deleted_at')
+        .single()
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
+      EventListener.emit('chats:update', { deletedAt: data.deleted_at })
     } else {
       const { error } = await supabase.from('chats').delete().eq('id', chat?.id)
       if (error) {
@@ -148,7 +167,65 @@ const ThreadDrawerChat: FC<Props> = ({
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
+      EventListener.emit('chats:delete', { id: chat?.id })
       onClose()
+    }
+  }
+
+  const updateReaction = async (key: number) => {
+    if (!user) {
+      toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
+      return
+    }
+    const { data } = await supabase.auth.getUser()
+    if (!!user && !data.user) {
+      await supabase.auth.signOut()
+      setUser(null)
+      toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
+      return
+    }
+
+    const reaction = chat?.reactions[key]
+    const userIndex = reaction?.userList?.findIndex(
+      (item) => item.id === user.id
+    )
+    if (userIndex === undefined) return
+
+    if (userIndex === -1) {
+      const { data, error } = await supabase
+        .from('reactions')
+        .insert({
+          chat_id: chat?.id,
+          user_id: user.id,
+          text: reaction?.text,
+          room_id: query.id
+        })
+        .select()
+        .single()
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+        return
+      }
+      EventListener.emit('reactions:create', {
+        text: reaction?.text,
+        chatId: chat?.id,
+        data
+      })
+    } else {
+      const { error } = await supabase
+        .from('reactions')
+        .delete()
+        .eq('id', reaction?.id)
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+        return
+      }
+      EventListener.emit('reactions:delete', {
+        text: reaction?.text,
+        chatId: chat?.id
+      })
     }
   }
 

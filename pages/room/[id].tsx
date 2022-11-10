@@ -346,7 +346,7 @@ const RoomIdPage: NextPage = () => {
     setState({ isCodeEditorOpen: false, content: '' })
   }
 
-  const createReaction = ({ detail }: any) => {
+  const createMyReaction = ({ detail }: any) => {
     const chatIndex = chatList.findIndex((item) => item.id === detail?.chatId)
     if (chatIndex === -1) return
     const chat = chatList[chatIndex]
@@ -387,7 +387,7 @@ const RoomIdPage: NextPage = () => {
     EventListener.emit('modal:emoji')
   }
 
-  const deleteReaction = ({ detail }: any) => {
+  const deleteMyReaction = ({ detail }: any) => {
     const chatIndex = chatList.findIndex((item) => item.id === detail?.chatId)
     if (chatIndex === -1) return
 
@@ -421,6 +421,31 @@ const RoomIdPage: NextPage = () => {
       ]
     })
     EventListener.emit('modal:emoji')
+  }
+
+  const updateMyChat = ({ detail }: any) => {
+    const index = chatList.findIndex((item) => item.id === detail?.id)
+    if (index === -1) return
+    setState({
+      chatList: [
+        ...chatList.slice(0, index),
+        {
+          ...chatList[index],
+          ...(!!detail?.deletedAt
+            ? { deleted_at: detail?.deletedAt }
+            : { content: detail?.content, updated_at: detail?.updatedAt })
+        },
+        ...chatList.slice(index + 1)
+      ]
+    })
+  }
+
+  const deleteMyChat = ({ detail }: any) => {
+    const index = chatList.findIndex((item) => item.id === detail?.id)
+    if (index === -1) return
+    setState({
+      chatList: [...chatList.slice(0, index), ...chatList.slice(index + 1)]
+    })
   }
 
   useEffect(() => {
@@ -516,8 +541,13 @@ const RoomIdPage: NextPage = () => {
       )
       .subscribe()
 
+    EventListener.add('chats:update', updateMyChat)
+    EventListener.add('chats:delete', deleteMyChat)
+
     return () => {
       supabase.removeChannel(chats)
+      EventListener.remove('chats:remove', updateMyChat)
+      EventListener.remove('chats:delete', deleteMyChat)
     }
   }, [chatList, query.id, count])
 
@@ -666,14 +696,14 @@ const RoomIdPage: NextPage = () => {
       )
       .subscribe()
 
-    EventListener.add('reactions:create', createReaction)
-    EventListener.add('reactions:delete', deleteReaction)
+    EventListener.add('reactions:create', createMyReaction)
+    EventListener.add('reactions:delete', deleteMyReaction)
 
     return () => {
       supabase.removeChannel(reactions)
       supabase.removeChannel(opengraphs)
-      EventListener.remove('reactions:create', createReaction)
-      EventListener.remove('reactions:delete', deleteReaction)
+      EventListener.remove('reactions:create', createMyReaction)
+      EventListener.remove('reactions:delete', deleteMyReaction)
     }
   }, [chatList, query.id])
 
@@ -755,27 +785,6 @@ const RoomIdPage: NextPage = () => {
                   ]
                 })
               }
-              onUpdate={({ id, content, updatedAt }) => {
-                const index = chatList.findIndex((item) => item.id === id)
-                if (index === -1) return
-                setState({
-                  chatList: [
-                    ...chatList.slice(0, index),
-                    { ...chatList[index], content, updated_at: updatedAt },
-                    ...chatList.slice(index + 1)
-                  ]
-                })
-              }}
-              onDelete={(id) => {
-                const index = chatList.findIndex((item) => item.id === id)
-                if (index === -1) return
-                setState({
-                  chatList: [
-                    ...chatList.slice(0, index),
-                    ...chatList.slice(index + 1)
-                  ]
-                })
-              }}
             />
           ))}
           {!isLoading && !chatList.length && (

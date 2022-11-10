@@ -25,7 +25,6 @@ export interface Props extends DrawerProps {
         saves: NTable.Saves[]
       })
     | null
-  updateReaction: (reactionIndex: number) => void
   onCreate: (reply: {
     id: string
     created_at: string
@@ -52,7 +51,6 @@ const ThreadDrawer: FC<Props> = ({
   isOpen,
   onClose,
   chat,
-  updateReaction,
   onCreate,
   onDelete
 }) => {
@@ -528,7 +526,6 @@ const ThreadDrawer: FC<Props> = ({
         <div>
           <ThreadDrawerChat
             chat={chat}
-            updateReaction={updateReaction}
             onClose={onClose}
             replyLength={list.length}
           />
