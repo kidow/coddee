@@ -138,16 +138,26 @@ const MessageChat: FC<Props> = ({
     if (userIndex === undefined) return
 
     if (userIndex === -1) {
-      const { error } = await supabase.from('reactions').insert({
-        chat_id: chat.id,
-        user_id: user.id,
-        text: reaction.text,
-        room_id: query.id
-      })
+      const { data, error } = await supabase
+        .from('reactions')
+        .insert({
+          chat_id: chat.id,
+          user_id: user.id,
+          text: reaction.text,
+          room_id: query.id
+        })
+        .select()
+        .single()
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
+        return
       }
+      EventListener.emit('reactions:create', {
+        text: reaction.text,
+        chatId: chat.id,
+        data
+      })
     } else {
       const { error } = await supabase.from('reactions').delete().match({
         user_id: user.id,
@@ -158,7 +168,12 @@ const MessageChat: FC<Props> = ({
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
+        return
       }
+      EventListener.emit('reactions:delete', {
+        text: reaction.text,
+        chatId: chat.id
+      })
     }
   }
 
@@ -195,30 +210,38 @@ const MessageChat: FC<Props> = ({
 
     const reactionIndex = chat.reactions.findIndex((item) => item.text === text)
     if (reactionIndex === -1) {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('reactions')
         .insert({ user_id: user.id, chat_id: chat.id, text, room_id: query.id })
+        .select()
+        .single()
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
+      EventListener.emit('reactions:create', { text, chatId: chat.id, data })
     } else {
       const userIndex = chat.reactions[reactionIndex].userList.findIndex(
         (item) => item.id === user.id
       )
       if (userIndex === -1) {
-        const { error } = await supabase.from('reactions').insert({
-          user_id: user.id,
-          chat_id: chat.id,
-          text,
-          room_id: query.id
-        })
+        const { data, error } = await supabase
+          .from('reactions')
+          .insert({
+            user_id: user.id,
+            chat_id: chat.id,
+            text,
+            room_id: query.id
+          })
+          .select()
+          .single()
         if (error) {
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
+        EventListener.emit('reactions:create', { text, chatId: chat.id, data })
       } else {
         const { error } = await supabase.from('reactions').delete().match({
           user_id: user.id,
@@ -231,6 +254,7 @@ const MessageChat: FC<Props> = ({
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
+        EventListener.emit('reactions:delete', { text, chatId: chat.id })
       }
     }
   }

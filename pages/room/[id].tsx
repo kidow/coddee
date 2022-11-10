@@ -11,7 +11,8 @@ import {
   toast,
   TOAST_MESSAGE,
   REGEXP,
-  backdrop
+  backdrop,
+  EventListener
 } from 'services'
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
@@ -345,6 +346,83 @@ const RoomIdPage: NextPage = () => {
     setState({ isCodeEditorOpen: false, content: '' })
   }
 
+  const createReaction = ({ detail }: any) => {
+    const chatIndex = chatList.findIndex((item) => item.id === detail?.chatId)
+    if (chatIndex === -1) return
+    const chat = chatList[chatIndex]
+
+    const reactionIndex = chat.reactions.findIndex(
+      (item) => item.text === detail?.text
+    )
+    const reaction = chat.reactions[reactionIndex]
+    setState({
+      chatList: [
+        ...chatList.slice(0, chatIndex),
+        {
+          ...chat,
+          reactions:
+            reactionIndex === -1
+              ? [
+                  ...chat.reactions,
+                  {
+                    ...detail?.data,
+                    userList: [{ id: user?.id, nickname: user?.nickname }]
+                  }
+                ]
+              : [
+                  ...chat.reactions.slice(0, reactionIndex),
+                  {
+                    ...reaction,
+                    userList: [
+                      ...reaction.userList,
+                      { id: user?.id, nickname: user?.nickname }
+                    ]
+                  },
+                  ...chat.reactions.slice(reactionIndex + 1)
+                ]
+        },
+        ...chatList.slice(chatIndex + 1)
+      ]
+    })
+    EventListener.emit('modal:emoji')
+  }
+
+  const deleteReaction = ({ detail }: any) => {
+    const chatIndex = chatList.findIndex((item) => item.id === detail?.chatId)
+    if (chatIndex === -1) return
+
+    const chat = chatList[chatIndex]
+    const reactionIndex = chat.reactions.findIndex(
+      (item) => item.text === detail?.text
+    )
+    if (reactionIndex === -1) return
+    const reaction = chat.reactions[reactionIndex]
+
+    setState({
+      chatList: [
+        ...chatList.slice(0, chatIndex),
+        {
+          ...chat,
+          reactions:
+            reaction.userList.length > 1
+              ? [
+                  ...chat.reactions.slice(0, reactionIndex),
+                  {
+                    ...reaction,
+                    userList: reaction.userList.filter(
+                      (item) => item.id !== user?.id
+                    )
+                  },
+                  ...chat.reactions.slice(reactionIndex + 1)
+                ]
+              : chat.reactions.filter((item) => item.text !== detail?.text)
+        },
+        ...chatList.slice(chatIndex + 1)
+      ]
+    })
+    EventListener.emit('modal:emoji')
+  }
+
   useEffect(() => {
     getChatList()
     getRoom()
@@ -427,8 +505,12 @@ const RoomIdPage: NextPage = () => {
         },
         (payload) => {
           if (payload.old.user_id === user?.id) return
+          const index = chatList.findIndex((item) => item.id === payload.old.id)
           setState({
-            chatList: chatList.filter((item) => item.id !== payload.old.id)
+            chatList: [
+              ...chatList.slice(0, index),
+              ...chatList.slice(index + 1)
+            ]
           })
         }
       )
@@ -465,48 +547,38 @@ const RoomIdPage: NextPage = () => {
             console.error(error)
             return
           }
+          const chat = chatList[chatIndex]
 
-          const reactionIndex = chatList[chatIndex].reactions.findIndex(
+          const reactionIndex = chat.reactions.findIndex(
             (item) => item.text === payload.new.text
           )
+          const reaction = chat.reactions[reactionIndex]
           setState({
             chatList: [
               ...chatList.slice(0, chatIndex),
               {
-                ...chatList[chatIndex],
+                ...chat,
                 reactions:
                   reactionIndex === -1
                     ? [
-                        ...chatList[chatIndex].reactions,
+                        ...chat.reactions,
                         {
                           ...payload.new,
                           userList: [
-                            {
-                              id: payload.new.user_id,
-                              nickname: data.nickname
-                            }
+                            { id: payload.new.user_id, nickname: data.nickname }
                           ]
                         }
                       ]
                     : [
-                        ...chatList[chatIndex].reactions.slice(
-                          0,
-                          reactionIndex
-                        ),
+                        ...chat.reactions.slice(0, reactionIndex),
                         {
-                          ...chatList[chatIndex].reactions[reactionIndex],
+                          ...reaction,
                           userList: [
-                            ...chatList[chatIndex].reactions[reactionIndex]
-                              .userList,
-                            {
-                              id: payload.new.user_id,
-                              nickname: data.nickname
-                            }
+                            ...reaction.userList,
+                            { id: payload.new.user_id, nickname: data.nickname }
                           ]
                         },
-                        ...chatList[chatIndex].reactions.slice(
-                          reactionIndex + 1
-                        )
+                        ...chat.reactions.slice(reactionIndex + 1)
                       ]
               },
               ...chatList.slice(chatIndex + 1)
@@ -523,42 +595,37 @@ const RoomIdPage: NextPage = () => {
           filter: `room_id=eq.${query.id}`
         },
         (payload) => {
+          if (payload.old.user_id === user?.id) return
           const chatIndex = chatList.findIndex(
             (item) => item.id === payload.old.chat_id
           )
           if (chatIndex === -1) return
 
-          const reactionIndex = chatList[chatIndex].reactions.findIndex(
+          const chat = chatList[chatIndex]
+          const reactionIndex = chat.reactions.findIndex(
             (item) => item.text === payload.old.text
           )
           if (reactionIndex === -1) return
+          const reaction = chat.reactions[reactionIndex]
 
           setState({
             chatList: [
               ...chatList.slice(0, chatIndex),
               {
-                ...chatList[chatIndex],
+                ...chat,
                 reactions:
-                  chatList[chatIndex].reactions[reactionIndex].userList.length >
-                  1
+                  reaction.userList.length > 1
                     ? [
-                        ...chatList[chatIndex].reactions.slice(
-                          0,
-                          reactionIndex
-                        ),
+                        ...chat.reactions.slice(0, reactionIndex),
                         {
-                          ...chatList[chatIndex].reactions[reactionIndex],
-                          userList: chatList[chatIndex].reactions[
-                            reactionIndex
-                          ].userList.filter(
+                          ...reaction,
+                          userList: reaction.userList.filter(
                             (item) => item.id !== payload.old.user_id
                           )
                         },
-                        ...chatList[chatIndex].reactions.slice(
-                          reactionIndex + 1
-                        )
+                        ...chat.reactions.slice(reactionIndex + 1)
                       ]
-                    : chatList[chatIndex].reactions.filter(
+                    : chat.reactions.filter(
                         (item) => item.text !== payload.old.text
                       )
               },
@@ -599,9 +666,14 @@ const RoomIdPage: NextPage = () => {
       )
       .subscribe()
 
+    EventListener.add('reactions:create', createReaction)
+    EventListener.add('reactions:delete', deleteReaction)
+
     return () => {
       supabase.removeChannel(reactions)
       supabase.removeChannel(opengraphs)
+      EventListener.remove('reactions:create', createReaction)
+      EventListener.remove('reactions:delete', deleteReaction)
     }
   }, [chatList, query.id])
 

@@ -30,7 +30,7 @@ const ReactionTooltip: FC<Props> = ({ userList, onClick, text, length }) => {
       }
       size="sm"
       className={classnames(
-        'inline-flex h-6 items-center gap-1 rounded-xl border px-1.5 dark:border-transparent dark:bg-neutral-900',
+        'inline-flex h-6 items-center gap-1 rounded-xl border px-1.5 active:scale-95 dark:border-transparent dark:bg-neutral-900',
         isMine
           ? 'border-blue-700 bg-blue-100 dark:border-blue-400'
           : 'border-neutral-400'
