@@ -343,7 +343,21 @@ const RoomIdPage: NextPage = () => {
       return
     }
     onRegex(payload.content, data.id)
-    setState({ isCodeEditorOpen: false, content: '' })
+    setState({
+      isCodeEditorOpen: false,
+      content: '',
+      chatList: [
+        {
+          ...data,
+          reactions: [],
+          saves: [],
+          replies: [],
+          opengraphs: [],
+          user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+        },
+        ...chatList
+      ]
+    })
   }
 
   const createMyReaction = ({ detail }: any) => {

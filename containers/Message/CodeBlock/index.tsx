@@ -14,7 +14,7 @@ import {
 } from 'services'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { Modal } from 'containers'
-import { Button, Select, Spinner, Textarea } from 'components'
+import { Button, Select, Textarea } from 'components'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useRecoilValue } from 'recoil'
 
@@ -159,9 +159,7 @@ const MessageCodeBlock: FC<Props> = ({
                   lineNumbers: 'off'
                 }}
                 onMount={onDiffMount}
-                loading={
-                  <Spinner className="h-5 w-5 text-neutral-300 dark:text-neutral-400" />
-                }
+                loading={false}
               />
             ) : (
               <Editor
@@ -181,9 +179,7 @@ const MessageCodeBlock: FC<Props> = ({
                   lineNumbers: 'off'
                 }}
                 value={originalCode}
-                loading={
-                  <Spinner className="h-5 w-5 text-neutral-300 dark:text-neutral-400" />
-                }
+                loading={false}
               />
             )}
           </div>
@@ -316,9 +312,7 @@ const MessageCodeBlock: FC<Props> = ({
                 minimap: { enabled: false },
                 wordWrap: 'on'
               }}
-              loading={
-                <Spinner className="h-5 w-5 text-neutral-300 dark:text-neutral-400" />
-              }
+              loading={false}
               onMount={(editor, monaco) =>
                 editor.getModifiedEditor().onDidChangeModelContent(() =>
                   setState({

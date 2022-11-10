@@ -3,6 +3,7 @@ import type { FC } from 'react'
 import { Drawer, Modal, Message } from 'containers'
 import {
   backdrop,
+  EventListener,
   REGEXP,
   toast,
   TOAST_MESSAGE,
@@ -175,7 +176,6 @@ const ThreadDrawer: FC<Props> = ({
       await supabase.auth.signOut()
       setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
-      onClose()
       return
     }
     if (!content.trim()) return
@@ -195,7 +195,28 @@ const ThreadDrawer: FC<Props> = ({
       toast.error(TOAST_MESSAGE.API_ERROR)
     }
     onRegex(content, reply.id)
-    setState({ content: '' })
+    setState({
+      content: '',
+      list: [
+        ...list,
+        {
+          ...reply,
+          user: {
+            id: user.id,
+            avatar_url: user.avatar_url,
+            nickname: user.nickname
+          },
+          reply_reactions: [],
+          opengraphs: [],
+          saves: []
+        }
+      ]
+    })
+    onCreate({
+      id: reply.id,
+      created_at: reply.created_at,
+      user: { avatar_url: user.avatar_url }
+    })
   }
 
   const createCodeReply = async (payload: {
@@ -303,6 +324,7 @@ const ThreadDrawer: FC<Props> = ({
           filter: `chat_id=eq.${chat.id}`
         },
         async (payload: any) => {
+          if (payload.new.user_id === user?.id) return
           const { data, error } = await supabase
             .from('users')
             .select('id, nickname, avatar_url')
@@ -312,19 +334,12 @@ const ThreadDrawer: FC<Props> = ({
             console.error(error)
             return
           }
-          if (data) {
-            setState({
-              list: [
-                ...list,
-                { ...payload.new, user: data, reactions: [], saves: [] }
-              ]
-            })
-            onCreate({
-              id: payload.new.id,
-              created_at: payload.new.created_at,
-              user: { avatar_url: data.avatar_url }
-            })
-          }
+          setState({
+            list: [
+              ...list,
+              { ...payload.new, user: data, reactions: [], saves: [] }
+            ]
+          })
         }
       )
       .on(

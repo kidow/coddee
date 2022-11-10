@@ -155,6 +155,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
               fontSize: 14,
               minimap: { enabled: false }
             }}
+            loading={false}
           />
         </div>
         <div className="border p-2 focus-within:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900">
