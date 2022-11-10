@@ -131,6 +131,15 @@ namespace NTable {
     reply_id: number
     created_at: string
   }
+
+  interface Posts {
+    id: number
+    title: string
+    chat_ids: string
+    created_at: string
+    updated_at: string
+    chatList?: NTable.Chats[]
+  }
 }
 
 namespace NToast {

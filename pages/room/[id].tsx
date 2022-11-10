@@ -1,4 +1,4 @@
-import { SEO, Spinner, Textarea } from 'components'
+import { Dropdown, SEO, Spinner, Textarea } from 'components'
 import type { NextPage } from 'next'
 import {
   ArrowLeftIcon,
@@ -28,7 +28,6 @@ interface State {
   isCodeEditorOpen: boolean
   isSubmitting: boolean
   total: number
-  isDropdownOpen: boolean
   chatList: Array<
     NTable.Chats & {
       user: NTable.Users
@@ -56,7 +55,6 @@ const RoomIdPage: NextPage = () => {
       isCodeEditorOpen,
       isSubmitting,
       total,
-      isDropdownOpen,
       chatList,
       name,
       page,
@@ -72,7 +70,6 @@ const RoomIdPage: NextPage = () => {
     isCodeEditorOpen: false,
     isSubmitting: false,
     total: 0,
-    isDropdownOpen: false,
     chatList: [],
     name: '',
     page: 1,
@@ -611,19 +608,15 @@ const RoomIdPage: NextPage = () => {
             </button>
             <span className="font-semibold">{name}</span>
           </div>
-          {/* <div className="relative">
-            <button
-              onClick={() => setState({ isDropdownOpen: !isDropdownOpen })}
-              className="text-neutral-400 hover:text-neutral-700"
-            >
-              <EllipsisVerticalIcon className="h-5 w-5" />
-            </button>
-            {isDropdownOpen && (
-              <div className="absolute top-6 right-0 z-30 rounded border bg-white p-1">
-                asd
-              </div>
-            )}
-          </div> */}
+          {/* <Dropdown
+            label={
+              <EllipsisVerticalIcon className="h-5 w-5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200" />
+            }
+          >
+            <ul className="text-sm">
+              <li>포스트 만들기</li>
+            </ul>
+          </Dropdown> */}
         </header>
         <main className="flex flex-1 flex-col-reverse py-3">
           {chatList.map((item, key, arr) => (
