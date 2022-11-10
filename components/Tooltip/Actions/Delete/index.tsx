@@ -3,7 +3,7 @@ import { TrashIcon } from '@heroicons/react/24/solid'
 import { Tooltip, Button } from 'components'
 import { Modal } from 'containers'
 import type { FC } from 'react'
-import { useObjectState, useTheme } from 'services'
+import { useObjectState } from 'services'
 
 export interface Props {
   onClick: () => void
@@ -14,7 +14,6 @@ interface State {
 
 const DeleteTooltipAction: FC<Props> = ({ onClick }) => {
   const [{ isOpen }, setState] = useObjectState<State>({ isOpen: false })
-  const theme = useTheme()
   return (
     <>
       <Tooltip

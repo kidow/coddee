@@ -32,7 +32,7 @@ interface State {
 
 const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
   if (!isOpen) return null
-  const [{ content, language, codeBlock, languageList }, setState, onChange] =
+  const [{ content, language, codeBlock, languageList }, setState] =
     useObjectState<State>({
       content: props.content || '',
       language: props.language || '',

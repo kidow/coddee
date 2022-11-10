@@ -247,7 +247,23 @@ const RoomIdPage: NextPage = () => {
       toast.error(TOAST_MESSAGE.API_ERROR)
     }
     onRegex(content, chat.id)
-    setState({ content: '' })
+    setState(
+      {
+        content: '',
+        chatList: [
+          {
+            ...chat,
+            reactions: [],
+            saves: [],
+            replies: [],
+            opengraphs: [],
+            user: { nickname: user.nickname, avatar_url: user.avatar_url }
+          },
+          ...chatList
+        ]
+      },
+      () => textareaRef.current?.focus()
+    )
   }
 
   const onRegex = async (content: string, id: number) => {
@@ -349,6 +365,7 @@ const RoomIdPage: NextPage = () => {
           filter: `room_id=eq.${query.id}`
         },
         async (payload: any) => {
+          if (payload.new.user_id === user?.id) return
           const { data, error } = await supabase
             .from('users')
             .select('id, nickname, avatar_url')
@@ -381,6 +398,7 @@ const RoomIdPage: NextPage = () => {
           filter: `room_id=eq.${query.id}`
         },
         (payload) => {
+          if (payload.new.user_id === user?.id) return
           const index = chatList.findIndex((item) => item.id === payload.new.id)
           if (index === -1) return
           setState({
@@ -397,7 +415,6 @@ const RoomIdPage: NextPage = () => {
               ...chatList.slice(index + 1)
             ]
           })
-          if (payload.new.user_id === user?.id) toast.success('변경되었습니다.')
         }
       )
       .on(
@@ -409,10 +426,10 @@ const RoomIdPage: NextPage = () => {
           filter: `room_id=eq.${query.id}`
         },
         (payload) => {
+          if (payload.old.user_id === user?.id) return
           setState({
             chatList: chatList.filter((item) => item.id !== payload.old.id)
           })
-          if (payload.old.user_id === user?.id) toast.success('삭제되었습니다.')
         }
       )
       .subscribe()
@@ -434,6 +451,7 @@ const RoomIdPage: NextPage = () => {
           filter: `room_id=eq.${query.id}`
         },
         async (payload: any) => {
+          if (payload.new.user_id === user?.id) return
           const chatIndex = chatList.findIndex(
             (item) => item.id === payload.new.chat_id
           )
@@ -665,6 +683,27 @@ const RoomIdPage: NextPage = () => {
                   ]
                 })
               }
+              onUpdate={({ id, content, updatedAt }) => {
+                const index = chatList.findIndex((item) => item.id === id)
+                if (index === -1) return
+                setState({
+                  chatList: [
+                    ...chatList.slice(0, index),
+                    { ...chatList[index], content, updated_at: updatedAt },
+                    ...chatList.slice(index + 1)
+                  ]
+                })
+              }}
+              onDelete={(id) => {
+                const index = chatList.findIndex((item) => item.id === id)
+                if (index === -1) return
+                setState({
+                  chatList: [
+                    ...chatList.slice(0, index),
+                    ...chatList.slice(index + 1)
+                  ]
+                })
+              }}
             />
           ))}
           {!isLoading && !chatList.length && (
@@ -692,6 +731,7 @@ const RoomIdPage: NextPage = () => {
                 createChat()
               }
             }}
+            ref={textareaRef}
           />
           <Message.Button.Code
             onClick={() => setState({ isCodeEditorOpen: true })}

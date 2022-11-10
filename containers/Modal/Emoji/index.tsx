@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import type { UIEvent, FC } from 'react'
 import { Modal } from 'containers'
 import classnames from 'classnames'
@@ -14,6 +14,7 @@ import {
   PaintBrushIcon
 } from '@heroicons/react/24/outline'
 import {
+  EventListener,
   throttle,
   toast,
   TOAST_MESSAGE,
@@ -73,6 +74,11 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
     ],
     []
   )
+
+  useEffect(() => {
+    EventListener.add('modal:emoji', onClose)
+    return () => EventListener.remove('modal:emoji', onClose)
+  }, [])
   return (
     <Modal
       maxWidth="max-w-xs"

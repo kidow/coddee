@@ -40,6 +40,12 @@ export interface Props {
   onDeleteReply: (id: string) => void
   onNicknameClick: (mention: string) => void
   onSave: (data?: NTable.Saves) => void
+  onUpdate: (payload: {
+    id: number
+    content: string
+    updatedAt: string
+  }) => void
+  onDelete: (id: number) => void
 }
 interface State {
   isUpdateMode: boolean
@@ -57,7 +63,9 @@ const MessageChat: FC<Props> = ({
   onCreateReply,
   onDeleteReply,
   onNicknameClick,
-  onSave
+  onSave,
+  onUpdate,
+  onDelete
 }) => {
   const [
     { isUpdateMode, isThreadOpen, isSubmitting, isCodeEditorOpen },
@@ -95,15 +103,19 @@ const MessageChat: FC<Props> = ({
     }
 
     setState({ isSubmitting: true })
-    const { error } = await supabase
+    const { data: result, error } = await supabase
       .from('chats')
       .update({ content })
       .eq('id', chat.id)
+      .select('updated_at')
+      .single()
     setState({ isSubmitting: false, isUpdateMode: false })
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
+      return
     }
+    onUpdate({ id: chat.id, content, updatedAt: result.updated_at })
   }
 
   const updateReaction = async (key: number) => {
@@ -172,6 +184,7 @@ const MessageChat: FC<Props> = ({
         return
       }
     }
+    onDelete(chat.id)
   }
 
   const onEmojiSelect = async (text: string) => {
