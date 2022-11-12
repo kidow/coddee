@@ -46,8 +46,8 @@ const ThreadChat: FC<Props> = ({ chat }) => {
   const updateChat = async (content: string) => {
     if (isSubmitting) return
 
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
       setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
@@ -83,8 +83,8 @@ const ThreadChat: FC<Props> = ({ chat }) => {
       return
     }
 
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
       setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
@@ -109,12 +109,10 @@ const ThreadChat: FC<Props> = ({ chat }) => {
         toast.error(TOAST_MESSAGE.API_ERROR)
       }
     } else {
-      const { error } = await supabase.from('reactions').delete().match({
-        user_id: user.id,
-        chat_id: chat.id,
-        text: reaction.text,
-        room_id: chat.room.id
-      })
+      const { error } = await supabase
+        .from('reactions')
+        .delete()
+        .eq('id', reaction.id)
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
@@ -141,6 +139,7 @@ const ThreadChat: FC<Props> = ({ chat }) => {
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
+      EventListener.emit('modal:emoji')
     } else {
       const userIndex = chat.reactions[reactionIndex].userList.findIndex(
         (item) => item.id === user.id
@@ -157,18 +156,18 @@ const ThreadChat: FC<Props> = ({ chat }) => {
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
+        EventListener.emit('modal:emoji')
       } else {
-        const { error } = await supabase.from('reactions').delete().match({
-          user_id: user.id,
-          chat_id: chat.id,
-          text,
-          room_id: chat.room.id
-        })
+        const { error } = await supabase
+          .from('reactions')
+          .delete()
+          .eq('id', chat.reactions[reactionIndex].id)
         if (error) {
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
+        EventListener.emit('modal:emoji')
       }
     }
   }

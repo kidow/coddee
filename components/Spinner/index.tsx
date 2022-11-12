@@ -18,7 +18,6 @@ const Spinner: FC<Props> = ({ className }) => {
       <path
         d="M82 50A32 32 0 1 1 23.533421623214014 32.01333190873183 L21.71572875253809 21.7157287525381 L32.013331908731814 23.53342162321403 A32 32 0 0 1 82 50"
         strokeWidth="5"
-        stroke="#525252"
         fill="none"
       ></path>
       <circle
@@ -26,7 +25,6 @@ const Spinner: FC<Props> = ({ className }) => {
         cy="50"
         r="20"
         strokeWidth="5"
-        stroke="#525252"
         strokeDasharray="31.41592653589793 31.41592653589793"
         fill="none"
         strokeLinecap="round"

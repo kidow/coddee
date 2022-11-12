@@ -53,8 +53,8 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
     }
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
       setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)

@@ -6,7 +6,14 @@ import type { FC } from 'react'
 import { EventListener, toast } from 'services'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
-export interface Props extends NTable.Opengraphs {}
+export interface Props {
+  id: number
+  title: string
+  description: string
+  site_name: string
+  url: string
+  image: string
+}
 interface State {}
 
 const ChatOpengraph: FC<Props> = ({

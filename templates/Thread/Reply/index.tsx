@@ -38,8 +38,8 @@ const ThreadReply: FC<Props> = ({ reply }) => {
   const updateReply = async (content?: string) => {
     if (isSubmitting) return
 
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
       setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
@@ -69,14 +69,14 @@ const ThreadReply: FC<Props> = ({ reply }) => {
     }
   }
 
-  const updateReaction = async (index: number) => {
+  const updateReplyReaction = async (index: number) => {
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
     }
 
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
       setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
@@ -119,8 +119,8 @@ const ThreadReply: FC<Props> = ({ reply }) => {
       return
     }
 
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
       setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
@@ -138,7 +138,9 @@ const ThreadReply: FC<Props> = ({ reply }) => {
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
+        return
       }
+      EventListener.emit('modal:emoji')
     } else {
       const userIndex = reply.reply_reactions[index].userList.findIndex(
         (item) => item.id === user.id
@@ -153,21 +155,20 @@ const ThreadReply: FC<Props> = ({ reply }) => {
         if (error) {
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
+          return
         }
+        EventListener.emit('modal:emoji')
       } else {
         const { error } = await supabase
           .from('reply_reactions')
           .delete()
-          .match({
-            user_id: user.id,
-            reply_id: reply.id,
-            text,
-            chat_id: reply.chat_id
-          })
+          .eq('id', reply.reply_reactions[index].id)
         if (error) {
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
+          return
         }
+        EventListener.emit('modal:emoji')
       }
     }
   }
@@ -177,7 +178,10 @@ const ThreadReply: FC<Props> = ({ reply }) => {
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
+      EventListener.emit('tooltip:delete:error')
+      return
     }
+    EventListener.emit('tooltip:delete')
   }
 
   const updateCodeReply = async (payload: {
@@ -267,7 +271,7 @@ const ThreadReply: FC<Props> = ({ reply }) => {
                 <Tooltip.Reaction
                   userList={item.userList}
                   key={key}
-                  onClick={() => updateReaction(key)}
+                  onClick={() => updateReplyReaction(key)}
                   text={item.text}
                   length={item?.userList.length}
                 />

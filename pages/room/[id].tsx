@@ -10,9 +10,9 @@ import {
   useIntersectionObserver,
   toast,
   TOAST_MESSAGE,
-  REGEXP,
   backdrop,
-  EventListener
+  useChatList,
+  chatListState
 } from 'services'
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
@@ -20,6 +20,7 @@ import { Message, Modal } from 'containers'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import { useRecoilState } from 'recoil'
 
 dayjs.extend(relativeTime)
 
@@ -29,19 +30,6 @@ interface State {
   isCodeEditorOpen: boolean
   isSubmitting: boolean
   total: number
-  chatList: Array<
-    NTable.Chats & {
-      user: NTable.Users
-      reactions: NTable.Reactions[]
-      replies: Array<{
-        id: string
-        created_at: string
-        user: { avatar_url: string }
-      }>
-      opengraphs: NTable.Opengraphs[]
-      saves: NTable.Saves[]
-    }
-  >
   name: string
   page: number
   count: number
@@ -56,7 +44,6 @@ const RoomIdPage: NextPage = () => {
       isCodeEditorOpen,
       isSubmitting,
       total,
-      chatList,
       name,
       page,
       count,
@@ -71,7 +58,6 @@ const RoomIdPage: NextPage = () => {
     isCodeEditorOpen: false,
     isSubmitting: false,
     total: 0,
-    chatList: [],
     name: '',
     page: 1,
     count: 0,
@@ -79,16 +65,18 @@ const RoomIdPage: NextPage = () => {
   })
   const { query, back } = useRouter()
   const [user, setUser] = useUser()
+  const [list, setList] = useRecoilState(chatListState)
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const supabase = useSupabaseClient()
+  const { onRegex } = useChatList()
 
   const getChatList = async (page: number = 1) => {
     if (!query.id || typeof query.id !== 'string') return
     if (!isLoading) setState({ isLoading: true })
-    if (page === 1) setState({ chatList: [] })
+    if (page === 1) setList([])
     const {
-      data: list,
+      data,
       error,
       count: total
     } = await supabase
@@ -147,11 +135,9 @@ const RoomIdPage: NextPage = () => {
       console.error(error)
       return
     }
-    for (const chat of list) {
+    for (const chat of data) {
       let reactions: Array<{
         id: number
-        room_id: string
-        chat_id: number
         text: string
         userList: Array<{ id: string; nickname: string }>
       }> = []
@@ -165,8 +151,6 @@ const RoomIdPage: NextPage = () => {
           if (index === -1) {
             reactions.push({
               id: reaction.id,
-              room_id: reaction.room_id,
-              chat_id: reaction.chat_id,
               text: reaction.text,
               userList: [
                 { id: reaction.user_id, nickname: reaction.user.nickname }
@@ -187,17 +171,10 @@ const RoomIdPage: NextPage = () => {
       // @ts-ignore
       chat.reactions = reactions
     }
-    setState(
-      {
-        isLoading: false,
-        chatList: (page === 1 ? list : [...chatList, ...(list as any[])]) || [],
-        page,
-        total: total || 0
-      },
-      () => {
-        if (page === 1) window.scrollTo(0, document.body.scrollHeight)
-      }
-    )
+    setList((page === 1 ? data : [...list, ...(data as any[])]) || [])
+    setState({ isLoading: false, page, total: total || 0 }, () => {
+      if (page === 1) window.scrollTo(0, document.body.scrollHeight)
+    })
   }
 
   const getRoom = async () => {
@@ -216,28 +193,32 @@ const RoomIdPage: NextPage = () => {
   }
 
   const createChat = async () => {
-    if (spamCount >= 3) {
-      toast.warn('도배는 자제 부탁드립니다. :)')
-      return
-    }
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
     }
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
       setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
+
+    if (spamCount >= 3) {
+      toast.warn('도배는 자제 부탁드립니다. :)')
+      return
+    }
+
     if (!content.trim()) return
     if (content.length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
+
     setState({ isSubmitting: true })
-    const { data: chat, error } = await supabase
+    const { data, error } = await supabase
       .from('chats')
       .insert({ user_id: user.id, room_id: query.id, content })
       .select()
@@ -246,78 +227,21 @@ const RoomIdPage: NextPage = () => {
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
+      return
     }
-    onRegex(content, chat.id)
-    setState(
+    onRegex(content, data.id)
+    setList([
       {
-        content: '',
-        chatList: [
-          {
-            ...chat,
-            reactions: [],
-            saves: [],
-            replies: [],
-            opengraphs: [],
-            user: { nickname: user.nickname, avatar_url: user.avatar_url }
-          },
-          ...chatList
-        ]
+        ...data,
+        reactions: [],
+        saves: [],
+        replies: [],
+        opengraphs: [],
+        user: { nickname: user.nickname, avatar_url: user.avatar_url }
       },
-      () => textareaRef.current?.focus()
-    )
-  }
-
-  const onRegex = async (content: string, id: number) => {
-    if (REGEXP.MENTION.test(content)) {
-      const mentions = content
-        .match(REGEXP.MENTION)
-        ?.filter((id) => id !== user?.id)
-      if (!mentions) return
-
-      await Promise.all(
-        mentions.map((id) =>
-          supabase.from('mentions').insert({
-            mention_to: id.slice(-37, -1),
-            mention_from: user?.id,
-            chat_id: id
-          })
-        )
-      )
-    }
-
-    if (REGEXP.URL.test(content)) {
-      const urls = content.match(REGEXP.URL)
-      if (!urls) return
-
-      const res = await Promise.all(
-        urls.map((url) =>
-          fetch('/api/opengraph', {
-            method: 'POST',
-            headers: new Headers({
-              'Content-Type': 'application/json'
-            }),
-            body: JSON.stringify({ url })
-          })
-        )
-      )
-      const json = await Promise.all(res.map((result) => result.json()))
-      json
-        .filter((item) => item.success)
-        .forEach(({ data }) =>
-          supabase.from('opengraphs').insert({
-            title: data.title || data['og:title'] || data['twitter:title'],
-            description:
-              data.description ||
-              data['og:description'] ||
-              data['twitter:description'],
-            image: data.image || data['og:image'] || data['twitter:image'],
-            url: data.url || data['og:url'] || data['twitter:domain'],
-            site_name: data['og:site_name'] || '',
-            chat_id: id,
-            room_id: query.id
-          })
-        )
-    }
+      ...list
+    ])
+    setState({ content: '' }, () => textareaRef.current?.focus())
   }
 
   const createCodeChat = async (payload: {
@@ -343,129 +267,25 @@ const RoomIdPage: NextPage = () => {
       return
     }
     onRegex(payload.content, data.id)
-    setState({
-      isCodeEditorOpen: false,
-      content: '',
-      chatList: [
-        {
-          ...data,
-          reactions: [],
-          saves: [],
-          replies: [],
-          opengraphs: [],
-          user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
-        },
-        ...chatList
-      ]
-    })
-  }
-
-  const createMyReaction = ({ detail }: any) => {
-    const chatIndex = chatList.findIndex((item) => item.id === detail?.chatId)
-    if (chatIndex === -1) return
-    const chat = chatList[chatIndex]
-
-    const reactionIndex = chat.reactions.findIndex(
-      (item) => item.text === detail?.text
-    )
-    const reaction = chat.reactions[reactionIndex]
-    setState({
-      chatList: [
-        ...chatList.slice(0, chatIndex),
-        {
-          ...chat,
-          reactions:
-            reactionIndex === -1
-              ? [
-                  ...chat.reactions,
-                  {
-                    ...detail?.data,
-                    userList: [{ id: user?.id, nickname: user?.nickname }]
-                  }
-                ]
-              : [
-                  ...chat.reactions.slice(0, reactionIndex),
-                  {
-                    ...reaction,
-                    userList: [
-                      ...reaction.userList,
-                      { id: user?.id, nickname: user?.nickname }
-                    ]
-                  },
-                  ...chat.reactions.slice(reactionIndex + 1)
-                ]
-        },
-        ...chatList.slice(chatIndex + 1)
-      ]
-    })
-    EventListener.emit('modal:emoji')
-  }
-
-  const deleteMyReaction = ({ detail }: any) => {
-    const chatIndex = chatList.findIndex((item) => item.id === detail?.chatId)
-    if (chatIndex === -1) return
-
-    const chat = chatList[chatIndex]
-    const reactionIndex = chat.reactions.findIndex(
-      (item) => item.text === detail?.text
-    )
-    if (reactionIndex === -1) return
-    const reaction = chat.reactions[reactionIndex]
-
-    setState({
-      chatList: [
-        ...chatList.slice(0, chatIndex),
-        {
-          ...chat,
-          reactions:
-            reaction.userList.length > 1
-              ? [
-                  ...chat.reactions.slice(0, reactionIndex),
-                  {
-                    ...reaction,
-                    userList: reaction.userList.filter(
-                      (item) => item.id !== user?.id
-                    )
-                  },
-                  ...chat.reactions.slice(reactionIndex + 1)
-                ]
-              : chat.reactions.filter((item) => item.text !== detail?.text)
-        },
-        ...chatList.slice(chatIndex + 1)
-      ]
-    })
-    EventListener.emit('modal:emoji')
-  }
-
-  const updateMyChat = ({ detail }: any) => {
-    const index = chatList.findIndex((item) => item.id === detail?.id)
-    if (index === -1) return
-    setState({
-      chatList: [
-        ...chatList.slice(0, index),
-        {
-          ...chatList[index],
-          ...(!!detail?.deletedAt
-            ? { deleted_at: detail?.deletedAt }
-            : { content: detail?.content, updated_at: detail?.updatedAt })
-        },
-        ...chatList.slice(index + 1)
-      ]
-    })
-  }
-
-  const deleteMyChat = ({ detail }: any) => {
-    const index = chatList.findIndex((item) => item.id === detail?.id)
-    if (index === -1) return
-    setState({
-      chatList: [...chatList.slice(0, index), ...chatList.slice(index + 1)]
-    })
+    setList([
+      {
+        ...data,
+        reactions: [],
+        saves: [],
+        replies: [],
+        opengraphs: [],
+        user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+      },
+      ...list
+    ])
+    setState({ isCodeEditorOpen: false, content: '' })
   }
 
   useEffect(() => {
     getChatList()
     getRoom()
     return () => {
+      setList([])
       resetState()
     }
   }, [query.id])
@@ -492,14 +312,13 @@ const RoomIdPage: NextPage = () => {
             console.error(error)
             return
           }
-          if (data)
-            setState({
-              chatList: [
-                { ...payload.new, user: data, reactions: [], saves: [] },
-                ...chatList
-              ],
-              count: count + 1
-            })
+          if (data) {
+            setList([
+              { ...payload.new, user: data, reactions: [], saves: [] },
+              ...list
+            ])
+            setState({ count: count + 1 })
+          }
           if (payload.new.user_id === user?.id) {
             window.scrollTo(0, document.body.scrollHeight)
             textareaRef.current?.focus()
@@ -516,22 +335,20 @@ const RoomIdPage: NextPage = () => {
         },
         (payload) => {
           if (payload.new.user_id === user?.id) return
-          const index = chatList.findIndex((item) => item.id === payload.new.id)
+          const index = list.findIndex((item) => item.id === payload.new.id)
           if (index === -1) return
-          setState({
-            chatList: [
-              ...chatList.slice(0, index),
-              {
-                ...chatList[index],
-                content: payload.new.content || payload.old.content,
-                updated_at: payload.new.updated_at || payload.old.updated_at,
-                code_block: payload.new.code_block || payload.old.code_block,
-                language: payload.new.language || payload.old.language,
-                deleted_at: payload.new.deleted_at
-              },
-              ...chatList.slice(index + 1)
-            ]
-          })
+          setList([
+            ...list.slice(0, index),
+            {
+              ...list[index],
+              content: payload.new.content || payload.old.content,
+              updated_at: payload.new.updated_at || payload.old.updated_at,
+              code_block: payload.new.code_block || payload.old.code_block,
+              language: payload.new.language || payload.old.language,
+              deleted_at: payload.new.deleted_at
+            },
+            ...list.slice(index + 1)
+          ])
         }
       )
       .on(
@@ -544,26 +361,16 @@ const RoomIdPage: NextPage = () => {
         },
         (payload) => {
           if (payload.old.user_id === user?.id) return
-          const index = chatList.findIndex((item) => item.id === payload.old.id)
-          setState({
-            chatList: [
-              ...chatList.slice(0, index),
-              ...chatList.slice(index + 1)
-            ]
-          })
+          const index = list.findIndex((item) => item.id === payload.old.id)
+          setList([...list.slice(0, index), ...list.slice(index + 1)])
         }
       )
       .subscribe()
 
-    EventListener.add('chats:update', updateMyChat)
-    EventListener.add('chats:delete', deleteMyChat)
-
     return () => {
       supabase.removeChannel(chats)
-      EventListener.remove('chats:remove', updateMyChat)
-      EventListener.remove('chats:delete', deleteMyChat)
     }
-  }, [chatList, query.id, count])
+  }, [list, query.id, count])
 
   useEffect(() => {
     const reactions = supabase
@@ -578,7 +385,7 @@ const RoomIdPage: NextPage = () => {
         },
         async (payload: any) => {
           if (payload.new.user_id === user?.id) return
-          const chatIndex = chatList.findIndex(
+          const chatIndex = list.findIndex(
             (item) => item.id === payload.new.chat_id
           )
           if (chatIndex === -1) return
@@ -591,43 +398,41 @@ const RoomIdPage: NextPage = () => {
             console.error(error)
             return
           }
-          const chat = chatList[chatIndex]
+          const chat = list[chatIndex]
 
           const reactionIndex = chat.reactions.findIndex(
             (item) => item.text === payload.new.text
           )
           const reaction = chat.reactions[reactionIndex]
-          setState({
-            chatList: [
-              ...chatList.slice(0, chatIndex),
-              {
-                ...chat,
-                reactions:
-                  reactionIndex === -1
-                    ? [
-                        ...chat.reactions,
-                        {
-                          ...payload.new,
-                          userList: [
-                            { id: payload.new.user_id, nickname: data.nickname }
-                          ]
-                        }
-                      ]
-                    : [
-                        ...chat.reactions.slice(0, reactionIndex),
-                        {
-                          ...reaction,
-                          userList: [
-                            ...reaction.userList,
-                            { id: payload.new.user_id, nickname: data.nickname }
-                          ]
-                        },
-                        ...chat.reactions.slice(reactionIndex + 1)
-                      ]
-              },
-              ...chatList.slice(chatIndex + 1)
-            ]
-          })
+          setList([
+            ...list.slice(0, chatIndex),
+            {
+              ...chat,
+              reactions:
+                reactionIndex === -1
+                  ? [
+                      ...chat.reactions,
+                      {
+                        ...payload.new,
+                        userList: [
+                          { id: payload.new.user_id, nickname: data.nickname }
+                        ]
+                      }
+                    ]
+                  : [
+                      ...chat.reactions.slice(0, reactionIndex),
+                      {
+                        ...reaction,
+                        userList: [
+                          ...reaction.userList,
+                          { id: payload.new.user_id, nickname: data.nickname }
+                        ]
+                      },
+                      ...chat.reactions.slice(reactionIndex + 1)
+                    ]
+            },
+            ...list.slice(chatIndex + 1)
+          ])
         }
       )
       .on(
@@ -640,42 +445,40 @@ const RoomIdPage: NextPage = () => {
         },
         (payload) => {
           if (payload.old.user_id === user?.id) return
-          const chatIndex = chatList.findIndex(
+          const chatIndex = list.findIndex(
             (item) => item.id === payload.old.chat_id
           )
           if (chatIndex === -1) return
 
-          const chat = chatList[chatIndex]
+          const chat = list[chatIndex]
           const reactionIndex = chat.reactions.findIndex(
             (item) => item.text === payload.old.text
           )
           if (reactionIndex === -1) return
           const reaction = chat.reactions[reactionIndex]
 
-          setState({
-            chatList: [
-              ...chatList.slice(0, chatIndex),
-              {
-                ...chat,
-                reactions:
-                  reaction.userList.length > 1
-                    ? [
-                        ...chat.reactions.slice(0, reactionIndex),
-                        {
-                          ...reaction,
-                          userList: reaction.userList.filter(
-                            (item) => item.id !== payload.old.user_id
-                          )
-                        },
-                        ...chat.reactions.slice(reactionIndex + 1)
-                      ]
-                    : chat.reactions.filter(
-                        (item) => item.text !== payload.old.text
-                      )
-              },
-              ...chatList.slice(chatIndex + 1)
-            ]
-          })
+          setList([
+            ...list.slice(0, chatIndex),
+            {
+              ...chat,
+              reactions:
+                reaction.userList.length > 1
+                  ? [
+                      ...chat.reactions.slice(0, reactionIndex),
+                      {
+                        ...reaction,
+                        userList: reaction.userList.filter(
+                          (item) => item.id !== payload.old.user_id
+                        )
+                      },
+                      ...chat.reactions.slice(reactionIndex + 1)
+                    ]
+                  : chat.reactions.filter(
+                      (item) => item.text !== payload.old.text
+                    )
+            },
+            ...list.slice(chatIndex + 1)
+          ])
         }
       )
       .subscribe()
@@ -691,35 +494,28 @@ const RoomIdPage: NextPage = () => {
           filter: `room_id=eq.${query.id}`
         },
         (payload: any) => {
-          const index = chatList.findIndex(
+          const index = list.findIndex(
             (item) => item.id === payload.new.chat_id
           )
           if (index === -1) return
 
-          setState({
-            chatList: [
-              ...chatList.slice(0, index),
-              {
-                ...chatList[index],
-                opengraphs: [...chatList[index].opengraphs, payload.new]
-              },
-              ...chatList.slice(index + 1)
-            ]
-          })
+          setList([
+            ...list.slice(0, index),
+            {
+              ...list[index],
+              opengraphs: [...list[index].opengraphs, payload.new]
+            },
+            ...list.slice(index + 1)
+          ])
         }
       )
       .subscribe()
 
-    EventListener.add('reactions:create', createMyReaction)
-    EventListener.add('reactions:delete', deleteMyReaction)
-
     return () => {
       supabase.removeChannel(reactions)
       supabase.removeChannel(opengraphs)
-      EventListener.remove('reactions:create', createMyReaction)
-      EventListener.remove('reactions:delete', deleteMyReaction)
     }
-  }, [chatList, query.id])
+  }, [list, query.id])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -753,55 +549,18 @@ const RoomIdPage: NextPage = () => {
           </Dropdown> */}
         </header>
         <main className="flex flex-1 flex-col-reverse py-3">
-          {chatList.map((item, key, arr) => (
+          {list.map((_, key) => (
             <Message.Chat
-              chat={item}
               key={key}
-              nextUserId={arr[key + 1]?.user_id}
-              nextCreatedAt={arr[key + 1]?.created_at}
-              total={arr.length}
-              index={key}
-              onCreateReply={(reply) =>
-                setState({
-                  chatList: [
-                    ...chatList.slice(0, key),
-                    { ...item, replies: [reply, ...item.replies] },
-                    ...chatList.slice(key + 1)
-                  ]
-                })
-              }
-              onDeleteReply={(id) =>
-                setState({
-                  chatList: [
-                    ...chatList.slice(0, key),
-                    {
-                      ...item,
-                      replies: item.replies.filter((item) => item.id !== id)
-                    },
-                    ...chatList.slice(key + 1)
-                  ]
-                })
-              }
+              chatIndex={key}
               onNicknameClick={(mention) =>
                 setState({
-                  content:
-                    content.length > 0
-                      ? `${content} ${mention} `
-                      : `${mention} `
-                })
-              }
-              onSave={(data) =>
-                setState({
-                  chatList: [
-                    ...chatList.slice(0, key),
-                    { ...item, saves: data ? [data] : [] },
-                    ...chatList.slice(key + 1)
-                  ]
+                  content: !!content ? `${content} ${mention} ` : `${mention} `
                 })
               }
             />
           ))}
-          {!isLoading && !chatList.length && (
+          {!isLoading && !list.length && (
             <div className="flex h-full items-center justify-center text-xs text-neutral-400">
               아직 채팅이 없습니다. 첫 채팅의 주인공이 되어 보시겠어요? :)
             </div>

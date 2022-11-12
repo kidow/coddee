@@ -21,3 +21,52 @@ export const languageListState = atom<NTable.Languages[]>({
   key: 'languageListState',
   default: []
 })
+
+export const chatListState = atom<
+  Array<
+    NTable.Chats & {
+      user: {
+        nickname: string
+        avatar_url: string
+      }
+      reactions: Array<{
+        id: number
+        text: string
+        user_id: string
+        user: { nickname: string }
+        userList: Array<{ id: string; nickname: string }>
+      }>
+      replies: Array<{
+        id: string
+        created_at: string
+        user: { avatar_url: string }
+      }>
+      opengraphs: Array<{
+        id: number
+        title: string
+        description: string
+        site_name: string
+        url: string
+        image: string
+      }>
+      saves: Array<{ id: number }>
+    }
+  >
+>({
+  key: 'chatListState',
+  default: []
+})
+
+export const replyListState = atom<
+  Array<
+    NTable.Replies & {
+      user: NTable.Users
+      reply_reactions: NTable.ReplyReactions[]
+      opengraphs: NTable.Opengraphs[]
+      saves: NTable.Saves[]
+    }
+  >
+>({
+  key: 'replyListState',
+  default: []
+})

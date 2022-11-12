@@ -61,17 +61,13 @@ const MentionsPage: NextPage = () => {
   const supabase = useSupabaseClient()
 
   const get = async (page: number = 1) => {
-    const { data } = await supabase.auth.getUser()
-    if (!data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!auth.user) {
       setState({ isLoading: false })
       return
     }
     if (!isLoading) setState({ isLoading: true })
-    const {
-      data: mentions,
-      error,
-      count
-    } = await supabase
+    const { data, error, count } = await supabase
       .from('mentions')
       .select(
         `
@@ -117,7 +113,7 @@ const MentionsPage: NextPage = () => {
       `,
         { count: 'exact' }
       )
-      .eq('mention_to', data.user.id)
+      .eq('mention_to', auth.user.id)
       .order('created_at', { ascending: false })
       .range((page - 1) * 20, page * 20 - 1)
     if (error) {
@@ -125,16 +121,16 @@ const MentionsPage: NextPage = () => {
       setState({ isLoading: false })
       return
     }
-    for (const data of mentions) {
+    for (const item of data) {
       let reactions: Array<{
         id: number
         text: string
         userList: Array<{ id: string; nickname: string }>
       }> = []
       // @ts-ignore
-      if (data.chat.reactions.length > 0) {
+      if (item.chat.reactions.length > 0) {
         // @ts-ignore
-        for (const reaction of data.chat.reactions) {
+        for (const reaction of item.chat.reactions) {
           const index = reactions.findIndex(
             (item) => item.text === reaction.text
           )
@@ -162,7 +158,7 @@ const MentionsPage: NextPage = () => {
       data.chat.reactions = reactions
     }
     setState({
-      list: page === 1 ? mentions : [...list, ...(mentions as any[])],
+      list: page === 1 ? data : [...list, ...(data as any[])],
       isLoading: false,
       page,
       total: count || 0

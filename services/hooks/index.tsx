@@ -4,6 +4,8 @@ import { EventListener, themeState, userState } from 'services'
 import { useRecoilState } from 'recoil'
 import type { SetterOrUpdater } from 'recoil'
 
+export { default as useChatList } from './useChatList'
+
 export function useObjectState<T>(
   initialObject: T
 ): [

@@ -49,7 +49,8 @@ const MessageCodeBlock: FC<Props> = ({
   const [
     { isCollapse, isDiffEditorOpen, codeBlock, content, language },
     setState,
-    onChange
+    onChange,
+    resetState
   ] = useObjectState<State>({
     isCollapse: false,
     isDiffEditorOpen: false,
@@ -109,8 +110,8 @@ const MessageCodeBlock: FC<Props> = ({
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
     }
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
       setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
@@ -126,8 +127,7 @@ const MessageCodeBlock: FC<Props> = ({
     props.onSubmit({ content, codeBlock, language })
   }
 
-  const listener = () =>
-    setState({ isDiffEditorOpen: false, isCollapse: false })
+  const listener = () => resetState()
 
   useEffect(() => {
     if (!isDiffEditorOpen) return
