@@ -55,7 +55,7 @@ const MessageCodeBlock: FC<Props> = ({
     isCollapse: false,
     isDiffEditorOpen: false,
     codeBlock: '',
-    content: `${mention} `,
+    content: '',
     language: ''
   })
   const theme = useTheme()

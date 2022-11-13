@@ -291,8 +291,8 @@ const RoomIdPage: NextPage = () => {
   }, [query.id])
 
   useEffect(() => {
-    const chats = supabase
-      .channel('public:chats')
+    const channel = supabase
+      .channel('pages/room/[id]:1')
       .on(
         'postgres_changes',
         {
@@ -368,13 +368,13 @@ const RoomIdPage: NextPage = () => {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(chats)
+      supabase.removeChannel(channel)
     }
   }, [list, query.id, count])
 
   useEffect(() => {
-    const reactions = supabase
-      .channel('public:reactions')
+    const channel = supabase
+      .channel('pages/room/[id]:2')
       .on(
         'postgres_changes',
         {
@@ -481,10 +481,71 @@ const RoomIdPage: NextPage = () => {
           ])
         }
       )
-      .subscribe()
-
-    const opengraphs = supabase
-      .channel('public:opengraphs')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'replies'
+        },
+        async (payload) => {
+          if (payload.new.user_id === user?.id || !list.length) return
+          const chatIndex = list.findIndex(
+            (item) => item.id === payload.new.chat_id
+          )
+          if (chatIndex === -1) return
+          const { data, error } = await supabase
+            .from('users')
+            .select('avatar_url')
+            .eq('id', payload.new.user_id)
+            .single()
+          if (error) {
+            console.error(error)
+            return
+          }
+          setList([
+            ...list.slice(0, chatIndex),
+            {
+              ...list[chatIndex],
+              replies: [
+                ...list[chatIndex].replies,
+                {
+                  id: payload.new.id,
+                  created_at: payload.new.created_at,
+                  user: { avatar_url: data.avatar_url }
+                }
+              ]
+            },
+            ...list.slice(chatIndex + 1)
+          ])
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'replies' },
+        (payload) => {
+          if (payload.old.user_id === user?.id || !list.length) return
+          const chatIndex = list.findIndex(
+            (item) => item.id === payload.old.chat_id
+          )
+          if (chatIndex === -1) return
+          const replyIndex = list[chatIndex].replies.findIndex(
+            (item) => item.id === payload.old.id
+          )
+          if (replyIndex === -1) return
+          setList([
+            ...list.slice(0, chatIndex),
+            {
+              ...list[chatIndex],
+              replies: [
+                ...list[chatIndex].replies.slice(0, replyIndex),
+                ...list[chatIndex].replies.slice(replyIndex + 1)
+              ]
+            },
+            ...list.slice(chatIndex + 1)
+          ])
+        }
+      )
       .on(
         'postgres_changes',
         {
@@ -512,8 +573,7 @@ const RoomIdPage: NextPage = () => {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(reactions)
-      supabase.removeChannel(opengraphs)
+      supabase.removeChannel(channel)
     }
   }, [list, query.id])
 

@@ -119,7 +119,7 @@ const Layout: FC<Props> = ({ children }) => {
 
   useEffect(() => {
     const channel = supabase
-      .channel('*')
+      .channel('containers/layout')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public' },

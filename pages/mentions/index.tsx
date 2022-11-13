@@ -200,7 +200,7 @@ const MentionsPage: NextPage = () => {
     if (!user) return
 
     supabase
-      .channel('public:mentions')
+      .channel('pages/mentions')
       .on(
         'postgres_changes',
         {
@@ -274,9 +274,7 @@ const MentionsPage: NextPage = () => {
 
     return () => {
       const channels = supabase.getChannels()
-      const mention = channels.find(
-        (item) => item.topic === 'realtime:public:mentions'
-      )
+      const mention = channels.find((item) => item.topic === 'pages/mentions')
       if (mention) supabase.removeChannel(mention)
     }
   }, [list])

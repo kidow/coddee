@@ -219,8 +219,8 @@ const ThreadsPage: NextPage = () => {
   }, [])
 
   useEffect(() => {
-    const chats = supabase
-      .channel('public:chats')
+    const channel = supabase
+      .channel('pages/threads')
       .on(
         'postgres_changes',
         {
@@ -246,10 +246,6 @@ const ThreadsPage: NextPage = () => {
           if (payload.new.user_id === user?.id) toast.success('변경되었습니다.')
         }
       )
-      .subscribe()
-
-    const reactions = supabase
-      .channel('public:reactions')
       .on(
         'postgres_changes',
         {
@@ -319,6 +315,7 @@ const ThreadsPage: NextPage = () => {
           table: 'reactions'
         },
         (payload) => {
+          if (payload.old.user_id === user?.id) return
           const chatIndex = list.findIndex(
             (item) => item.id == payload.old.chat_id
           )
@@ -355,10 +352,6 @@ const ThreadsPage: NextPage = () => {
           ])
         }
       )
-      .subscribe()
-
-    const replies = supabase
-      .channel('public:replies')
       .on(
         'postgres_changes',
         {
@@ -367,6 +360,7 @@ const ThreadsPage: NextPage = () => {
           table: 'replies'
         },
         async (payload: any) => {
+          if (payload.new.user_id === user?.id) return
           const index = list.findIndex(
             (item) => item.id === payload.new.chat_id
           )
@@ -402,6 +396,7 @@ const ThreadsPage: NextPage = () => {
           table: 'replies'
         },
         (payload) => {
+          if (payload.new.user_id === user?.id) return
           const chatIndex = list.findIndex(
             (item) => item.id === payload.new.chat_id
           )
@@ -442,6 +437,7 @@ const ThreadsPage: NextPage = () => {
           table: 'replies'
         },
         (payload) => {
+          if (payload.old.user_id === user?.id) return
           const chatIndex = list.findIndex(
             (item) => item.id === payload.old.chat_id
           )
@@ -461,10 +457,6 @@ const ThreadsPage: NextPage = () => {
           if (payload.old.user_id === user?.id) toast.success('삭제되었습니다.')
         }
       )
-      .subscribe()
-
-    const replyReactions = supabase
-      .channel('public:reply_reactions')
       .on(
         'postgres_changes',
         {
@@ -473,6 +465,7 @@ const ThreadsPage: NextPage = () => {
           table: 'reply_reactions'
         },
         async (payload: any) => {
+          if (payload.new.user_id === user?.id) return
           const chatIndex = list.findIndex(
             (item) => item.id === payload.new.chat_id
           )
@@ -551,6 +544,7 @@ const ThreadsPage: NextPage = () => {
         'postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'reply_reactions' },
         (payload) => {
+          if (payload.old.user_id === user?.id) return
           const chatIndex = list.findIndex(
             (item) => item.id === payload.old.chat_id
           )
@@ -608,13 +602,9 @@ const ThreadsPage: NextPage = () => {
           ])
         }
       )
-      .subscribe()
 
     return () => {
-      supabase.removeChannel(chats)
-      supabase.removeChannel(reactions)
-      supabase.removeChannel(replies)
-      supabase.removeChannel(replyReactions)
+      supabase.removeChannel(channel)
     }
   }, [list])
 

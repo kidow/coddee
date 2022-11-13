@@ -235,6 +235,21 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
         user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
       }
     ])
+    setChatList([
+      ...chatList.slice(0, chatIndex),
+      {
+        ...chat,
+        replies: [
+          ...chat.replies,
+          {
+            id: data.id,
+            created_at: data.created_at,
+            user: { avatar_url: user!.avatar_url }
+          }
+        ]
+      },
+      ...chatList.slice(chatIndex + 1)
+    ])
     setState({ content: '', isCodeEditorOpen: false })
   }
 
@@ -254,8 +269,8 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
   useEffect(() => {
     if (!chat) return
 
-    const replies = supabase
-      .channel('public:replies')
+    const channel = supabase
+      .channel('containers/drawer/thread')
       .on(
         'postgres_changes',
         {
@@ -338,10 +353,6 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           ])
         }
       )
-      .subscribe()
-
-    const replyReactions = supabase
-      .channel('public:reply_reactions')
       .on(
         'postgres_changes',
         {
@@ -453,16 +464,12 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           ])
         }
       )
-      .subscribe()
-
-    const opengraphs = supabase
-      .channel('public:opengraphs')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'oepngraphs',
+          table: 'opengraphs',
           filter: `chat_id=eq.${chat.id}`
         },
         (payload: any) => {
@@ -484,11 +491,9 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(replies)
-      supabase.removeChannel(replyReactions)
-      supabase.removeChannel(opengraphs)
+      supabase.removeChannel(channel)
     }
-  }, [replyList, chatIndex])
+  }, [replyList, chat])
   return (
     <>
       <Drawer isOpen={isOpen} onClose={onClose} position="right">
@@ -507,7 +512,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           )}
           <div>
             {replyList.map((_, key) => (
-              <Message.Reply index={key} key={key} />
+              <Message.Reply chatIndex={chatIndex} replyIndex={key} key={key} />
             ))}
           </div>
           <div className="p-4">

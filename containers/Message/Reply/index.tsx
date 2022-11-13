@@ -6,6 +6,7 @@ import { useMemo } from 'react'
 import type { FC } from 'react'
 import {
   backdrop,
+  chatListState,
   EventListener,
   replyListState,
   toast,
@@ -19,7 +20,8 @@ import { BookmarkIcon } from '@heroicons/react/20/solid'
 import { useRecoilState } from 'recoil'
 
 export interface Props {
-  index: number
+  chatIndex: number
+  replyIndex: number
 }
 interface State {
   isUpdateMode: boolean
@@ -27,7 +29,7 @@ interface State {
   isCodeEditorOpen: boolean
 }
 
-const MessageReply: FC<Props> = ({ index }) => {
+const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
   const [{ isUpdateMode, isSubmitting, isCodeEditorOpen }, setState] =
     useObjectState<State>({
       isUpdateMode: false,
@@ -36,7 +38,8 @@ const MessageReply: FC<Props> = ({ index }) => {
     })
   const [user, setUser] = useUser()
   const supabase = useSupabaseClient()
-  const [list, setList] = useRecoilState(replyListState)
+  const [chatList, setChatList] = useRecoilState(chatListState)
+  const [replyList, setReplyList] = useRecoilState(replyListState)
   const { onRegex } = useChatList()
 
   const updateReply = async (content?: string) => {
@@ -69,10 +72,10 @@ const MessageReply: FC<Props> = ({ index }) => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    setList([
-      ...list.slice(0, index),
+    setReplyList([
+      ...replyList.slice(0, replyIndex),
       { ...reply, content, updated_at: data.updated_at },
-      ...list.slice(index + 1)
+      ...replyList.slice(replyIndex + 1)
     ])
   }
 
@@ -85,7 +88,21 @@ const MessageReply: FC<Props> = ({ index }) => {
       return
     }
     EventListener.emit('tooltip:delete')
-    setList([...list.slice(0, index), ...list.slice(index + 1)])
+    setReplyList([
+      ...replyList.slice(0, replyIndex),
+      ...replyList.slice(replyIndex + 1)
+    ])
+    setChatList([
+      ...chatList.slice(0, chatIndex),
+      {
+        ...chatList[chatIndex],
+        replies: [
+          ...chatList[chatIndex].replies.slice(0, replyIndex),
+          ...chatList[chatIndex].replies.slice(replyIndex + 1)
+        ]
+      },
+      ...chatList.slice(chatIndex + 1)
+    ])
   }
 
   const updateReplyReaction = async (reactionIndex: number) => {
@@ -123,8 +140,8 @@ const MessageReply: FC<Props> = ({ index }) => {
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
-      setList([
-        ...list.slice(0, index),
+      setReplyList([
+        ...replyList.slice(0, replyIndex),
         {
           ...reply,
           reply_reactions:
@@ -148,7 +165,7 @@ const MessageReply: FC<Props> = ({ index }) => {
                   ...reply.reply_reactions.slice(reactionIndex + 1)
                 ]
         },
-        ...list.slice(index + 1)
+        ...replyList.slice(replyIndex + 1)
       ])
     } else {
       const { error } = await supabase
@@ -160,8 +177,8 @@ const MessageReply: FC<Props> = ({ index }) => {
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
-      setList([
-        ...list.slice(0, index),
+      setReplyList([
+        ...replyList.slice(0, replyIndex),
         {
           ...reply,
           reply_reactions:
@@ -181,7 +198,7 @@ const MessageReply: FC<Props> = ({ index }) => {
                     item.text !== reply.reply_reactions[reactionIndex].text
                 )
         },
-        ...list.slice(index + 1)
+        ...replyList.slice(replyIndex + 1)
       ])
     }
   }
@@ -219,8 +236,8 @@ const MessageReply: FC<Props> = ({ index }) => {
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
-      setList([
-        ...list.slice(0, index),
+      setReplyList([
+        ...replyList.slice(0, replyIndex),
         {
           ...reply,
           reply_reactions:
@@ -244,11 +261,11 @@ const MessageReply: FC<Props> = ({ index }) => {
                   ...reply.reply_reactions.slice(reactionIndex + 1)
                 ]
         },
-        ...list.slice(index + 1)
+        ...replyList.slice(replyIndex + 1)
       ])
       EventListener.emit('modal:emoji')
     } else {
-      const userIndex = reply.reply_reactions[index].userList.findIndex(
+      const userIndex = reply.reply_reactions[reactionIndex].userList.findIndex(
         (item) => item.id === user.id
       )
       if (userIndex === -1) {
@@ -268,8 +285,8 @@ const MessageReply: FC<Props> = ({ index }) => {
           return
         }
 
-        setList([
-          ...list.slice(0, index),
+        setReplyList([
+          ...replyList.slice(0, replyIndex),
           {
             ...reply,
             reply_reactions:
@@ -293,7 +310,7 @@ const MessageReply: FC<Props> = ({ index }) => {
                     ...reply.reply_reactions.slice(reactionIndex + 1)
                   ]
           },
-          ...list.slice(index + 1)
+          ...replyList.slice(replyIndex + 1)
         ])
         EventListener.emit('modal:emoji')
       } else {
@@ -306,8 +323,8 @@ const MessageReply: FC<Props> = ({ index }) => {
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
-        setList([
-          ...list.slice(0, index),
+        setReplyList([
+          ...replyList.slice(0, replyIndex),
           {
             ...reply,
             reply_reactions:
@@ -320,11 +337,11 @@ const MessageReply: FC<Props> = ({ index }) => {
                         reactionIndex
                       ].userList.filter((item) => item.id !== user.id)
                     },
-                    ...reply.reply_reactions.slice(index + 1)
+                    ...reply.reply_reactions.slice(reactionIndex + 1)
                   ]
                 : reply.reply_reactions.filter((item) => item.text !== text)
           },
-          ...list.slice(index + 1)
+          ...replyList.slice(replyIndex + 1)
         ])
         EventListener.emit('modal:emoji')
       }
@@ -354,10 +371,10 @@ const MessageReply: FC<Props> = ({ index }) => {
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
-      setList([
-        ...list.slice(0, index),
+      setReplyList([
+        ...replyList.slice(0, replyIndex),
         { ...reply, saves: [] },
-        ...list.slice(index + 1)
+        ...replyList.slice(replyIndex + 1)
       ])
     } else {
       const { data, error } = await supabase
@@ -370,10 +387,10 @@ const MessageReply: FC<Props> = ({ index }) => {
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
-      setList([
-        ...list.slice(0, index),
+      setReplyList([
+        ...replyList.slice(0, replyIndex),
         { ...reply, saves: [data] },
-        ...list.slice(index + 1)
+        ...replyList.slice(replyIndex + 1)
       ])
     }
   }
@@ -400,8 +417,8 @@ const MessageReply: FC<Props> = ({ index }) => {
       return
     }
     setState({ isCodeEditorOpen: false })
-    setList([
-      ...list.slice(0, index),
+    setReplyList([
+      ...replyList.slice(0, replyIndex),
       {
         ...reply,
         updated_at: data.updated_at,
@@ -409,7 +426,7 @@ const MessageReply: FC<Props> = ({ index }) => {
         code_block: payload.codeBlock,
         language: payload.language
       },
-      ...list.slice(index + 1)
+      ...replyList.slice(replyIndex + 1)
     ])
   }
 
@@ -425,7 +442,9 @@ const MessageReply: FC<Props> = ({ index }) => {
         code_block: reply.modified_code || reply.code_block,
         language: reply.modified_language || reply.language,
         modified_code: payload.codeBlock,
-        modified_language: payload.language
+        modified_language: payload.language,
+        user_id: user?.id,
+        chat_id: reply.chat_id
       })
       .select()
       .single()
@@ -437,8 +456,8 @@ const MessageReply: FC<Props> = ({ index }) => {
     }
     onRegex(payload.content, reply.chat_id, reply.id)
     EventListener.emit('message:codeblock')
-    setList([
-      ...list,
+    setReplyList([
+      ...replyList,
       {
         ...data,
         reply_reactions: [],
@@ -447,9 +466,24 @@ const MessageReply: FC<Props> = ({ index }) => {
         user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
       }
     ])
+    setChatList([
+      ...chatList.slice(0, chatIndex),
+      {
+        ...chatList[chatIndex],
+        replies: [
+          ...chatList[chatIndex].replies,
+          {
+            id: data.id,
+            created_at: data.created_at,
+            user: { avatar_url: user!.avatar_url }
+          }
+        ]
+      },
+      ...chatList.slice(chatIndex + 1)
+    ])
   }
 
-  const reply = useMemo(() => list[index], [list, index])
+  const reply = useMemo(() => replyList[replyIndex], [replyList, replyIndex])
   return (
     <>
       <div
