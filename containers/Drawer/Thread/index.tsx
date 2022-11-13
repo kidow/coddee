@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import type { FC } from 'react'
 import { Drawer, Modal, Message } from 'containers'
 import {
@@ -84,7 +84,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
         )
     `
       )
-      .eq('chat_id', chatList[chatIndex].id)
+      .eq('chat_id', chat.id)
       .order('created_at', { ascending: true })
       .order('created_at', { ascending: true, foreignTable: 'reply_reactions' })
     if (error) {
@@ -160,7 +160,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     setState({ isSubmitting: true })
     const { data, error } = await supabase
       .from('replies')
-      .insert({ user_id: user.id, chat_id: chatList[chatIndex].id, content })
+      .insert({ user_id: user.id, chat_id: chat.id, content })
       .select()
       .single()
     setState({ isSubmitting: false, spamCount: spamCount + 1 })
@@ -188,9 +188,9 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     setChatList([
       ...chatList.slice(0, chatIndex),
       {
-        ...chatList[chatIndex],
+        ...chat,
         replies: [
-          ...chatList[chatIndex].replies,
+          ...chat.replies,
           {
             id: data.id,
             created_at: data.created_at,
@@ -211,7 +211,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       .from('replies')
       .insert({
         user_id: user?.id,
-        chat_id: chatList[chatIndex].id,
+        chat_id: chat.id,
         content: payload.content,
         code_block: payload.codeBlock,
         language: payload.language
@@ -238,6 +238,8 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     setState({ content: '', isCodeEditorOpen: false })
   }
 
+  const chat = useMemo(() => chatList[chatIndex], [chatList, chatIndex])
+
   useEffect(() => {
     get()
   }, [chatIndex])
@@ -250,7 +252,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
   }, [spamCount])
 
   useEffect(() => {
-    if (!chatList[chatIndex]) return
+    if (!chat) return
 
     const replies = supabase
       .channel('public:replies')
@@ -260,7 +262,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           event: 'INSERT',
           schema: 'public',
           table: 'replies',
-          filter: `chat_id=eq.${chatList[chatIndex].id}`
+          filter: `chat_id=eq.${chat.id}`
         },
         async (payload: any) => {
           if (payload.new.user_id === user?.id) return
@@ -285,7 +287,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           event: 'UPDATE',
           schema: 'public',
           table: 'replies',
-          filter: `chat_id=eq.${chatList[chatIndex].id}`
+          filter: `chat_id=eq.${chat.id}`
         },
         (payload) => {
           if (payload.new.user_id === user?.id) return
@@ -312,7 +314,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           event: 'DELETE',
           schema: 'public',
           table: 'replies',
-          filter: `chat_id=eq.${chatList[chatIndex].id}`
+          filter: `chat_id=eq.${chat.id}`
         },
         (payload) => {
           if (payload.old.user_id === user?.id) return
@@ -326,10 +328,10 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           setChatList([
             ...chatList.slice(0, chatIndex),
             {
-              ...chatList[chatIndex],
+              ...chat,
               replies: [
-                ...chatList[chatIndex].replies.slice(0, index),
-                ...chatList[chatIndex].replies.slice(index + 1)
+                ...chat.replies.slice(0, index),
+                ...chat.replies.slice(index + 1)
               ]
             },
             ...chatList.slice(chatIndex + 1)
@@ -346,7 +348,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           event: 'INSERT',
           schema: 'public',
           table: 'reply_reactions',
-          filter: `chat_id=eq.${chatList[chatIndex].id}`
+          filter: `chat_id=eq.${chat.id}`
         },
         async (payload: any) => {
           if (payload.new.user_id === user?.id) return
@@ -410,7 +412,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           event: 'DELETE',
           schema: 'public',
           table: 'reply_reactions',
-          filter: `chat_id=eq.${chatList[chatIndex].id}`
+          filter: `chat_id=eq.${chat.id}`
         },
         (payload) => {
           if (payload.old.user_id === user?.id) return
@@ -419,7 +421,8 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           )
           if (index === -1) return
 
-          const reactionIndex = replyList[index].reply_reactions.findIndex(
+          const reply = replyList[index]
+          const reactionIndex = reply.reply_reactions.findIndex(
             (item) => item.text === payload.old.text
           )
           if (reactionIndex === -1) return
@@ -427,28 +430,22 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           setReplyList([
             ...replyList.slice(0, index),
             {
-              ...replyList[index],
+              ...reply,
               reply_reactions:
-                replyList[index].reply_reactions[reactionIndex].userList
-                  .length > 1
+                reply.reply_reactions[reactionIndex].userList.length > 1
                   ? [
-                      ...replyList[index].reply_reactions.slice(
-                        0,
-                        reactionIndex
-                      ),
+                      ...reply.reply_reactions.slice(0, reactionIndex),
                       {
-                        ...replyList[index].reply_reactions[reactionIndex],
-                        userList: replyList[index].reply_reactions[
+                        ...reply.reply_reactions[reactionIndex],
+                        userList: reply.reply_reactions[
                           reactionIndex
                         ].userList.filter(
                           (item) => item.id !== payload.old.user_id
                         )
                       },
-                      ...replyList[index].reply_reactions.slice(
-                        reactionIndex + 1
-                      )
+                      ...reply.reply_reactions.slice(reactionIndex + 1)
                     ]
-                  : replyList[index].reply_reactions.filter(
+                  : reply.reply_reactions.filter(
                       (item) => item.text !== payload.old.text
                     )
             },
@@ -466,7 +463,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           event: 'INSERT',
           schema: 'public',
           table: 'oepngraphs',
-          filter: `chat_id=eq.${chatList[chatIndex].id}`
+          filter: `chat_id=eq.${chat.id}`
         },
         (payload: any) => {
           const index = replyList.findIndex(

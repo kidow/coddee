@@ -2,6 +2,7 @@ import { ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/outline'
 import { SEO, Spinner } from 'components'
 import type { NextPage } from 'next'
 import {
+  threadListState,
   toast,
   useIntersectionObserver,
   useObjectState,
@@ -11,31 +12,16 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useEffect } from 'react'
 import classnames from 'classnames'
 import { Thread } from 'templates'
+import { useRecoilState } from 'recoil'
 
 interface State {
-  list: Array<
-    NTable.Chats & {
-      user: NTable.Users
-      replies: Array<
-        NTable.Replies & {
-          user: NTable.Users
-          reply_reactions: NTable.ReplyReactions[]
-          opengraphs: NTable.Opengraphs[]
-        }
-      >
-      reactions: Array<NTable.Reactions & { user: NTable.Users }>
-      room: NTable.Rooms
-      opengraphs: NTable.Opengraphs[]
-    }
-  >
   isLoading: boolean
   page: number
   total: number
 }
 
 const ThreadsPage: NextPage = () => {
-  const [{ list, isLoading, page, total }, setState] = useObjectState<State>({
-    list: [],
+  const [{ isLoading, page, total }, setState] = useObjectState<State>({
     isLoading: true,
     page: 1,
     total: 0
@@ -43,6 +29,7 @@ const ThreadsPage: NextPage = () => {
   const [user] = useUser()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
   const supabase = useSupabaseClient()
+  const [list, setList] = useRecoilState(threadListState)
 
   const get = async (page: number = 1) => {
     const {
@@ -104,6 +91,9 @@ const ThreadsPage: NextPage = () => {
           site_name,
           url,
           image
+        ),
+        saves (
+          id
         )
       ),
       reactions (
@@ -219,16 +209,13 @@ const ThreadsPage: NextPage = () => {
         reply.reply_reactions = replyReactions
       }
     }
-    setState({
-      isLoading: false,
-      list: page === 1 ? data : [...list, ...(data as any[])],
-      page,
-      total: count || 0
-    })
+    setState({ isLoading: false, page, total: count || 0 })
+    setList(page === 1 ? data : [...list, ...(data as any[])])
   }
 
   useEffect(() => {
     get()
+    return () => setList([])
   }, [])
 
   useEffect(() => {
@@ -242,21 +229,20 @@ const ThreadsPage: NextPage = () => {
           table: 'chats'
         },
         (payload) => {
+          if (payload.new.user_id === user?.id) return
           const index = list.findIndex((item) => item.id === payload.new.id)
           if (index === -1) return
-          setState({
-            list: [
-              ...list.slice(0, index),
-              {
-                ...list[index],
-                content: payload.new.content,
-                code_block: payload.new.code_block,
-                language: payload.new.language,
-                updated_at: payload.new.updated_at
-              },
-              ...list.slice(index + 1)
-            ]
-          })
+          setList([
+            ...list.slice(0, index),
+            {
+              ...list[index],
+              content: payload.new.content,
+              code_block: payload.new.code_block,
+              language: payload.new.language,
+              updated_at: payload.new.updated_at
+            },
+            ...list.slice(index + 1)
+          ])
           if (payload.new.user_id === user?.id) toast.success('변경되었습니다.')
         }
       )
@@ -272,6 +258,7 @@ const ThreadsPage: NextPage = () => {
           table: 'reactions'
         },
         async (payload: any) => {
+          if (payload.new.user_id === user?.id) return
           const chatIndex = list.findIndex(
             (item) => item.id === payload.new.chat_id
           )
@@ -290,41 +277,38 @@ const ThreadsPage: NextPage = () => {
           const reactionIndex = list[chatIndex].reactions.findIndex(
             (item) => item.text === payload.new.text
           )
-          setState({
-            list: [
-              ...list.slice(0, chatIndex),
-              {
-                ...list[chatIndex],
-                reactions:
-                  reactionIndex === -1
-                    ? [
-                        ...list[chatIndex].reactions,
-                        {
-                          ...payload.new,
-                          userList: [
-                            { id: payload.new.user_id, nickname: data.nickname }
-                          ]
-                        }
-                      ]
-                    : [
-                        ...list[chatIndex].reactions.slice(0, reactionIndex),
-                        {
-                          ...list[chatIndex].reactions[reactionIndex],
-                          userList: [
-                            ...list[chatIndex].reactions[reactionIndex]
-                              .userList,
-                            {
-                              id: payload.new.user_id,
-                              nickname: data.nickname
-                            }
-                          ]
-                        },
-                        ...list[chatIndex].reactions.slice(reactionIndex + 1)
-                      ]
-              },
-              ...list.slice(chatIndex + 1)
-            ]
-          })
+          setList([
+            ...list.slice(0, chatIndex),
+            {
+              ...list[chatIndex],
+              reactions:
+                reactionIndex === -1
+                  ? [
+                      ...list[chatIndex].reactions,
+                      {
+                        ...payload.new,
+                        userList: [
+                          { id: payload.new.user_id, nickname: data.nickname }
+                        ]
+                      }
+                    ]
+                  : [
+                      ...list[chatIndex].reactions.slice(0, reactionIndex),
+                      {
+                        ...list[chatIndex].reactions[reactionIndex],
+                        userList: [
+                          ...list[chatIndex].reactions[reactionIndex].userList,
+                          {
+                            id: payload.new.user_id,
+                            nickname: data.nickname
+                          }
+                        ]
+                      },
+                      ...list[chatIndex].reactions.slice(reactionIndex + 1)
+                    ]
+            },
+            ...list.slice(chatIndex + 1)
+          ])
         }
       )
       .on(
@@ -345,32 +329,30 @@ const ThreadsPage: NextPage = () => {
           )
           if (reactionIndex === -1) return
 
-          setState({
-            list: [
-              ...list.slice(0, chatIndex),
-              {
-                ...list[chatIndex],
-                reactions:
-                  list[chatIndex].reactions[reactionIndex].userList.length > 1
-                    ? [
-                        ...list[chatIndex].reactions.slice(0, reactionIndex),
-                        {
-                          ...list[chatIndex].reactions[reactionIndex],
-                          userList: list[chatIndex].reactions[
-                            reactionIndex
-                          ].userList.filter(
-                            (item) => item.id !== payload.old.user_id
-                          )
-                        },
-                        ...list[chatIndex].reactions.slice(reactionIndex + 1)
-                      ]
-                    : list[chatIndex].reactions.filter(
-                        (item) => item.text !== payload.old.text
-                      )
-              },
-              ...list.slice(chatIndex + 1)
-            ]
-          })
+          setList([
+            ...list.slice(0, chatIndex),
+            {
+              ...list[chatIndex],
+              reactions:
+                list[chatIndex].reactions[reactionIndex].userList.length > 1
+                  ? [
+                      ...list[chatIndex].reactions.slice(0, reactionIndex),
+                      {
+                        ...list[chatIndex].reactions[reactionIndex],
+                        userList: list[chatIndex].reactions[
+                          reactionIndex
+                        ].userList.filter(
+                          (item) => item.id !== payload.old.user_id
+                        )
+                      },
+                      ...list[chatIndex].reactions.slice(reactionIndex + 1)
+                    ]
+                  : list[chatIndex].reactions.filter(
+                      (item) => item.text !== payload.old.text
+                    )
+            },
+            ...list.slice(chatIndex + 1)
+          ])
         }
       )
       .subscribe()
@@ -399,22 +381,17 @@ const ThreadsPage: NextPage = () => {
             console.error(error)
             return
           }
-
-          if (data) {
-            setState({
-              list: [
-                ...list.slice(0, index),
-                {
-                  ...list[index],
-                  replies: [
-                    ...list[index].replies,
-                    { ...payload.new, user: data, reply_reactions: [] }
-                  ]
-                },
-                ...list.slice(index + 1)
+          setList([
+            ...list.slice(0, index),
+            {
+              ...list[index],
+              replies: [
+                ...list[index].replies,
+                { ...payload.new, user: data, reply_reactions: [] }
               ]
-            })
-          }
+            },
+            ...list.slice(index + 1)
+          ])
         }
       )
       .on(
@@ -435,26 +412,24 @@ const ThreadsPage: NextPage = () => {
           )
           if (replyIndex === -1) return
 
-          setState({
-            list: [
-              ...list.slice(0, chatIndex),
-              {
-                ...list[chatIndex],
-                replies: [
-                  ...list[chatIndex].replies.slice(0, replyIndex),
-                  {
-                    ...list[chatIndex].replies[replyIndex],
-                    content: payload.new.content,
-                    updated_at: payload.new.updated_at,
-                    code_block: payload.new.code_block,
-                    language: payload.new.language
-                  },
-                  ...list[chatIndex].replies.slice(replyIndex + 1)
-                ]
-              },
-              ...list.slice(chatIndex + 1)
-            ]
-          })
+          setList([
+            ...list.slice(0, chatIndex),
+            {
+              ...list[chatIndex],
+              replies: [
+                ...list[chatIndex].replies.slice(0, replyIndex),
+                {
+                  ...list[chatIndex].replies[replyIndex],
+                  content: payload.new.content,
+                  updated_at: payload.new.updated_at,
+                  code_block: payload.new.code_block,
+                  language: payload.new.language
+                },
+                ...list[chatIndex].replies.slice(replyIndex + 1)
+              ]
+            },
+            ...list.slice(chatIndex + 1)
+          ])
 
           if (payload.new.user_id === user?.id) toast.success('변경되었습니다.')
         }
@@ -472,18 +447,16 @@ const ThreadsPage: NextPage = () => {
           )
           if (chatIndex === -1) return
 
-          setState({
-            list: [
-              ...list.slice(0, chatIndex),
-              {
-                ...list[chatIndex],
-                replies: list[chatIndex].replies.filter(
-                  (item) => item.id !== payload.old.id
-                )
-              },
-              ...list.slice(chatIndex + 1)
-            ]
-          })
+          setList([
+            ...list.slice(0, chatIndex),
+            {
+              ...list[chatIndex],
+              replies: list[chatIndex].replies.filter(
+                (item) => item.id !== payload.old.id
+              )
+            },
+            ...list.slice(chatIndex + 1)
+          ])
 
           if (payload.old.user_id === user?.id) toast.success('삭제되었습니다.')
         }
@@ -523,57 +496,55 @@ const ThreadsPage: NextPage = () => {
           const reactionIndex = list[chatIndex].replies[
             replyIndex
           ].reply_reactions.findIndex((item) => item.text === payload.new.text)
-          setState({
-            list: [
-              ...list.slice(0, chatIndex),
-              {
-                ...list[chatIndex],
-                replies: [
-                  ...list[chatIndex].replies.slice(0, replyIndex),
-                  {
-                    ...list[chatIndex].replies[replyIndex],
-                    reply_reactions:
-                      reactionIndex === -1
-                        ? [
+          setList([
+            ...list.slice(0, chatIndex),
+            {
+              ...list[chatIndex],
+              replies: [
+                ...list[chatIndex].replies.slice(0, replyIndex),
+                {
+                  ...list[chatIndex].replies[replyIndex],
+                  reply_reactions:
+                    reactionIndex === -1
+                      ? [
+                          ...list[chatIndex].replies[replyIndex]
+                            .reply_reactions,
+                          {
+                            ...payload.new,
+                            userList: [
+                              {
+                                id: payload.new.user_id,
+                                nickname: data.nickname
+                              }
+                            ]
+                          }
+                        ]
+                      : [
+                          ...list[chatIndex].replies[
+                            replyIndex
+                          ].reply_reactions.slice(0, reactionIndex),
+                          {
                             ...list[chatIndex].replies[replyIndex]
-                              .reply_reactions,
-                            {
-                              ...payload.new,
-                              userList: [
-                                {
-                                  id: payload.new.user_id,
-                                  nickname: data.nickname
-                                }
-                              ]
-                            }
-                          ]
-                        : [
-                            ...list[chatIndex].replies[
-                              replyIndex
-                            ].reply_reactions.slice(0, reactionIndex),
-                            {
+                              .reply_reactions[reactionIndex],
+                            userList: [
                               ...list[chatIndex].replies[replyIndex]
-                                .reply_reactions[reactionIndex],
-                              userList: [
-                                ...list[chatIndex].replies[replyIndex]
-                                  .reply_reactions[reactionIndex].userList,
-                                {
-                                  id: payload.new.user_id,
-                                  nickname: data.nickname
-                                }
-                              ]
-                            },
-                            ...list[chatIndex].replies[
-                              replyIndex
-                            ].reply_reactions.slice(reactionIndex + 1)
-                          ]
-                  },
-                  ...list[chatIndex].replies.slice(replyIndex + 1)
-                ]
-              },
-              ...list.slice(chatIndex + 1)
-            ]
-          })
+                                .reply_reactions[reactionIndex].userList,
+                              {
+                                id: payload.new.user_id,
+                                nickname: data.nickname
+                              }
+                            ]
+                          },
+                          ...list[chatIndex].replies[
+                            replyIndex
+                          ].reply_reactions.slice(reactionIndex + 1)
+                        ]
+                },
+                ...list[chatIndex].replies.slice(replyIndex + 1)
+              ]
+            },
+            ...list.slice(chatIndex + 1)
+          ])
         }
       )
       .on(
@@ -595,48 +566,46 @@ const ThreadsPage: NextPage = () => {
           ].reply_reactions.findIndex((item) => item.text === payload.old.text)
           if (reactionIndex === -1) return
 
-          setState({
-            list: [
-              ...list.slice(0, chatIndex),
-              {
-                ...list[chatIndex],
-                replies: [
-                  ...list[chatIndex].replies.slice(0, replyIndex),
-                  {
-                    ...list[chatIndex].replies[replyIndex],
-                    reply_reactions:
-                      list[chatIndex].replies[replyIndex].reply_reactions[
-                        reactionIndex
-                      ].userList.length > 1
-                        ? [
-                            ...list[chatIndex].replies[
-                              replyIndex
-                            ].reply_reactions.slice(0, reactionIndex),
-                            {
-                              ...list[chatIndex].replies[replyIndex]
-                                .reply_reactions[reactionIndex],
-                              userList: list[chatIndex].replies[
-                                replyIndex
-                              ].reply_reactions[reactionIndex].userList.filter(
-                                (item) => item.id !== payload.old.user_id
-                              )
-                            },
-                            ...list[chatIndex].replies[
-                              replyIndex
-                            ].reply_reactions.slice(reactionIndex + 1)
-                          ]
-                        : list[chatIndex].replies[
+          setList([
+            ...list.slice(0, chatIndex),
+            {
+              ...list[chatIndex],
+              replies: [
+                ...list[chatIndex].replies.slice(0, replyIndex),
+                {
+                  ...list[chatIndex].replies[replyIndex],
+                  reply_reactions:
+                    list[chatIndex].replies[replyIndex].reply_reactions[
+                      reactionIndex
+                    ].userList.length > 1
+                      ? [
+                          ...list[chatIndex].replies[
                             replyIndex
-                          ].reply_reactions.filter(
-                            (item) => item.text !== payload.old.text
-                          )
-                  },
-                  ...list[chatIndex].replies.slice(replyIndex + 1)
-                ]
-              },
-              ...list.slice(chatIndex + 1)
-            ]
-          })
+                          ].reply_reactions.slice(0, reactionIndex),
+                          {
+                            ...list[chatIndex].replies[replyIndex]
+                              .reply_reactions[reactionIndex],
+                            userList: list[chatIndex].replies[
+                              replyIndex
+                            ].reply_reactions[reactionIndex].userList.filter(
+                              (item) => item.id !== payload.old.user_id
+                            )
+                          },
+                          ...list[chatIndex].replies[
+                            replyIndex
+                          ].reply_reactions.slice(reactionIndex + 1)
+                        ]
+                      : list[chatIndex].replies[
+                          replyIndex
+                        ].reply_reactions.filter(
+                          (item) => item.text !== payload.old.text
+                        )
+                },
+                ...list[chatIndex].replies.slice(replyIndex + 1)
+              ]
+            },
+            ...list.slice(chatIndex + 1)
+          ])
         }
       )
       .subscribe()
@@ -660,8 +629,8 @@ const ThreadsPage: NextPage = () => {
           <span className="font-semibold">스레드</span>
         </header>
         <main className="flex-1">
-          {list.map((item, key) => (
-            <Thread chat={item} key={key} />
+          {list.map((_, key) => (
+            <Thread index={key} key={key} />
           ))}
           {!isLoading && !list.length && (
             <div className="flex h-full items-center justify-center">

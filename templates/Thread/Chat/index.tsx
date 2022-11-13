@@ -2,30 +2,22 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { Tooltip } from 'components'
 import { Message, Modal } from 'containers'
 import dayjs from 'dayjs'
+import { useMemo } from 'react'
 import type { FC } from 'react'
+import { useRecoilState } from 'recoil'
 import {
   backdrop,
   EventListener,
+  threadListState,
   toast,
   TOAST_MESSAGE,
+  useChatList,
   useObjectState,
   useUser
 } from 'services'
 
 export interface Props {
-  chat: NTable.Chats & {
-    user: NTable.Users
-    replies: Array<
-      NTable.Replies & {
-        user: NTable.Users
-        reply_reactions: NTable.ReplyReactions[]
-        opengraphs: NTable.Opengraphs[]
-      }
-    >
-    reactions: Array<NTable.Reactions & { user: NTable.Users }>
-    room: NTable.Rooms
-    opengraphs: NTable.Opengraphs[]
-  }
+  index: number
 }
 interface State {
   isUpdateMode: boolean
@@ -33,7 +25,7 @@ interface State {
   isCodeEditorOpen: boolean
 }
 
-const ThreadChat: FC<Props> = ({ chat }) => {
+const ThreadChat: FC<Props> = ({ index }) => {
   const [{ isUpdateMode, isSubmitting, isCodeEditorOpen }, setState] =
     useObjectState<State>({
       isUpdateMode: false,
@@ -42,6 +34,8 @@ const ThreadChat: FC<Props> = ({ chat }) => {
     })
   const [user, setUser] = useUser()
   const supabase = useSupabaseClient()
+  const [list, setList] = useRecoilState(threadListState)
+  const { onRegex } = useChatList()
 
   const updateChat = async (content: string) => {
     if (isSubmitting) return
@@ -50,6 +44,7 @@ const ThreadChat: FC<Props> = ({ chat }) => {
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
       setUser(null)
+      setList([])
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
@@ -66,18 +61,26 @@ const ThreadChat: FC<Props> = ({ chat }) => {
     }
 
     setState({ isSubmitting: true })
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('chats')
       .update({ content })
       .eq('id', chat.id)
+      .select('updated_at')
+      .single()
     setState({ isSubmitting: false, isUpdateMode: false })
     if (error) {
+      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
+    setList([
+      ...list.slice(0, index),
+      { ...chat, content, updated_at: data.updated_at },
+      ...list.slice(index + 1)
+    ])
   }
 
-  const updateReaction = async (key: number) => {
+  const onReactionClick = async (reactionIndex: number) => {
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
@@ -87,11 +90,12 @@ const ThreadChat: FC<Props> = ({ chat }) => {
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
       setUser(null)
+      setList([])
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
 
-    const reaction = chat.reactions[key]
+    const reaction = chat.reactions[reactionIndex]
     const userIndex = reaction.userList?.findIndex(
       (item) => item.id === user.id
     )
@@ -107,7 +111,26 @@ const ThreadChat: FC<Props> = ({ chat }) => {
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
+        return
       }
+      setList([
+        ...list.slice(0, index),
+        {
+          ...chat,
+          reactions: [
+            ...chat.reactions.slice(0, reactionIndex),
+            {
+              ...reaction,
+              userList: [
+                ...chat.reactions[reactionIndex].userList,
+                { id: user.id, nickname: user.nickname }
+              ]
+            },
+            ...chat.reactions.slice(reactionIndex + 1)
+          ]
+        },
+        ...list.slice(index + 1)
+      ])
     } else {
       const { error } = await supabase
         .from('reactions')
@@ -116,7 +139,20 @@ const ThreadChat: FC<Props> = ({ chat }) => {
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
+        return
       }
+
+      setList([
+        ...list.slice(0, index),
+        {
+          ...chat,
+          reactions: [
+            ...chat.reactions.slice(0, reactionIndex),
+            ...chat.reactions.slice(reactionIndex + 1)
+          ]
+        },
+        ...list.slice(index + 1)
+      ])
     }
   }
 
@@ -126,36 +162,109 @@ const ThreadChat: FC<Props> = ({ chat }) => {
       return
     }
 
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
+      await supabase.auth.signOut()
+      setUser(null)
+      setList([])
+      toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
+      return
+    }
+
     const reactionIndex = chat.reactions.findIndex((item) => item.text === text)
+    const reaction = chat.reactions[reactionIndex]
     if (reactionIndex === -1) {
-      const { error } = await supabase.from('reactions').insert({
-        user_id: user.id,
-        chat_id: chat.id,
-        text,
-        room_id: chat.room.id
-      })
+      const { data, error } = await supabase
+        .from('reactions')
+        .insert({
+          user_id: user.id,
+          chat_id: chat.id,
+          text,
+          room_id: chat.room.id
+        })
+        .select()
+        .single()
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
+
+      setList([
+        ...list.slice(0, index),
+        {
+          ...chat,
+          reactions:
+            reactionIndex === -1
+              ? [
+                  ...chat.reactions,
+                  {
+                    ...data,
+                    userList: [{ id: user.id, nickname: user.nickname }]
+                  }
+                ]
+              : [
+                  ...chat.reactions.slice(0, reactionIndex),
+                  {
+                    ...reaction,
+                    userList: [
+                      ...reaction.userList,
+                      { id: user.id, nickname: user.nickname }
+                    ]
+                  },
+                  ...chat.reactions.slice(reactionIndex + 1)
+                ]
+        },
+        ...list.slice(index + 1)
+      ])
       EventListener.emit('modal:emoji')
     } else {
       const userIndex = chat.reactions[reactionIndex].userList.findIndex(
         (item) => item.id === user.id
       )
       if (userIndex === -1) {
-        const { error } = await supabase.from('reactions').insert({
-          user_id: user.id,
-          chat_id: chat.id,
-          text,
-          room_id: chat.room.id
-        })
+        const { data, error } = await supabase
+          .from('reactions')
+          .insert({
+            user_id: user.id,
+            chat_id: chat.id,
+            text,
+            room_id: chat.room.id
+          })
+          .select()
+          .single()
         if (error) {
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
+        setList([
+          ...list.slice(0, index),
+          {
+            ...chat,
+            reactions:
+              reactionIndex === -1
+                ? [
+                    ...chat.reactions,
+                    {
+                      ...data,
+                      userList: [{ id: user.id, nickname: user.nickname }]
+                    }
+                  ]
+                : [
+                    ...chat.reactions.slice(0, reactionIndex),
+                    {
+                      ...reaction,
+                      userList: [
+                        ...reaction.userList,
+                        { id: user.id, nickname: user.nickname }
+                      ]
+                    },
+                    ...chat.reactions.slice(reactionIndex + 1)
+                  ]
+          },
+          ...list.slice(index + 1)
+        ])
         EventListener.emit('modal:emoji')
       } else {
         const { error } = await supabase
@@ -167,6 +276,26 @@ const ThreadChat: FC<Props> = ({ chat }) => {
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
+        setList([
+          ...list.slice(0, index),
+          {
+            ...chat,
+            reactions:
+              reaction.userList.length > 1
+                ? [
+                    ...chat.reactions.slice(0, reactionIndex),
+                    {
+                      ...reaction,
+                      userList: reaction.userList.filter(
+                        (item) => item.id !== user.id
+                      )
+                    },
+                    ...chat.reactions.slice(reactionIndex + 1)
+                  ]
+                : chat.reactions.filter((item) => item.text !== text)
+          },
+          ...list.slice(index + 1)
+        ])
         EventListener.emit('modal:emoji')
       }
     }
@@ -177,7 +306,7 @@ const ThreadChat: FC<Props> = ({ chat }) => {
     codeBlock: string
     language: string
   }) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('chats')
       .update({
         content: payload.content,
@@ -185,6 +314,8 @@ const ThreadChat: FC<Props> = ({ chat }) => {
         language: payload.language
       })
       .eq('id', chat.id)
+      .select('updated_at')
+      .single()
     backdrop(false)
     if (error) {
       console.error(error)
@@ -192,6 +323,17 @@ const ThreadChat: FC<Props> = ({ chat }) => {
       return
     }
     setState({ isCodeEditorOpen: false })
+    setList([
+      ...list.slice(0, index),
+      {
+        ...chat,
+        updated_at: data.updated_at,
+        content: payload.content,
+        code_block: payload.codeBlock,
+        language: payload.language
+      },
+      ...list.slice(index + 1)
+    ])
   }
 
   const createModifiedCodeChat = async (payload: {
@@ -199,23 +341,41 @@ const ThreadChat: FC<Props> = ({ chat }) => {
     codeBlock: string
     language: string
   }) => {
-    const { error } = await supabase.from('chats').insert({
-      content: payload.content,
-      code_block: chat.modified_code || chat.code_block,
-      language: chat.modified_language || chat.language,
-      modified_code: payload.codeBlock,
-      modified_language: payload.language,
-      user_id: user?.id,
-      room_id: chat.room_id
-    })
+    const { data, error } = await supabase
+      .from('chats')
+      .insert({
+        content: payload.content,
+        code_block: chat.modified_code || chat.code_block,
+        language: chat.modified_language || chat.language,
+        modified_code: payload.codeBlock,
+        modified_language: payload.language,
+        user_id: user?.id,
+        room_id: chat.room_id
+      })
+      .select()
+      .single()
     backdrop(false)
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
+    onRegex(payload.content, chat.id)
     EventListener.emit('message:codeblock')
+    setList([
+      {
+        ...data,
+        reactions: [],
+        saves: [],
+        replies: [],
+        opengraphs: [],
+        user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+      },
+      ...list
+    ])
   }
+
+  const chat = useMemo(() => list[index], [list, index])
   return (
     <>
       <div className="group relative flex gap-3 py-1 px-4 hover:bg-neutral-50 dark:hover:bg-neutral-700">
@@ -224,7 +384,7 @@ const ThreadChat: FC<Props> = ({ chat }) => {
           userId={chat.user.id}
           deletedAt={chat.deleted_at}
         />
-        {!!chat?.deleted_at ? (
+        {!!chat.deleted_at ? (
           <div className="mt-0.5 flex h-9 items-center text-sm text-neutral-400">
             이 메시지는 삭제되었습니다.
           </div>
@@ -272,7 +432,7 @@ const ThreadChat: FC<Props> = ({ chat }) => {
                   <Tooltip.Reaction
                     userList={item.userList}
                     key={key}
-                    onClick={() => updateReaction(key)}
+                    onClick={() => onReactionClick(key)}
                     text={item.text}
                     length={item?.userList.length}
                   />
@@ -282,7 +442,7 @@ const ThreadChat: FC<Props> = ({ chat }) => {
             )}
           </div>
         )}
-        {!chat?.deleted_at && !isUpdateMode && (
+        {!chat.deleted_at && !isUpdateMode && (
           <div className="absolute right-6 -top-4 z-10 hidden rounded-lg border bg-white group-hover:block dark:border-neutral-800 dark:bg-neutral-700">
             <div className="flex p-0.5">
               <Tooltip.Actions.AddReaction onSelect={onEmojiSelect} />

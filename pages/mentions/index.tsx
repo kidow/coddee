@@ -155,7 +155,7 @@ const MentionsPage: NextPage = () => {
         }
       }
       // @ts-ignore
-      data.chat.reactions = reactions
+      item.chat.reactions = reactions
     }
     setState({
       list: page === 1 ? data : [...list, ...(data as any[])],

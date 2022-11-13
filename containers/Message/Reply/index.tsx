@@ -2,6 +2,7 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { Tooltip } from 'components'
 import { Message, Modal } from 'containers'
 import dayjs from 'dayjs'
+import { useMemo } from 'react'
 import type { FC } from 'react'
 import {
   backdrop,
@@ -59,26 +60,24 @@ const MessageReply: FC<Props> = ({ index }) => {
     const { data, error } = await supabase
       .from('replies')
       .update({ content })
-      .eq('id', list[index].id)
+      .eq('id', reply.id)
       .select('updated_at')
       .single()
     setState({ isSubmitting: false, isUpdateMode: false })
     if (error) {
+      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
     setList([
       ...list.slice(0, index),
-      { ...list[index], content, updated_at: data.updated_at },
+      { ...reply, content, updated_at: data.updated_at },
       ...list.slice(index + 1)
     ])
   }
 
   const deleteReply = async () => {
-    const { error } = await supabase
-      .from('replies')
-      .delete()
-      .eq('id', list[index].id)
+    const { error } = await supabase.from('replies').delete().eq('id', reply.id)
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
@@ -103,33 +102,87 @@ const MessageReply: FC<Props> = ({ index }) => {
       return
     }
 
-    const userIndex = list[index].reply_reactions[
-      reactionIndex
-    ].userList?.findIndex((item) => item.id === user.id)
+    const userIndex = reply.reply_reactions[reactionIndex].userList?.findIndex(
+      (item) => item.id === user.id
+    )
     if (userIndex === undefined) return
 
     if (userIndex === -1) {
-      const { error } = await supabase.from('reply_reactions').insert({
-        user_id: user.id,
-        reply_id: list[index].id,
-        text: list[index].reply_reactions[reactionIndex].text,
-        chat_id: list[index].chat_id
-      })
+      const { data, error } = await supabase
+        .from('reply_reactions')
+        .insert({
+          user_id: user.id,
+          reply_id: reply.id,
+          text: reply.reply_reactions[reactionIndex].text,
+          chat_id: reply.chat_id
+        })
+        .select()
+        .single()
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
+      setList([
+        ...list.slice(0, index),
+        {
+          ...reply,
+          reply_reactions:
+            reactionIndex === -1
+              ? [
+                  ...reply.reply_reactions,
+                  {
+                    ...data,
+                    userList: [{ id: user.id, nickname: user.nickname }]
+                  }
+                ]
+              : [
+                  ...reply.reply_reactions.slice(0, reactionIndex),
+                  {
+                    ...reply.reply_reactions[reactionIndex],
+                    userList: [
+                      ...reply.reply_reactions[reactionIndex].userList,
+                      { id: user.id, nickname: user.nickname }
+                    ]
+                  },
+                  ...reply.reply_reactions.slice(reactionIndex + 1)
+                ]
+        },
+        ...list.slice(index + 1)
+      ])
     } else {
       const { error } = await supabase
         .from('reply_reactions')
         .delete()
-        .eq('id', list[index].reply_reactions[reactionIndex].id)
+        .eq('id', reply.reply_reactions[reactionIndex].id)
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
+      setList([
+        ...list.slice(0, index),
+        {
+          ...reply,
+          reply_reactions:
+            reply.reply_reactions[reactionIndex].userList.length > 1
+              ? [
+                  ...reply.reply_reactions.slice(0, reactionIndex),
+                  {
+                    ...reply.reply_reactions[reactionIndex],
+                    userList: reply.reply_reactions[
+                      reactionIndex
+                    ].userList.filter((item) => item.id !== user.id)
+                  },
+                  ...reply.reply_reactions.slice(reactionIndex + 1)
+                ]
+              : reply.reply_reactions.filter(
+                  (item) =>
+                    item.text !== reply.reply_reactions[reactionIndex].text
+                )
+        },
+        ...list.slice(index + 1)
+      ])
     }
   }
 
@@ -147,7 +200,6 @@ const MessageReply: FC<Props> = ({ index }) => {
       return
     }
 
-    const reply = list[index]
     const reactionIndex = reply.reply_reactions.findIndex(
       (item) => item.text === text
     )
@@ -183,7 +235,7 @@ const MessageReply: FC<Props> = ({ index }) => {
               : [
                   ...reply.reply_reactions.slice(0, reactionIndex),
                   {
-                    ...reply.reply_reactions,
+                    ...reply.reply_reactions[reactionIndex],
                     userList: [
                       ...reply.reply_reactions[reactionIndex].userList,
                       { id: user.id, nickname: user.nickname }
@@ -292,24 +344,25 @@ const MessageReply: FC<Props> = ({ index }) => {
       return
     }
 
-    if (!!list[index].saves?.length) {
+    if (!!reply.saves?.length) {
       const { error } = await supabase
         .from('saves')
         .delete()
-        .eq('id', list[index].saves[0].id)
+        .eq('id', reply.saves[0].id)
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
+        return
       }
       setList([
         ...list.slice(0, index),
-        { ...list[index], saves: [] },
+        { ...reply, saves: [] },
         ...list.slice(index + 1)
       ])
     } else {
       const { data, error } = await supabase
         .from('saves')
-        .insert({ user_id: user.id, reply_id: list[index].id })
+        .insert({ user_id: user.id, reply_id: reply.id })
         .select()
         .single()
       if (error) {
@@ -319,7 +372,7 @@ const MessageReply: FC<Props> = ({ index }) => {
       }
       setList([
         ...list.slice(0, index),
-        { ...list[index], saves: [data] },
+        { ...reply, saves: [data] },
         ...list.slice(index + 1)
       ])
     }
@@ -337,7 +390,7 @@ const MessageReply: FC<Props> = ({ index }) => {
         code_block: payload.codeBlock,
         language: payload.language
       })
-      .eq('id', list[index].id)
+      .eq('id', reply.id)
       .select('updated_at')
       .single()
     backdrop(false)
@@ -350,7 +403,7 @@ const MessageReply: FC<Props> = ({ index }) => {
     setList([
       ...list.slice(0, index),
       {
-        ...list[index],
+        ...reply,
         updated_at: data.updated_at,
         content: payload.content,
         code_block: payload.codeBlock,
@@ -369,8 +422,8 @@ const MessageReply: FC<Props> = ({ index }) => {
       .from('replies')
       .insert({
         content: payload.content,
-        code_block: list[index].modified_code || list[index].code_block,
-        language: list[index].modified_language || list[index].language,
+        code_block: reply.modified_code || reply.code_block,
+        language: reply.modified_language || reply.language,
         modified_code: payload.codeBlock,
         modified_language: payload.language
       })
@@ -382,7 +435,7 @@ const MessageReply: FC<Props> = ({ index }) => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onRegex(payload.content, list[index].chat_id, list[index].id)
+    onRegex(payload.content, reply.chat_id, reply.id)
     EventListener.emit('message:codeblock')
     setList([
       ...list,
@@ -395,63 +448,62 @@ const MessageReply: FC<Props> = ({ index }) => {
       }
     ])
   }
+
+  const reply = useMemo(() => list[index], [list, index])
   return (
     <>
       <div
         className={classnames(
           'group relative flex items-start gap-3 py-2 pl-4 pr-6 hover:bg-neutral-50 dark:hover:bg-neutral-700',
-          { 'bg-red-50': !!list[index].saves?.length }
+          { 'bg-red-50': !!reply.saves?.length }
         )}
       >
-        {!!list[index].saves?.length && (
+        {!!reply.saves?.length && (
           <span className="absolute top-2 right-3">
             <BookmarkIcon className="h-4 w-4 text-red-500" />
           </span>
         )}
-        <Message.Avatar
-          url={list[index].user.avatar_url}
-          userId={list[index].user_id}
-        />
+        <Message.Avatar url={reply.user.avatar_url} userId={reply.user_id} />
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="flex cursor-pointer items-center text-sm font-medium">
-              <span>{list[index].user?.nickname}</span>
-              {list[index].user_id === user?.id && (
+              <span>{reply.user?.nickname}</span>
+              {reply.user_id === user?.id && (
                 <span className="ml-1 text-xs text-neutral-400">(나)</span>
               )}
             </span>
             <span className="text-xs text-neutral-400">
-              {dayjs(list[index].created_at).locale('ko').fromNow()}
+              {dayjs(reply.created_at).locale('ko').fromNow()}
             </span>
           </div>
           <div>
             {isUpdateMode ? (
               <Message.Update
-                content={list[index].content}
+                content={reply.content}
                 onCancel={() => setState({ isUpdateMode: false })}
                 onSave={updateReply}
               />
             ) : (
               <Message.Parser
-                content={list[index].content}
-                updatedAt={list[index].updated_at}
+                content={reply.content}
+                updatedAt={reply.updated_at}
               />
             )}
           </div>
           <Message.CodeBlock
-            originalCode={list[index].code_block}
-            language={list[index].language}
+            originalCode={reply.code_block}
+            language={reply.language}
             onSubmit={createModifiedCodeReply}
-            mention={`@[${list[index].user.nickname}](${list[index].user_id})`}
-            modifiedCode={list[index].modified_code}
-            modifiedLanguage={list[index].modified_language}
+            mention={`@[${reply.user.nickname}](${reply.user_id})`}
+            modifiedCode={reply.modified_code}
+            modifiedLanguage={reply.modified_language}
           />
-          {list[index].opengraphs?.map((item) => (
+          {reply.opengraphs?.map((item) => (
             <Message.Opengraph {...item} key={item.id} />
           ))}
-          {!!list[index].reply_reactions?.length && (
+          {!!reply.reply_reactions?.length && (
             <Message.Reactions>
-              {list[index].reply_reactions.map((item, key) => (
+              {reply.reply_reactions.map((item, key) => (
                 <Tooltip.Reaction
                   userList={item.userList}
                   key={key}
@@ -468,15 +520,15 @@ const MessageReply: FC<Props> = ({ index }) => {
           <Tooltip.Actions.AddReaction onSelect={onEmojiSelect} />
           <Tooltip.Actions.Save
             onClick={onSaveReply}
-            isSaved={!!list[index].saves?.length}
+            isSaved={!!reply.saves?.length}
           />
-          {list[index].user_id === user?.id && (
+          {reply.user_id === user?.id && (
             <>
               <Tooltip.Actions.Update
                 onClick={() =>
                   setState({
-                    isUpdateMode: !list[index].code_block,
-                    isCodeEditorOpen: !!list[index].code_block
+                    isUpdateMode: !reply.code_block,
+                    isCodeEditorOpen: !!reply.code_block
                   })
                 }
               />
@@ -489,9 +541,9 @@ const MessageReply: FC<Props> = ({ index }) => {
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}
         onSubmit={updateCodeReply}
-        content={list[index].content}
-        codeBlock={list[index].code_block}
-        language={list[index].language}
+        content={reply.content}
+        codeBlock={reply.code_block}
+        language={reply.language}
       />
     </>
   )

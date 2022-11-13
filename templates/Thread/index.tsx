@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import type { FC } from 'react'
 import {
   backdrop,
+  threadListState,
   toast,
   TOAST_MESSAGE,
   useChatList,
@@ -13,24 +14,13 @@ import { HashtagIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 import { Message, Modal } from 'containers'
 import { Textarea } from 'components'
+import { useRecoilState } from 'recoil'
 
 import ThreadChat from './Chat'
 import ThreadReply from './Reply'
 
 export interface Props {
-  chat: NTable.Chats & {
-    user: NTable.Users
-    replies: Array<
-      NTable.Replies & {
-        user: NTable.Users
-        reply_reactions: NTable.ReplyReactions[]
-        opengraphs: NTable.Opengraphs[]
-      }
-    >
-    reactions: Array<NTable.Reactions & { user: NTable.Users }>
-    room: NTable.Rooms
-    opengraphs: NTable.Opengraphs[]
-  }
+  index: number
 }
 interface State {
   isSubmitting: boolean
@@ -39,7 +29,7 @@ interface State {
   isMoreOpen: boolean
 }
 
-const Thread: FC<Props> = ({ chat }) => {
+const Thread: FC<Props> = ({ index }) => {
   const [{ isSubmitting, content, isCodeEditorOpen, isMoreOpen }, setState] =
     useObjectState<State>({
       isSubmitting: false,
@@ -50,6 +40,7 @@ const Thread: FC<Props> = ({ chat }) => {
   const [user, setUser] = useUser()
   const supabase = useSupabaseClient()
   const { onRegex } = useChatList()
+  const [list, setList] = useRecoilState(threadListState)
 
   const createReply = async () => {
     if (!user) {
@@ -61,6 +52,7 @@ const Thread: FC<Props> = ({ chat }) => {
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
       setUser(null)
+      setList([])
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
@@ -80,9 +72,31 @@ const Thread: FC<Props> = ({ chat }) => {
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
+      return
     }
     onRegex(content, data.id)
     setState({ content: '' })
+    setList([
+      ...list.slice(0, index),
+      {
+        ...chat,
+        replies: [
+          ...chat.replies,
+          {
+            ...data,
+            user: {
+              id: user.id,
+              avatar_url: user.avatar_url,
+              nickname: user.nickname
+            },
+            reply_reactions: [],
+            opengraphs: [],
+            saves: []
+          }
+        ]
+      },
+      ...list.slice(index + 1)
+    ])
   }
 
   const createCodeReply = async (payload: {
@@ -94,7 +108,7 @@ const Thread: FC<Props> = ({ chat }) => {
       .from('replies')
       .insert({
         user_id: user?.id,
-        chat_id: chat?.id,
+        chat_id: chat.id,
         content: payload.content,
         code_block: payload.codeBlock,
         language: payload.language
@@ -109,13 +123,32 @@ const Thread: FC<Props> = ({ chat }) => {
     }
     onRegex(payload.content, data.chat_id, data.id)
     setState({ content: '', isCodeEditorOpen: false })
+    setList([
+      ...list.slice(0, index),
+      {
+        ...chat,
+        replies: [
+          ...chat.replies,
+          {
+            ...data,
+            reply_reactions: [],
+            saves: [],
+            opengraphs: [],
+            user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+          }
+        ]
+      },
+      ...list.slice(index + 1)
+    ])
   }
+
+  const chat = useMemo(() => list[index], [list, index])
 
   const participants: string = useMemo(() => {
     if (!user) return ''
 
     return ''
-  }, [user, chat])
+  }, [user, index])
   return (
     <>
       <div className="m-4">
@@ -137,7 +170,7 @@ const Thread: FC<Props> = ({ chat }) => {
           </div>
         </div>
         <div className="rounded-xl border py-2 dark:border-neutral-700">
-          <ThreadChat chat={chat} />
+          <ThreadChat index={index} />
           <hr className="my-2 dark:border-neutral-700" />
           {chat.replies.length > 3 && !isMoreOpen && (
             <div className="flex h-6 items-center pl-4">
@@ -151,8 +184,8 @@ const Thread: FC<Props> = ({ chat }) => {
           )}
           {chat.replies
             .slice(chat.replies.length > 3 && !isMoreOpen ? -3 : undefined)
-            .map((item, key) => (
-              <ThreadReply reply={item} key={key} />
+            .map((_, key) => (
+              <ThreadReply chatIndex={index} replyIndex={key} key={key} />
             ))}
           <div className="mt-2 px-4">
             <div className="flex items-center gap-3 rounded-xl border py-2 px-3 dark:border-neutral-700">

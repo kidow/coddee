@@ -70,3 +70,26 @@ export const replyListState = atom<
   key: 'replyListState',
   default: []
 })
+
+export const threadListState = atom<
+  Array<
+    NTable.Chats & {
+      user: NTable.Users
+      replies: Array<
+        NTable.Replies & {
+          user: NTable.Users
+          reply_reactions: NTable.ReplyReactions[]
+          opengraphs: NTable.Opengraphs[]
+          saves: NTable.Saves[]
+        }
+      >
+      reactions: Array<NTable.Reactions & { user: NTable.Users }>
+      room: NTable.Rooms
+      opengraphs: NTable.Opengraphs[]
+      saves: NTable.Saves[]
+    }
+  >
+>({
+  key: 'threadListState',
+  default: []
+})
