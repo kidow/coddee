@@ -32,14 +32,14 @@ interface State {
 
 const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
   if (!isOpen) return null
-  const [{ content, language, codeBlock, languageList }, setState, onChange] =
+  const [{ content, language, codeBlock, languageList }, setState] =
     useObjectState<State>({
       content: props.content || '',
       language: props.language || '',
       codeBlock: props.codeBlock || '',
       languageList: []
     })
-  const [user, setUser] = useUser()
+  const [user] = useUser()
   const supabase = useSupabaseClient()
   const theme = useTheme()
 
@@ -53,10 +53,9 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
     }
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       onClose()
       return
@@ -155,6 +154,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
               fontSize: 14,
               minimap: { enabled: false }
             }}
+            loading={false}
           />
         </div>
         <div className="border p-2 focus-within:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900">

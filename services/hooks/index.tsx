@@ -4,6 +4,8 @@ import { EventListener, themeState, userState } from 'services'
 import { useRecoilState } from 'recoil'
 import type { SetterOrUpdater } from 'recoil'
 
+export { default as useChatList } from './useChatList'
+
 export function useObjectState<T>(
   initialObject: T
 ): [
@@ -97,4 +99,27 @@ export const useTheme = () => {
   }, [])
 
   return theme
+}
+
+export function useOnClickOutside<T extends HTMLElement>(
+  ref: RefObject<T>,
+  handler: (event: MouseEvent | TouchEvent) => void,
+  id?: string
+): void {
+  const listener = (event: MouseEvent | TouchEvent) => {
+    const el = ref?.current
+    if (
+      !el ||
+      el.contains(event.target as Node) ||
+      id === (event.target as HTMLElement).id
+    )
+      return
+    handler(event)
+  }
+  useEffect(() => {
+    document.addEventListener('mouseup', listener)
+    return () => {
+      document.removeEventListener('mouseup', listener)
+    }
+  }, [ref, handler])
 }

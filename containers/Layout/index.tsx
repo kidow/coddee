@@ -9,7 +9,7 @@ import {
   useObjectState,
   useUser
 } from 'services'
-import { Modal, Drawer } from 'containers'
+import { Modal, Drawer, Presence } from 'containers'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -118,7 +118,7 @@ const Layout: FC<Props> = ({ children }) => {
 
   useEffect(() => {
     const channel = supabase
-      .channel('*')
+      .channel('containers/layout')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public' },
@@ -451,6 +451,33 @@ const Layout: FC<Props> = ({ children }) => {
                     </a>
                   </Link>
                 </li>
+                {/* <li className="flex-1">
+                  <Link href="/posts">
+                    <a
+                      className={classnames(
+                        'flex h-full w-full items-center justify-center text-neutral-600 dark:text-neutral-400',
+                        pathname === '/posts'
+                          ? 'bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-200'
+                          : 'hover:bg-neutral-50 active:bg-neutral-100 dark:hover:bg-neutral-700 dark:active:bg-neutral-600'
+                      )}
+                    >
+                      <div>
+                        <div className="flex justify-center">
+                          <ChatBubbleLeftRightIcon className="h-5 w-5" />
+                        </div>
+                        <div className="relative text-xs">
+                          <span
+                            className={classnames({
+                              'font-bold': pathname === '/posts'
+                            })}
+                          >
+                            포스트
+                          </span>
+                        </div>
+                      </div>
+                    </a>
+                  </Link>
+                </li> */}
               </ul>
             </footer>
           </div>
@@ -573,6 +600,8 @@ const Layout: FC<Props> = ({ children }) => {
           </ul>
         </Drawer>
       )}
+
+      <Presence />
     </>
   )
 }

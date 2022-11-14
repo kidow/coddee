@@ -1,5 +1,3 @@
-import type { FC } from 'react'
-
 import MessageActions from './Actions'
 import MessageAvatar from './Avatar'
 import MessageButton from './Button'
@@ -11,12 +9,7 @@ import MessageReply from './Reply'
 import MessageUpdate from './Update'
 import MessageOpengraph from './Opengraph'
 
-export interface Props {}
-interface State {}
-
-const Message: FC<Props> = () => <></>
-
-export default Object.assign(Message, {
+export default Object.assign(() => <></>, {
   Parser: MessageParser,
   Update: MessageUpdate,
   Reply: MessageReply,

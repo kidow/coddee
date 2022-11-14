@@ -1,7 +1,7 @@
 import { Tooltip } from 'components'
 import type { FC } from 'react'
 import { FaceSmileIcon } from '@heroicons/react/24/solid'
-import { useObjectState, useTheme } from 'services'
+import { useObjectState } from 'services'
 import { Modal } from 'containers'
 
 export interface Props {
@@ -17,7 +17,6 @@ const AddReactionTooltipAction: FC<Props> = ({
   position = 'top'
 }) => {
   const [{ isOpen }, setState] = useObjectState<State>({ isOpen: false })
-  const theme = useTheme()
   return (
     <>
       <Tooltip
@@ -33,10 +32,7 @@ const AddReactionTooltipAction: FC<Props> = ({
       <Modal.Emoji
         isOpen={isOpen}
         onClose={() => setState({ isOpen: false })}
-        onSelect={(text) => {
-          onSelect(text)
-          setState({ isOpen: false })
-        }}
+        onSelect={onSelect}
       />
     </>
   )

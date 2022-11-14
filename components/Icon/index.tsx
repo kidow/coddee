@@ -1,10 +1,3 @@
-import type { FC } from 'react'
-
-export interface Props {}
-interface State {}
-
-const Icon: FC<Props> = () => <></>
-
 const AddReaction = () => {
   return (
     <svg
@@ -23,4 +16,4 @@ const AddReaction = () => {
   )
 }
 
-export default Object.assign(Icon, { AddReaction })
+export default Object.assign(() => <></>, { AddReaction })

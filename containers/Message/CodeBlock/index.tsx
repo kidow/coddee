@@ -14,7 +14,7 @@ import {
 } from 'services'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { Modal } from 'containers'
-import { Button, Select, Spinner, Textarea } from 'components'
+import { Button, Select, Textarea } from 'components'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useRecoilValue } from 'recoil'
 
@@ -49,16 +49,17 @@ const MessageCodeBlock: FC<Props> = ({
   const [
     { isCollapse, isDiffEditorOpen, codeBlock, content, language },
     setState,
-    onChange
+    onChange,
+    resetState
   ] = useObjectState<State>({
     isCollapse: false,
     isDiffEditorOpen: false,
     codeBlock: '',
-    content: `${mention} `,
+    content: '',
     language: ''
   })
   const theme = useTheme()
-  const [user, setUser] = useUser()
+  const [user] = useUser()
   const supabase = useSupabaseClient()
   const languageList = useRecoilValue(languageListState)
 
@@ -109,10 +110,9 @@ const MessageCodeBlock: FC<Props> = ({
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
     }
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       setState({ isDiffEditorOpen: false })
       return
@@ -126,8 +126,7 @@ const MessageCodeBlock: FC<Props> = ({
     props.onSubmit({ content, codeBlock, language })
   }
 
-  const listener = () =>
-    setState({ isDiffEditorOpen: false, isCollapse: false })
+  const listener = () => resetState()
 
   useEffect(() => {
     if (!isDiffEditorOpen) return
@@ -159,9 +158,7 @@ const MessageCodeBlock: FC<Props> = ({
                   lineNumbers: 'off'
                 }}
                 onMount={onDiffMount}
-                loading={
-                  <Spinner className="h-5 w-5 text-neutral-300 dark:text-neutral-400" />
-                }
+                loading={false}
               />
             ) : (
               <Editor
@@ -181,9 +178,7 @@ const MessageCodeBlock: FC<Props> = ({
                   lineNumbers: 'off'
                 }}
                 value={originalCode}
-                loading={
-                  <Spinner className="h-5 w-5 text-neutral-300 dark:text-neutral-400" />
-                }
+                loading={false}
               />
             )}
           </div>
@@ -316,9 +311,7 @@ const MessageCodeBlock: FC<Props> = ({
                 minimap: { enabled: false },
                 wordWrap: 'on'
               }}
-              loading={
-                <Spinner className="h-5 w-5 text-neutral-300 dark:text-neutral-400" />
-              }
+              loading={false}
               onMount={(editor, monaco) =>
                 editor.getModifiedEditor().onDidChangeModelContent(() =>
                   setState({

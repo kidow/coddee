@@ -82,18 +82,17 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     isLoading: true
   })
   const supabase = useSupabaseClient()
-  const [user, setUser] = useUser()
+  const [user] = useUser()
 
   const get = async () => {
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       onClose()
       return
     }
-    const { data: userData, error } = await supabase
+    const { data, error } = await supabase
       .from('users')
       .select('*')
       .eq('id', user?.id)
@@ -104,17 +103,15 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       return
     }
     try {
-      const res = await fetch(
-        `https://api.github.com/users/${userData.nickname}`
-      )
+      const res = await fetch(`https://api.github.com/users/${data.nickname}`)
       const json = await res.json()
       setState({
         bio: json.bio || '',
         avatarUrl: json.avatar_url,
-        nickname: userData.nickname,
-        jobCategory: userData.job_category,
+        nickname: data.nickname,
+        jobCategory: data.job_category,
         blogUrl: json.blog || '',
-        email: userData.email,
+        email: data.email,
         location: json.location || '',
         followers: json.followers || 0,
         following: json.following || 0,
@@ -129,10 +126,9 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
   }
 
   const update = async () => {
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       onClose()
       return
@@ -153,7 +149,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       return
     }
     onClose()
-    setUser(null)
     toast.success('로그아웃되었습니다.')
   }
 
@@ -178,7 +173,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     } = await supabase.auth.getUser()
     if (!user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       onClose()
       return
@@ -190,7 +184,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       return
     }
     await supabase.auth.signOut()
-    setUser(null)
     setState({ isResignOpen: false })
     onClose()
     toast.success('탈퇴되었습니다.')

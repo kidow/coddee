@@ -1,78 +1,49 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import type { FC } from 'react'
 import { Drawer, Modal, Message } from 'containers'
 import {
   backdrop,
-  REGEXP,
+  chatListState,
+  replyListState,
   toast,
   TOAST_MESSAGE,
+  useChatList,
   useObjectState,
   useUser
 } from 'services'
 import { Spinner, Textarea } from 'components'
-import { useRouter } from 'next/router'
 import { ArrowSmallUpIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
 import classnames from 'classnames'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import ThreadDrawerChat from './Chat'
+import { useRecoilState } from 'recoil'
 
 export interface Props extends DrawerProps {
-  chat:
-    | (NTable.Chats & {
-        user: NTable.Users
-        reactions: NTable.Reactions[]
-        opengraphs: NTable.Opengraphs[]
-        saves: NTable.Saves[]
-      })
-    | null
-  updateReaction: (reactionIndex: number) => void
-  onCreate: (reply: {
-    id: string
-    created_at: string
-    user: { avatar_url: string }
-  }) => void
-  onDelete: (id: string) => void
+  chatIndex: number
 }
 interface State {
   content: string
   isCodeEditorOpen: boolean
   isSubmitting: boolean
-  list: Array<
-    NTable.Replies & {
-      user: NTable.Users
-      reply_reactions: NTable.ReplyReactions[]
-      opengraphs: NTable.Opengraphs[]
-      saves: NTable.Saves[]
-    }
-  >
   spamCount: number
 }
 
-const ThreadDrawer: FC<Props> = ({
-  isOpen,
-  onClose,
-  chat,
-  updateReaction,
-  onCreate,
-  onDelete
-}) => {
+const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
   if (!isOpen) return null
-  const [
-    { content, isCodeEditorOpen, isSubmitting, list, spamCount },
-    setState
-  ] = useObjectState<State>({
-    content: '',
-    isCodeEditorOpen: false,
-    isSubmitting: false,
-    list: [],
-    spamCount: 0
-  })
+  const [{ content, isCodeEditorOpen, isSubmitting, spamCount }, setState] =
+    useObjectState<State>({
+      content: '',
+      isCodeEditorOpen: false,
+      isSubmitting: false,
+      spamCount: 0
+    })
   const supabase = useSupabaseClient()
-  const [user, setUser] = useUser()
-  const { query } = useRouter()
+  const [user] = useUser()
+  const { onRegex } = useChatList()
+  const [chatList, setChatList] = useRecoilState(chatListState)
+  const [replyList, setReplyList] = useRecoilState(replyListState)
 
   const get = async () => {
-    if (!chat) return
     const { data, error } = await supabase
       .from('replies')
       .select(
@@ -158,35 +129,35 @@ const ThreadDrawer: FC<Props> = ({
       // @ts-ignore
       reply.reply_reactions = reply_reactions
     }
-    setState({ list: (data as any) || [] })
+    setReplyList(data as any[])
   }
 
   const createReply = async () => {
-    if (!chat) return
+    if (!user) {
+      toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
+      return
+    }
+
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
+      await supabase.auth.signOut()
+      toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
+      return
+    }
 
     if (spamCount >= 3) {
       toast.warn('도배는 자제 부탁드립니다. :)')
       return
     }
-    if (!user) {
-      toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
-      return
-    }
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
-      await supabase.auth.signOut()
-      setUser(null)
-      toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
-      onClose()
-      return
-    }
+
     if (!content.trim()) return
     if (content.length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
+
     setState({ isSubmitting: true })
-    const { data: reply, error } = await supabase
+    const { data, error } = await supabase
       .from('replies')
       .insert({ user_id: user.id, chat_id: chat.id, content })
       .select()
@@ -195,9 +166,39 @@ const ThreadDrawer: FC<Props> = ({
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
+      return
     }
-    onRegex(content, reply.id)
+    onRegex(content, data.id)
     setState({ content: '' })
+    setReplyList([
+      ...replyList,
+      {
+        ...data,
+        user: {
+          id: user.id,
+          avatar_url: user.avatar_url,
+          nickname: user.nickname
+        },
+        reply_reactions: [],
+        opengraphs: [],
+        saves: []
+      }
+    ])
+    setChatList([
+      ...chatList.slice(0, chatIndex),
+      {
+        ...chat,
+        replies: [
+          ...chat.replies,
+          {
+            id: data.id,
+            created_at: data.created_at,
+            user: { avatar_url: user.avatar_url }
+          }
+        ]
+      },
+      ...chatList.slice(chatIndex + 1)
+    ])
   }
 
   const createCodeReply = async (payload: {
@@ -209,7 +210,7 @@ const ThreadDrawer: FC<Props> = ({
       .from('replies')
       .insert({
         user_id: user?.id,
-        chat_id: chat?.id,
+        chat_id: chat.id,
         content: payload.content,
         code_block: payload.codeBlock,
         language: payload.language
@@ -222,67 +223,40 @@ const ThreadDrawer: FC<Props> = ({
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onRegex(payload.content, data.id)
+    onRegex(payload.content, data.chat_id, data.id)
+    setReplyList([
+      ...replyList,
+      {
+        ...data,
+        reply_reactions: [],
+        saves: [],
+        opengraphs: [],
+        user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+      }
+    ])
+    setChatList([
+      ...chatList.slice(0, chatIndex),
+      {
+        ...chat,
+        replies: [
+          ...chat.replies,
+          {
+            id: data.id,
+            created_at: data.created_at,
+            user: { avatar_url: user!.avatar_url }
+          }
+        ]
+      },
+      ...chatList.slice(chatIndex + 1)
+    ])
     setState({ content: '', isCodeEditorOpen: false })
   }
 
-  const onRegex = async (content: string, id: number) => {
-    if (REGEXP.MENTION.test(content)) {
-      const mentions = content
-        .match(REGEXP.MENTION)
-        ?.filter((id) => id !== user?.id)
-      if (!mentions) return
-
-      await Promise.all(
-        mentions.map((id) =>
-          supabase.from('mentions').insert({
-            mention_to: id.slice(-37, -1),
-            mention_from: user?.id,
-            chat_id: chat?.id,
-            reply_id: id
-          })
-        )
-      )
-    }
-
-    if (REGEXP.URL.test(content)) {
-      const urls = content.match(REGEXP.URL)
-      if (!urls) return
-
-      const res = await Promise.all(
-        urls.map((url) =>
-          fetch('/api/opengraph', {
-            method: 'POST',
-            headers: new Headers({
-              'Content-Type': 'application/json'
-            }),
-            body: JSON.stringify({ url })
-          })
-        )
-      )
-      const json = await Promise.all(res.map((result) => result.json()))
-      json
-        .filter((item) => item.success)
-        .forEach(({ data }) =>
-          supabase.from('opengraphs').insert({
-            title: data.title || data['og:title'] || data['twitter:title'],
-            description:
-              data.description ||
-              data['og:description'] ||
-              data['twitter:description'],
-            image: data.image || data['og:image'] || data['twitter:image'],
-            url: data.url || data['og:url'] || data['twitter:domain'],
-            site_name: data['og:site_name'] || '',
-            reply_id: id,
-            room_id: query.id
-          })
-        )
-    }
-  }
+  const chat = useMemo(() => chatList[chatIndex], [chatList, chatIndex])
 
   useEffect(() => {
     get()
-  }, [chat])
+  }, [chatIndex])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -294,8 +268,8 @@ const ThreadDrawer: FC<Props> = ({
   useEffect(() => {
     if (!chat) return
 
-    const replies = supabase
-      .channel('public:replies')
+    const channel = supabase
+      .channel('containers/drawer/thread')
       .on(
         'postgres_changes',
         {
@@ -305,6 +279,7 @@ const ThreadDrawer: FC<Props> = ({
           filter: `chat_id=eq.${chat.id}`
         },
         async (payload: any) => {
+          if (payload.new.user_id === user?.id) return
           const { data, error } = await supabase
             .from('users')
             .select('id, nickname, avatar_url')
@@ -314,19 +289,10 @@ const ThreadDrawer: FC<Props> = ({
             console.error(error)
             return
           }
-          if (data) {
-            setState({
-              list: [
-                ...list,
-                { ...payload.new, user: data, reactions: [], saves: [] }
-              ]
-            })
-            onCreate({
-              id: payload.new.id,
-              created_at: payload.new.created_at,
-              user: { avatar_url: data.avatar_url }
-            })
-          }
+          setReplyList([
+            ...replyList,
+            { ...payload.new, user: data, reactions: [], saves: [] }
+          ])
         }
       )
       .on(
@@ -338,22 +304,22 @@ const ThreadDrawer: FC<Props> = ({
           filter: `chat_id=eq.${chat.id}`
         },
         (payload) => {
-          const index = list.findIndex((item) => item.id === payload.new.id)
+          if (payload.new.user_id === user?.id) return
+          const index = replyList.findIndex(
+            (item) => item.id === payload.new.id
+          )
           if (index === -1) return
-          setState({
-            list: [
-              ...list.slice(0, index),
-              {
-                ...list[index],
-                content: payload.new.content,
-                updated_at: payload.new.updated_at,
-                code_block: payload.new.code_block,
-                language: payload.new.language
-              },
-              ...list.slice(index + 1)
-            ]
-          })
-          if (payload.new.user_id === user?.id) toast.success('변경되었습니다.')
+          setReplyList([
+            ...replyList.slice(0, index),
+            {
+              ...replyList[index],
+              content: payload.new.content,
+              updated_at: payload.new.updated_at,
+              code_block: payload.new.code_block,
+              language: payload.new.language
+            },
+            ...replyList.slice(index + 1)
+          ])
         }
       )
       .on(
@@ -365,15 +331,27 @@ const ThreadDrawer: FC<Props> = ({
           filter: `chat_id=eq.${chat.id}`
         },
         (payload) => {
-          setState({ list: list.filter((item) => item.id !== payload.old.id) })
-          onDelete(payload.old.id)
-          if (payload.old.user_id === user?.id) toast.success('삭제되었습니다.')
+          if (payload.old.user_id === user?.id) return
+          const index = replyList.findIndex(
+            (item) => item.id === payload.old.id
+          )
+          setReplyList([
+            ...replyList.slice(0, index),
+            ...replyList.slice(index + 1)
+          ])
+          setChatList([
+            ...chatList.slice(0, chatIndex),
+            {
+              ...chat,
+              replies: [
+                ...chat.replies.slice(0, index),
+                ...chat.replies.slice(index + 1)
+              ]
+            },
+            ...chatList.slice(chatIndex + 1)
+          ])
         }
       )
-      .subscribe()
-
-    const replyReactions = supabase
-      .channel('public:reply_reactions')
       .on(
         'postgres_changes',
         {
@@ -383,7 +361,8 @@ const ThreadDrawer: FC<Props> = ({
           filter: `chat_id=eq.${chat.id}`
         },
         async (payload: any) => {
-          const index = list.findIndex(
+          if (payload.new.user_id === user?.id) return
+          const index = replyList.findIndex(
             (item) => item.id === payload.new.reply_id
           )
           if (index === -1) return
@@ -397,44 +376,44 @@ const ThreadDrawer: FC<Props> = ({
             return
           }
 
-          const reactionIndex = list[index].reply_reactions.findIndex(
+          const reactionIndex = replyList[index].reply_reactions.findIndex(
             (item) => item.text === payload.new.text
           )
-          setState({
-            list: [
-              ...list.slice(0, index),
-              {
-                ...list[index],
-                reply_reactions:
-                  reactionIndex === -1
-                    ? [
-                        ...list[index].reply_reactions,
-                        {
-                          ...payload.new,
-                          userList: [
-                            { id: payload.new.user_id, nickname: data.nickname }
-                          ]
-                        }
-                      ]
-                    : [
-                        ...list[index].reply_reactions.slice(0, reactionIndex),
-                        {
-                          ...list[index].reply_reactions[reactionIndex],
-                          userList: [
-                            ...list[index].reply_reactions[reactionIndex]
-                              .userList,
-                            {
-                              id: payload.new.user_id,
-                              nickname: data.nickname
-                            }
-                          ]
-                        },
-                        ...list[index].reply_reactions.slice(reactionIndex + 1)
-                      ]
-              },
-              ...list.slice(index + 1)
-            ]
-          })
+          setReplyList([
+            ...replyList.slice(0, index),
+            {
+              ...replyList[index],
+              reply_reactions:
+                reactionIndex === -1
+                  ? [
+                      ...replyList[index].reply_reactions,
+                      {
+                        ...payload.new,
+                        userList: [
+                          { id: payload.new.user_id, nickname: data.nickname }
+                        ]
+                      }
+                    ]
+                  : [
+                      ...replyList[index].reply_reactions.slice(
+                        0,
+                        reactionIndex
+                      ),
+                      {
+                        ...replyList[index].reply_reactions[reactionIndex],
+                        userList: [
+                          ...replyList[index].reply_reactions[reactionIndex]
+                            .userList,
+                          { id: payload.new.user_id, nickname: data.nickname }
+                        ]
+                      },
+                      ...replyList[index].reply_reactions.slice(
+                        reactionIndex + 1
+                      )
+                    ]
+            },
+            ...replyList.slice(index + 1)
+          ])
         }
       )
       .on(
@@ -446,114 +425,93 @@ const ThreadDrawer: FC<Props> = ({
           filter: `chat_id=eq.${chat.id}`
         },
         (payload) => {
-          const index = list.findIndex(
+          if (payload.old.user_id === user?.id) return
+          const index = replyList.findIndex(
             (item) => item.id === payload.old.reply_id
           )
           if (index === -1) return
 
-          const reactionIndex = list[index].reply_reactions.findIndex(
+          const reply = replyList[index]
+          const reactionIndex = reply.reply_reactions.findIndex(
             (item) => item.text === payload.old.text
           )
           if (reactionIndex === -1) return
 
-          setState({
-            list: [
-              ...list.slice(0, index),
-              {
-                ...list[index],
-                reply_reactions:
-                  list[index].reply_reactions[reactionIndex].userList.length > 1
-                    ? [
-                        ...list[index].reply_reactions.slice(0, reactionIndex),
-                        {
-                          ...list[index].reply_reactions[reactionIndex],
-                          userList: list[index].reply_reactions[
-                            reactionIndex
-                          ].userList.filter(
-                            (item) => item.id !== payload.old.user_id
-                          )
-                        },
-                        ...list[index].reply_reactions.slice(reactionIndex + 1)
-                      ]
-                    : list[index].reply_reactions.filter(
-                        (item) => item.text !== payload.old.text
-                      )
-              },
-              ...list.slice(index + 1)
-            ]
-          })
+          setReplyList([
+            ...replyList.slice(0, index),
+            {
+              ...reply,
+              reply_reactions:
+                reply.reply_reactions[reactionIndex].userList.length > 1
+                  ? [
+                      ...reply.reply_reactions.slice(0, reactionIndex),
+                      {
+                        ...reply.reply_reactions[reactionIndex],
+                        userList: reply.reply_reactions[
+                          reactionIndex
+                        ].userList.filter(
+                          (item) => item.id !== payload.old.user_id
+                        )
+                      },
+                      ...reply.reply_reactions.slice(reactionIndex + 1)
+                    ]
+                  : reply.reply_reactions.filter(
+                      (item) => item.text !== payload.old.text
+                    )
+            },
+            ...replyList.slice(index + 1)
+          ])
         }
       )
-      .subscribe()
-
-    const opengraphs = supabase
-      .channel('public:opengraphs')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'oepngraphs',
+          table: 'opengraphs',
           filter: `chat_id=eq.${chat.id}`
         },
         (payload: any) => {
-          const index = list.findIndex(
+          const index = replyList.findIndex(
             (item) => item.id === payload.new.reply_id
           )
           if (index === -1) return
 
-          setState({
-            list: [
-              ...list.slice(0, index),
-              {
-                ...list[index],
-                opengraphs: [...list[index].opengraphs, payload.new]
-              },
-              ...list.slice(index + 1)
-            ]
-          })
+          setReplyList([
+            ...replyList.slice(0, index),
+            {
+              ...replyList[index],
+              opengraphs: [...replyList[index].opengraphs, payload.new]
+            },
+            ...replyList.slice(index + 1)
+          ])
         }
       )
       .subscribe()
 
     return () => {
-      supabase.removeChannel(replies)
-      supabase.removeChannel(replyReactions)
-      supabase.removeChannel(opengraphs)
+      supabase.removeChannel(channel)
     }
-  }, [list, chat])
+  }, [replyList, chat])
   return (
     <>
       <Drawer isOpen={isOpen} onClose={onClose} position="right">
         <div>
           <ThreadDrawerChat
-            chat={chat}
-            updateReaction={updateReaction}
             onClose={onClose}
-            replyLength={list.length}
+            replyLength={replyList.length}
+            chatIndex={chatIndex}
           />
-          {!!list.length && (
+          {!!replyList.length && (
             <div className="relative m-4 border-t dark:border-neutral-700">
               <span className="absolute left-0 top-1/2 -translate-y-1/2 bg-white pr-2 text-xs text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500">
-                {list.length}개의 댓글
+                {replyList.length}개의 댓글
               </span>
             </div>
           )}
           <div>
-            {list.map((item, key) => (
-              <Message.Reply
-                reply={item}
-                key={key}
-                onSave={(data) =>
-                  setState({
-                    list: [
-                      ...list.slice(0, key),
-                      { ...item, saves: data ? [data] : [] },
-                      ...list.slice(key + 1)
-                    ]
-                  })
-                }
-              />
+            {replyList.map((_, key) => (
+              <Message.Reply chatIndex={chatIndex} replyIndex={key} key={key} />
             ))}
           </div>
           <div className="p-4">

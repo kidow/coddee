@@ -2,26 +2,26 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { Tooltip } from 'components'
 import { Message, Modal } from 'containers'
 import dayjs from 'dayjs'
+import { useMemo } from 'react'
 import type { FC } from 'react'
 import {
   backdrop,
+  chatListState,
   EventListener,
+  replyListState,
   toast,
   TOAST_MESSAGE,
+  useChatList,
   useObjectState,
   useUser
 } from 'services'
 import classnames from 'classnames'
 import { BookmarkIcon } from '@heroicons/react/20/solid'
+import { useRecoilState } from 'recoil'
 
 export interface Props {
-  reply: NTable.Replies & {
-    user: NTable.Users
-    reply_reactions: NTable.ReplyReactions[]
-    opengraphs: NTable.Opengraphs[]
-    saves: NTable.Saves[]
-  }
-  onSave: (data?: NTable.Saves) => void
+  chatIndex: number
+  replyIndex: number
 }
 interface State {
   isUpdateMode: boolean
@@ -29,23 +29,25 @@ interface State {
   isCodeEditorOpen: boolean
 }
 
-const MessageReply: FC<Props> = ({ reply, onSave }) => {
+const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
   const [{ isUpdateMode, isSubmitting, isCodeEditorOpen }, setState] =
     useObjectState<State>({
       isUpdateMode: false,
       isSubmitting: false,
       isCodeEditorOpen: false
     })
-  const [user, setUser] = useUser()
+  const [user] = useUser()
   const supabase = useSupabaseClient()
+  const [chatList, setChatList] = useRecoilState(chatListState)
+  const [replyList, setReplyList] = useRecoilState(replyListState)
+  const { onRegex } = useChatList()
 
   const updateReply = async (content?: string) => {
     if (isSubmitting) return
 
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
@@ -57,15 +59,23 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
     }
 
     setState({ isSubmitting: true })
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('replies')
       .update({ content })
       .eq('id', reply.id)
+      .select('updated_at')
+      .single()
     setState({ isSubmitting: false, isUpdateMode: false })
     if (error) {
+      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
+    setReplyList([
+      ...replyList.slice(0, replyIndex),
+      { ...reply, content, updated_at: data.updated_at },
+      ...replyList.slice(replyIndex + 1)
+    ])
   }
 
   const deleteReply = async () => {
@@ -73,50 +83,121 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
+      EventListener.emit('tooltip:delete:error')
+      return
     }
+    EventListener.emit('tooltip:delete')
+    setReplyList([
+      ...replyList.slice(0, replyIndex),
+      ...replyList.slice(replyIndex + 1)
+    ])
+    setChatList([
+      ...chatList.slice(0, chatIndex),
+      {
+        ...chatList[chatIndex],
+        replies: [
+          ...chatList[chatIndex].replies.slice(0, replyIndex),
+          ...chatList[chatIndex].replies.slice(replyIndex + 1)
+        ]
+      },
+      ...chatList.slice(chatIndex + 1)
+    ])
   }
 
-  const updateReaction = async (index: number) => {
+  const updateReplyReaction = async (reactionIndex: number) => {
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
     }
 
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
 
-    const userIndex = reply.reply_reactions[index].userList?.findIndex(
+    const userIndex = reply.reply_reactions[reactionIndex].userList?.findIndex(
       (item) => item.id === user.id
     )
     if (userIndex === undefined) return
 
     if (userIndex === -1) {
-      const { error } = await supabase.from('reply_reactions').insert({
-        user_id: user.id,
-        reply_id: reply.id,
-        text: reply.reply_reactions[index].text,
-        chat_id: reply.chat_id
-      })
+      const { data, error } = await supabase
+        .from('reply_reactions')
+        .insert({
+          user_id: user.id,
+          reply_id: reply.id,
+          text: reply.reply_reactions[reactionIndex].text,
+          chat_id: reply.chat_id
+        })
+        .select()
+        .single()
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
+        return
       }
+      setReplyList([
+        ...replyList.slice(0, replyIndex),
+        {
+          ...reply,
+          reply_reactions:
+            reactionIndex === -1
+              ? [
+                  ...reply.reply_reactions,
+                  {
+                    ...data,
+                    userList: [{ id: user.id, nickname: user.nickname }]
+                  }
+                ]
+              : [
+                  ...reply.reply_reactions.slice(0, reactionIndex),
+                  {
+                    ...reply.reply_reactions[reactionIndex],
+                    userList: [
+                      ...reply.reply_reactions[reactionIndex].userList,
+                      { id: user.id, nickname: user.nickname }
+                    ]
+                  },
+                  ...reply.reply_reactions.slice(reactionIndex + 1)
+                ]
+        },
+        ...replyList.slice(replyIndex + 1)
+      ])
     } else {
-      const { error } = await supabase.from('reply_reactions').delete().match({
-        user_id: user.id,
-        reply_id: reply.id,
-        text: reply.reply_reactions[index].text,
-        chat_id: reply.chat_id
-      })
+      const { error } = await supabase
+        .from('reply_reactions')
+        .delete()
+        .eq('id', reply.reply_reactions[reactionIndex].id)
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
+        return
       }
+      setReplyList([
+        ...replyList.slice(0, replyIndex),
+        {
+          ...reply,
+          reply_reactions:
+            reply.reply_reactions[reactionIndex].userList.length > 1
+              ? [
+                  ...reply.reply_reactions.slice(0, reactionIndex),
+                  {
+                    ...reply.reply_reactions[reactionIndex],
+                    userList: reply.reply_reactions[
+                      reactionIndex
+                    ].userList.filter((item) => item.id !== user.id)
+                  },
+                  ...reply.reply_reactions.slice(reactionIndex + 1)
+                ]
+              : reply.reply_reactions.filter(
+                  (item) =>
+                    item.text !== reply.reply_reactions[reactionIndex].text
+                )
+        },
+        ...replyList.slice(replyIndex + 1)
+      ])
     }
   }
 
@@ -126,55 +207,140 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
       return
     }
 
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
 
-    const index = reply.reply_reactions.findIndex((item) => item.text === text)
-    if (index === -1) {
-      const { error } = await supabase.from('reply_reactions').insert({
-        user_id: user.id,
-        reply_id: reply.id,
-        text,
-        chat_id: reply.chat_id
-      })
-      if (error) {
-        console.error(error)
-        toast.error(TOAST_MESSAGE.API_ERROR)
-      }
-    } else {
-      const userIndex = reply.reply_reactions[index].userList.findIndex(
-        (item) => item.id === user.id
-      )
-      if (userIndex === -1) {
-        const { error } = await supabase.from('reply_reactions').insert({
+    const reactionIndex = reply.reply_reactions.findIndex(
+      (item) => item.text === text
+    )
+    if (reactionIndex === -1) {
+      const { data, error } = await supabase
+        .from('reply_reactions')
+        .insert({
           user_id: user.id,
           reply_id: reply.id,
           text,
           chat_id: reply.chat_id
         })
-        if (error) {
-          console.error(error)
-          toast.error(TOAST_MESSAGE.API_ERROR)
-        }
-      } else {
-        const { error } = await supabase
+        .select()
+        .single()
+      if (error) {
+        console.error(error)
+        toast.error(TOAST_MESSAGE.API_ERROR)
+        return
+      }
+      setReplyList([
+        ...replyList.slice(0, replyIndex),
+        {
+          ...reply,
+          reply_reactions:
+            reactionIndex === -1
+              ? [
+                  ...reply.reply_reactions,
+                  {
+                    ...data,
+                    userList: [{ id: user.id, nickname: user.nickname }]
+                  }
+                ]
+              : [
+                  ...reply.reply_reactions.slice(0, reactionIndex),
+                  {
+                    ...reply.reply_reactions[reactionIndex],
+                    userList: [
+                      ...reply.reply_reactions[reactionIndex].userList,
+                      { id: user.id, nickname: user.nickname }
+                    ]
+                  },
+                  ...reply.reply_reactions.slice(reactionIndex + 1)
+                ]
+        },
+        ...replyList.slice(replyIndex + 1)
+      ])
+      EventListener.emit('modal:emoji')
+    } else {
+      const userIndex = reply.reply_reactions[reactionIndex].userList.findIndex(
+        (item) => item.id === user.id
+      )
+      if (userIndex === -1) {
+        const { data, error } = await supabase
           .from('reply_reactions')
-          .delete()
-          .match({
+          .insert({
             user_id: user.id,
             reply_id: reply.id,
             text,
             chat_id: reply.chat_id
           })
+          .select()
+          .single()
         if (error) {
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
+          return
         }
+
+        setReplyList([
+          ...replyList.slice(0, replyIndex),
+          {
+            ...reply,
+            reply_reactions:
+              reactionIndex === -1
+                ? [
+                    ...reply.reply_reactions,
+                    {
+                      ...data,
+                      userList: [{ id: user.id, nickname: user.nickname }]
+                    }
+                  ]
+                : [
+                    ...reply.reply_reactions.slice(0, reactionIndex),
+                    {
+                      ...reply.reply_reactions[reactionIndex],
+                      userList: [
+                        ...reply.reply_reactions[reactionIndex].userList,
+                        { id: user.id, nickname: user.nickname }
+                      ]
+                    },
+                    ...reply.reply_reactions.slice(reactionIndex + 1)
+                  ]
+          },
+          ...replyList.slice(replyIndex + 1)
+        ])
+        EventListener.emit('modal:emoji')
+      } else {
+        const { error } = await supabase
+          .from('reply_reactions')
+          .delete()
+          .eq('id', reply.reply_reactions[reactionIndex].id)
+        if (error) {
+          console.error(error)
+          toast.error(TOAST_MESSAGE.API_ERROR)
+          return
+        }
+        setReplyList([
+          ...replyList.slice(0, replyIndex),
+          {
+            ...reply,
+            reply_reactions:
+              reply.reply_reactions.length > 1
+                ? [
+                    ...reply.reply_reactions.slice(0, reactionIndex),
+                    {
+                      ...reply.reply_reactions[reactionIndex],
+                      userList: reply.reply_reactions[
+                        reactionIndex
+                      ].userList.filter((item) => item.id !== user.id)
+                    },
+                    ...reply.reply_reactions.slice(reactionIndex + 1)
+                  ]
+                : reply.reply_reactions.filter((item) => item.text !== text)
+          },
+          ...replyList.slice(replyIndex + 1)
+        ])
+        EventListener.emit('modal:emoji')
       }
     }
   }
@@ -184,10 +350,9 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
     }
-    const { data } = await supabase.auth.getUser()
-    if (!!user && !data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
@@ -200,8 +365,13 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
       if (error) {
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
+        return
       }
-      onSave()
+      setReplyList([
+        ...replyList.slice(0, replyIndex),
+        { ...reply, saves: [] },
+        ...replyList.slice(replyIndex + 1)
+      ])
     } else {
       const { data, error } = await supabase
         .from('saves')
@@ -213,7 +383,11 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
-      onSave(data)
+      setReplyList([
+        ...replyList.slice(0, replyIndex),
+        { ...reply, saves: [data] },
+        ...replyList.slice(replyIndex + 1)
+      ])
     }
   }
 
@@ -222,7 +396,7 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
     codeBlock: string
     language: string
   }) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('replies')
       .update({
         content: payload.content,
@@ -230,6 +404,8 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
         language: payload.language
       })
       .eq('id', reply.id)
+      .select('updated_at')
+      .single()
     backdrop(false)
     if (error) {
       console.error(error)
@@ -237,6 +413,17 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
       return
     }
     setState({ isCodeEditorOpen: false })
+    setReplyList([
+      ...replyList.slice(0, replyIndex),
+      {
+        ...reply,
+        updated_at: data.updated_at,
+        content: payload.content,
+        code_block: payload.codeBlock,
+        language: payload.language
+      },
+      ...replyList.slice(replyIndex + 1)
+    ])
   }
 
   const createModifiedCodeReply = async (payload: {
@@ -244,21 +431,55 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
     codeBlock: string
     language: string
   }) => {
-    const { error } = await supabase.from('replies').insert({
-      content: payload.content,
-      code_block: reply.modified_code || reply.code_block,
-      language: reply.modified_language || reply.language,
-      modified_code: payload.codeBlock,
-      modified_language: payload.language
-    })
+    const { data, error } = await supabase
+      .from('replies')
+      .insert({
+        content: payload.content,
+        code_block: reply.modified_code || reply.code_block,
+        language: reply.modified_language || reply.language,
+        modified_code: payload.codeBlock,
+        modified_language: payload.language,
+        user_id: user?.id,
+        chat_id: reply.chat_id
+      })
+      .select()
+      .single()
     backdrop(false)
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
+    onRegex(payload.content, reply.chat_id, reply.id)
     EventListener.emit('message:codeblock')
+    setReplyList([
+      ...replyList,
+      {
+        ...data,
+        reply_reactions: [],
+        saves: [],
+        opengraphs: [],
+        user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+      }
+    ])
+    setChatList([
+      ...chatList.slice(0, chatIndex),
+      {
+        ...chatList[chatIndex],
+        replies: [
+          ...chatList[chatIndex].replies,
+          {
+            id: data.id,
+            created_at: data.created_at,
+            user: { avatar_url: user!.avatar_url }
+          }
+        ]
+      },
+      ...chatList.slice(chatIndex + 1)
+    ])
   }
+
+  const reply = useMemo(() => replyList[replyIndex], [replyList, replyIndex])
   return (
     <>
       <div
@@ -316,7 +537,7 @@ const MessageReply: FC<Props> = ({ reply, onSave }) => {
                 <Tooltip.Reaction
                   userList={item.userList}
                   key={key}
-                  onClick={() => updateReaction(key)}
+                  onClick={() => updateReplyReaction(key)}
                   text={item.text}
                   length={item?.userList.length}
                 />

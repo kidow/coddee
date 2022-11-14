@@ -1,5 +1,4 @@
-import { useEffect } from 'react'
-import type { FC } from 'react'
+import { forwardRef, useEffect } from 'react'
 import { MentionsInput, Mention } from 'react-mentions'
 import type { MentionsInputProps } from 'react-mentions'
 import { useRecoilState } from 'recoil'
@@ -10,7 +9,7 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react'
 export interface Props extends Omit<MentionsInputProps, 'children'> {}
 interface State {}
 
-const Textarea: FC<Props> = ({ ...props }) => {
+const Textarea = forwardRef<HTMLTextAreaElement, Props>(({ ...props }, ref) => {
   const [userList, setUserList] = useRecoilState(userListState)
   const supabase = useSupabaseClient()
 
@@ -53,6 +52,7 @@ const Textarea: FC<Props> = ({ ...props }) => {
           {children}
         </ul>
       )}
+      inputRef={ref}
     >
       <Mention
         trigger="@"
@@ -84,6 +84,6 @@ const Textarea: FC<Props> = ({ ...props }) => {
       />
     </MentionsInput>
   )
-}
+})
 
 export default Textarea

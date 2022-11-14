@@ -59,17 +59,13 @@ const SavedPage: NextPage = () => {
   const supabase = useSupabaseClient()
 
   const get = async (page: number = 1) => {
-    const { data } = await supabase.auth.getUser()
-    if (!data.user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!auth.user) {
       setState({ isLoading: false })
       return
     }
     if (!isLoading) setState({ isLoading: true })
-    const {
-      data: saves,
-      error,
-      count
-    } = await supabase
+    const { data, error, count } = await supabase
       .from('saves')
       .select(
         `
@@ -151,26 +147,25 @@ const SavedPage: NextPage = () => {
     `,
         { count: 'exact' }
       )
-      .eq('user_id', data.user.id)
+      .eq('user_id', auth.user.id)
       .order('created_at', { ascending: false })
       .range((page - 1) * 20, page * 20 - 1)
-    console.log('data', data)
     if (error) {
       console.error(error)
       setState({ isLoading: false })
       return
     }
-    for (const data of saves) {
+    for (const item of data) {
       let reactions: Array<{
         id: number
         text: string
         userList: Array<{ id: string; nickname: string }>
       }> = []
-      if (data.chat) {
+      if (item.chat) {
         // @ts-ignore
-        if (data.chat.reactions.length > 0) {
+        if (item.chat.reactions.length > 0) {
           // @ts-ignore
-          for (const reaction of data.chat.reactions) {
+          for (const reaction of item.chat.reactions) {
             const index = reactions.findIndex(
               (item) => item.text === reaction.text
             )
@@ -195,13 +190,13 @@ const SavedPage: NextPage = () => {
           }
         }
         // @ts-ignore
-        data.chat.reactions = reactions
+        item.chat.reactions = reactions
       }
-      if (data.reply) {
+      if (item.reply) {
         // @ts-ignore
-        if (data.reply.reply_reactions.length > 0) {
+        if (item.reply.reply_reactions.length > 0) {
           // @ts-ignore
-          for (const reaction of data.reply.reply_reactions) {
+          for (const reaction of item.reply.reply_reactions) {
             const index = reactions.findIndex(
               (item) => item.text === reaction.text
             )
@@ -226,25 +221,28 @@ const SavedPage: NextPage = () => {
           }
         }
         // @ts-ignore
-        data.reply_reactions = reactions
+        item.reply_reactions = reactions
       }
     }
     setState({
-      list: page === 1 ? saves : [...list, ...(saves as any[])],
+      list: page === 1 ? data : [...list, ...(data as any[])],
       isLoading: false,
       page,
       total: count || 0
     })
   }
 
-  const onCancelSave = async (id: number) => {
-    const { error } = await supabase.from('saves').delete().eq('id', id)
+  const onCancelSave = async (index: number) => {
+    const { error } = await supabase
+      .from('saves')
+      .delete()
+      .eq('id', list[index].id)
     if (error) {
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    setState({ list: list.filter((item) => item.id !== id) })
+    setState({ list: [...list.slice(0, index), ...list.slice(index + 1)] })
   }
 
   const createModifiedCodeChatOrReply = async (payload: {
@@ -322,7 +320,7 @@ const SavedPage: NextPage = () => {
           <span className="font-semibold">저장된 항목</span>
         </header>
         <main className="flex-1 overflow-auto">
-          {list.map((item) => (
+          {list.map((item, key) => (
             <div
               key={item.id}
               className="group relative m-4 space-y-2 rounded-xl border p-3 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-700"
@@ -433,7 +431,7 @@ const SavedPage: NextPage = () => {
               </div>
               <Message.Actions>
                 <Tooltip.Actions.Save
-                  onClick={() => onCancelSave(item.id)}
+                  onClick={() => onCancelSave(key)}
                   isSaved
                 />
               </Message.Actions>
