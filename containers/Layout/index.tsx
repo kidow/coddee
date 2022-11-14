@@ -9,7 +9,7 @@ import {
   useObjectState,
   useUser
 } from 'services'
-import { Modal, Drawer } from 'containers'
+import { Modal, Drawer, Presence } from 'containers'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -17,7 +17,6 @@ import { Logo } from 'components'
 import {
   AtSymbolIcon,
   BookmarkIcon,
-  BookOpenIcon,
   ChatBubbleBottomCenterTextIcon,
   ChatBubbleLeftRightIcon,
   HomeIcon as HomeOutlineIcon,
@@ -601,6 +600,8 @@ const Layout: FC<Props> = ({ children }) => {
           </ul>
         </Drawer>
       )}
+
+      <Presence />
     </>
   )
 }

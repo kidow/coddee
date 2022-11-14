@@ -32,7 +32,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
       isSubmitting: false,
       isCodeEditorOpen: false
     })
-  const [user, setUser] = useUser()
+  const [user] = useUser()
   const supabase = useSupabaseClient()
   const [list, setList] = useRecoilState(threadListState)
   const { onRegex } = useChatList()
@@ -43,7 +43,6 @@ const ThreadChat: FC<Props> = ({ index }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       setList([])
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
@@ -89,7 +88,6 @@ const ThreadChat: FC<Props> = ({ index }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       setList([])
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
@@ -165,7 +163,6 @@ const ThreadChat: FC<Props> = ({ index }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       setList([])
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return

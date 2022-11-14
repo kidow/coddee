@@ -39,7 +39,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
       codeBlock: props.codeBlock || '',
       languageList: []
     })
-  const [user, setUser] = useUser()
+  const [user] = useUser()
   const supabase = useSupabaseClient()
   const theme = useTheme()
 
@@ -56,7 +56,6 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       onClose()
       return

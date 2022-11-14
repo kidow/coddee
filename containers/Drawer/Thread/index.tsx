@@ -38,7 +38,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       spamCount: 0
     })
   const supabase = useSupabaseClient()
-  const [user, setUser] = useUser()
+  const [user] = useUser()
   const { onRegex } = useChatList()
   const [chatList, setChatList] = useRecoilState(chatListState)
   const [replyList, setReplyList] = useRecoilState(replyListState)
@@ -141,7 +141,6 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }

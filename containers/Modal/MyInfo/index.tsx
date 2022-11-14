@@ -82,13 +82,12 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     isLoading: true
   })
   const supabase = useSupabaseClient()
-  const [user, setUser] = useUser()
+  const [user] = useUser()
 
   const get = async () => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       onClose()
       return
@@ -130,7 +129,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       onClose()
       return
@@ -151,7 +149,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       return
     }
     onClose()
-    setUser(null)
     toast.success('로그아웃되었습니다.')
   }
 
@@ -176,7 +173,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     } = await supabase.auth.getUser()
     if (!user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       onClose()
       return
@@ -188,7 +184,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       return
     }
     await supabase.auth.signOut()
-    setUser(null)
     setState({ isResignOpen: false })
     onClose()
     toast.success('탈퇴되었습니다.')

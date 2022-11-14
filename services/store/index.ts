@@ -93,3 +93,13 @@ export const threadListState = atom<
   key: 'threadListState',
   default: []
 })
+
+export const presenceListState = atom<
+  Array<{
+    presence_ref: string
+    [key: string]: string
+  }>
+>({
+  key: 'presenceListState',
+  default: []
+})

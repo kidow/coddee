@@ -64,7 +64,7 @@ const RoomIdPage: NextPage = () => {
     spamCount: 0
   })
   const { query, back } = useRouter()
-  const [user, setUser] = useUser()
+  const [user] = useUser()
   const [list, setList] = useRecoilState(chatListState)
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -201,7 +201,6 @@ const RoomIdPage: NextPage = () => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
@@ -241,7 +240,10 @@ const RoomIdPage: NextPage = () => {
       },
       ...list
     ])
-    setState({ content: '' }, () => textareaRef.current?.focus())
+    setState({ content: '' }, () => {
+      window.scrollTo(0, document.body.scrollHeight)
+      textareaRef.current?.focus()
+    })
   }
 
   const createCodeChat = async (payload: {
@@ -278,7 +280,10 @@ const RoomIdPage: NextPage = () => {
       },
       ...list
     ])
-    setState({ isCodeEditorOpen: false, content: '' })
+    setState({ isCodeEditorOpen: false, content: '' }, () => {
+      window.scrollTo(0, document.body.scrollHeight)
+      textareaRef.current?.focus()
+    })
   }
 
   useEffect(() => {
@@ -292,7 +297,7 @@ const RoomIdPage: NextPage = () => {
 
   useEffect(() => {
     const channel = supabase
-      .channel('pages/room/[id]:1')
+      .channel(`pages/room/${query.id}:1`)
       .on(
         'postgres_changes',
         {
@@ -312,17 +317,11 @@ const RoomIdPage: NextPage = () => {
             console.error(error)
             return
           }
-          if (data) {
-            setList([
-              { ...payload.new, user: data, reactions: [], saves: [] },
-              ...list
-            ])
-            setState({ count: count + 1 })
-          }
-          if (payload.new.user_id === user?.id) {
-            window.scrollTo(0, document.body.scrollHeight)
-            textareaRef.current?.focus()
-          }
+          setList([
+            { ...payload.new, user: data, reactions: [], saves: [] },
+            ...list
+          ])
+          setState({ count: count + 1 })
         }
       )
       .on(
@@ -374,7 +373,7 @@ const RoomIdPage: NextPage = () => {
 
   useEffect(() => {
     const channel = supabase
-      .channel('pages/room/[id]:2')
+      .channel(`pages/room/${query.id}:2`)
       .on(
         'postgres_changes',
         {

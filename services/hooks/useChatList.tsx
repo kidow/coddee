@@ -13,7 +13,7 @@ import {
 export default () => {
   const { query } = useRouter()
   const supabase = useSupabaseClient()
-  const [user, setUser] = useUser()
+  const [user] = useUser()
   const [list, setList] = useRecoilState(chatListState)
 
   const onRegex = async (content: string, chatId: number, replyId?: number) => {
@@ -77,7 +77,6 @@ export default () => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
@@ -225,7 +224,6 @@ export default () => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }

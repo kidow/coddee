@@ -34,7 +34,7 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
       isUpdating: false,
       isCodeEditorOpen: false
     })
-  const [user, setUser] = useUser()
+  const [user] = useUser()
   const supabase = useSupabaseClient()
   const { query } = useRouter()
   const { onEmojiSelect, onReactionClick } = useChatList()
@@ -46,7 +46,6 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }

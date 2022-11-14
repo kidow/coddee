@@ -36,7 +36,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
       isSubmitting: false,
       isCodeEditorOpen: false
     })
-  const [user, setUser] = useUser()
+  const [user] = useUser()
   const supabase = useSupabaseClient()
   const [chatList, setChatList] = useRecoilState(chatListState)
   const [replyList, setReplyList] = useRecoilState(replyListState)
@@ -48,7 +48,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
@@ -114,7 +113,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
@@ -212,7 +210,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
@@ -356,7 +353,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }

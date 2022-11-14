@@ -41,7 +41,7 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
     isSubmitting: false,
     isCodeEditorOpen: false
   })
-  const [user, setUser] = useUser()
+  const [user] = useUser()
   const { query } = useRouter()
   const supabase = useSupabaseClient()
   const { onEmojiSelect, onReactionClick, onRegex } = useChatList()
@@ -53,7 +53,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }
@@ -137,7 +136,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
     }

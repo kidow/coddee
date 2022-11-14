@@ -59,7 +59,7 @@ const MessageCodeBlock: FC<Props> = ({
     language: ''
   })
   const theme = useTheme()
-  const [user, setUser] = useUser()
+  const [user] = useUser()
   const supabase = useSupabaseClient()
   const languageList = useRecoilValue(languageListState)
 
@@ -113,7 +113,6 @@ const MessageCodeBlock: FC<Props> = ({
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       setState({ isDiffEditorOpen: false })
       return

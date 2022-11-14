@@ -33,7 +33,7 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
       isUpdateMode: false,
       isCodeEditorOpen: false
     })
-  const [user, setUser] = useUser()
+  const [user] = useUser()
   const supabase = useSupabaseClient()
   const [list, setList] = useRecoilState(threadListState)
   const { onRegex } = useChatList()
@@ -44,7 +44,6 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       setList([])
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
@@ -90,7 +89,6 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       setList([])
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
@@ -202,7 +200,6 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
-      setUser(null)
       setList([])
       toast.warn(TOAST_MESSAGE.SESSION_EXPIRED)
       return
