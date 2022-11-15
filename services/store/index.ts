@@ -103,3 +103,13 @@ export const presenceListState = atom<
   key: 'presenceListState',
   default: []
 })
+
+export const typingListState = atom<
+  Array<{
+    presence_ref: string
+    [key: string]: string
+  }>
+>({
+  key: 'typingListState',
+  default: []
+})

@@ -329,6 +329,7 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
             mention={`@[${chat.user.nickname}](${chat.user_id})`}
             modifiedCode={chat.modified_code}
             modifiedLanguage={chat.modified_language}
+            typingSource="room"
           />
           {chat.opengraphs?.map((item) => (
             <Message.Opengraph {...item} key={item.id} />

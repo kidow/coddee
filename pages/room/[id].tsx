@@ -1,7 +1,8 @@
-import { Dropdown, SEO, Spinner, Textarea } from 'components'
+import { Dropdown, SEO, Spinner, Textarea, Typing } from 'components'
 import type { NextPage } from 'next'
 import {
   ArrowLeftIcon,
+  ChevronDownIcon,
   EllipsisVerticalIcon
 } from '@heroicons/react/24/outline'
 import {
@@ -12,15 +13,18 @@ import {
   TOAST_MESSAGE,
   backdrop,
   useChatList,
-  chatListState
+  chatListState,
+  typingListState
 } from 'services'
 import { useEffect, useRef } from 'react'
+import type { KeyboardEvent } from 'react'
 import { useRouter } from 'next/router'
 import { Message, Modal } from 'containers'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useRecoilState } from 'recoil'
+import classnames from 'classnames'
 
 dayjs.extend(relativeTime)
 
@@ -66,10 +70,14 @@ const RoomIdPage: NextPage = () => {
   const { query, back } = useRouter()
   const [user] = useUser()
   const [list, setList] = useRecoilState(chatListState)
-  const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
+  const [morefetchRef, isMoreFetchIntersecting] =
+    useIntersectionObserver<HTMLDivElement>()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const supabase = useSupabaseClient()
   const { onRegex } = useChatList()
+  const [backBottomRef, isBackBottomIntersecting] =
+    useIntersectionObserver<HTMLDivElement>()
+  const [typingList, setTypingList] = useRecoilState(typingListState)
 
   const getChatList = async (page: number = 1) => {
     if (!query.id || typeof query.id !== 'string') return
@@ -286,12 +294,52 @@ const RoomIdPage: NextPage = () => {
     })
   }
 
+  const onKeyDown = async (
+    e: KeyboardEvent<HTMLTextAreaElement> | KeyboardEvent<HTMLInputElement>
+  ) => {
+    const channel = supabase
+      .getChannels()
+      .find((item) => item.topic === `realtime:is-typing:room/${query.id}`)
+    if (!e.shiftKey && e.keyCode === 13) {
+      e.preventDefault()
+      createChat()
+      if (channel) await channel.untrack()
+    } else if (user) {
+      if (channel)
+        await channel.track({
+          userId: user.id,
+          nickname: user.nickname,
+          roomId: query.id
+        })
+    }
+  }
+
   useEffect(() => {
     getChatList()
     getRoom()
+
+    let timer: NodeJS.Timeout | undefined
+
+    if (query.id) {
+      const channel = supabase
+        .channel(`is-typing:room/${query.id}`)
+        .on('presence', { event: 'join' }, ({ currentPresences }) => {
+          setTypingList(currentPresences)
+          timer = setTimeout(async () => await channel.untrack(), 5000)
+        })
+        .on('presence', { event: 'leave' }, ({ currentPresences }) =>
+          setTypingList(currentPresences)
+        )
+        .subscribe()
+    }
+
     return () => {
       setList([])
       resetState()
+      const channel = supabase
+        .getChannels()
+        .find((item) => item.topic === `is-typing:room/${query.id}`)
+      if (channel) channel.unsubscribe().then().catch()
     }
   }, [query.id])
 
@@ -584,8 +632,8 @@ const RoomIdPage: NextPage = () => {
   }, [spamCount])
 
   useEffect(() => {
-    if (isIntersecting && page * 100 < total) getChatList(page + 1)
-  }, [isIntersecting])
+    if (isMoreFetchIntersecting && page * 100 < total) getChatList(page + 1)
+  }, [isMoreFetchIntersecting])
   return (
     <>
       <SEO title={name} />
@@ -608,6 +656,7 @@ const RoomIdPage: NextPage = () => {
           </Dropdown> */}
         </header>
         <main className="flex flex-1 flex-col-reverse py-3">
+          <div ref={backBottomRef} />
           {list.map((_, key) => (
             <Message.Chat
               key={key}
@@ -629,38 +678,47 @@ const RoomIdPage: NextPage = () => {
               <Spinner className="h-8 w-8 text-neutral-200 dark:text-neutral-400" />
             </div>
           )}
-          <div ref={ref} />
+          <div ref={morefetchRef} />
         </main>
-        <footer className="sticky bottom-16 z-20 flex min-h-[59px] w-full items-center gap-3 border-t bg-white py-3 px-5 dark:border-neutral-700 dark:bg-neutral-800 sm:bottom-0">
-          <Textarea
-            value={content}
-            onChange={(e) => setState({ content: e.target.value })}
-            disabled={isSubmitting}
-            placeholder="서로를 존중하는 매너를 보여주세요 :)"
-            className="flex-1 dark:bg-transparent"
-            onKeyDown={(e) => {
-              if (!e.shiftKey && e.keyCode === 13) {
-                e.preventDefault()
-                createChat()
-              }
-            }}
-            ref={textareaRef}
-          />
-          <Message.Button.Code
-            onClick={() => setState({ isCodeEditorOpen: true })}
-          />
-          <Message.Button.Submit
-            disabled={isSubmitting || !content}
-            onClick={createChat}
-            loading={isSubmitting}
-          />
+        <footer className="sticky bottom-16 z-20 min-h-[59px] w-full border-t bg-white py-3 px-5 dark:border-neutral-700 dark:bg-neutral-800 sm:bottom-0">
+          <div className="flex items-center gap-3">
+            <Textarea
+              value={content}
+              onChange={(e) => setState({ content: e.target.value })}
+              disabled={isSubmitting}
+              placeholder="서로를 존중하는 매너를 보여주세요 :)"
+              className="flex-1 dark:bg-transparent"
+              ref={textareaRef}
+              onKeyDown={onKeyDown}
+            />
+            <Message.Button.Code
+              onClick={() => setState({ isCodeEditorOpen: true })}
+            />
+            <Message.Button.Submit
+              disabled={isSubmitting || !content}
+              onClick={createChat}
+              loading={isSubmitting}
+            />
+          </div>
+          <Typing source={`room/${query.id}`} />
         </footer>
       </div>
+      <button
+        className={classnames(
+          'fixed bottom-6 right-6 flex h-10 w-10 items-center justify-center rounded-full bg-blue-400 duration-150',
+          isBackBottomIntersecting ? 'scale-0' : 'scale-100'
+        )}
+        tabIndex={-1}
+        onClick={() => window.scrollTo(0, document.body.scrollHeight)}
+      >
+        <ChevronDownIcon className="h-6 w-6 text-neutral-50" />
+      </button>
       <Modal.CodeEditor
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}
         content={content}
         onSubmit={createCodeChat}
+        typingSource="room"
       />
     </>
   )

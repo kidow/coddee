@@ -15,17 +15,6 @@ const Auth: FC<Props> = ({ children }) => {
   const auth = useAuth()
   const supabase = useSupabaseClient()
   const setPresenceList = useSetRecoilState(presenceListState)
-  const online = supabase
-    .channel('online-users')
-    .on('presence', { event: 'sync' }, () => {
-      setPresenceList(Object.values(online.presenceState()).map(([v]) => v))
-    })
-    .on('presence', { event: 'join' }, ({ currentPresences }) =>
-      setPresenceList(currentPresences)
-    )
-    .on('presence', { event: 'leave' }, ({ currentPresences }) =>
-      setPresenceList(currentPresences)
-    )
 
   const get = async () => {
     if (!auth || !!user) return
@@ -80,6 +69,10 @@ const Auth: FC<Props> = ({ children }) => {
   }
 
   const onVisibilityChange = async (e: Event) => {
+    const online = supabase
+      .getChannels()
+      .find((item) => item.topic === 'realtime:online-users')
+    if (!online) return
     if (document.hidden) {
       await online.untrack()
     } else {
@@ -98,6 +91,18 @@ const Auth: FC<Props> = ({ children }) => {
   }, [auth])
 
   useEffect(() => {
+    const online = supabase
+      .channel('online-users')
+      .on('presence', { event: 'sync' }, () => {
+        setPresenceList(Object.values(online.presenceState()).map(([v]) => v))
+      })
+      .on('presence', { event: 'join' }, ({ currentPresences }) => {
+        setPresenceList(currentPresences)
+      })
+      .on('presence', { event: 'leave' }, ({ currentPresences }) => {
+        setPresenceList(currentPresences)
+      })
+
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -131,9 +136,9 @@ const Auth: FC<Props> = ({ children }) => {
     })
 
     return () => {
-      online.unsubscribe()
       subscription.unsubscribe()
       document.removeEventListener('visibilitychange', onVisibilityChange)
+      online.unsubscribe().then().catch()
     }
   }, [])
 

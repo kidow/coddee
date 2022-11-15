@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
-import type { FC } from 'react'
+import type { FC, KeyboardEvent } from 'react'
 import Editor from '@monaco-editor/react'
+import type { OnChange } from '@monaco-editor/react'
 import { Modal } from 'containers'
 import {
   backdrop,
@@ -12,6 +13,7 @@ import {
 } from 'services'
 import { Button, Select, Textarea } from 'components'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import { useRouter } from 'next/router'
 
 export interface Props extends ModalProps {
   content?: string
@@ -22,6 +24,7 @@ export interface Props extends ModalProps {
     codeBlock: string
     language: string
   }) => void
+  typingSource?: string
 }
 interface State {
   content: string
@@ -30,7 +33,12 @@ interface State {
   languageList: NTable.Languages[]
 }
 
-const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
+const CodeEditorModal: FC<Props> = ({
+  isOpen,
+  onClose,
+  typingSource,
+  ...props
+}) => {
   if (!isOpen) return null
   const [{ content, language, codeBlock, languageList }, setState] =
     useObjectState<State>({
@@ -42,6 +50,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
   const [user] = useUser()
   const supabase = useSupabaseClient()
   const theme = useTheme()
+  const { query } = useRouter()
 
   const getLanguages = async () => {
     const { data } = await supabase.from('languages').select('*')
@@ -67,6 +76,38 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
     }
     backdrop(true)
     props.onSubmit({ content, codeBlock, language })
+  }
+
+  const onEditorChange: OnChange = async (codeBlock) => {
+    setState({ codeBlock })
+    if (user) {
+      if (typingSource === 'room') {
+        const channel = supabase
+          .getChannels()
+          .find((item) => item.topic === `realtime:is-typing:room/${query.id}`)
+        if (channel)
+          await channel.track({
+            userId: user.id,
+            nickname: user.nickname,
+            roomId: query.id
+          })
+      }
+    }
+  }
+
+  const onKeyDown = async () => {
+    if (!user) return
+    if (typingSource === 'room') {
+      const channel = supabase
+        .getChannels()
+        .find((item) => item.topic === `realtime:is-typing:room/${query.id}`)
+      if (channel)
+        await channel.track({
+          userId: user.id,
+          nickname: user.nickname,
+          roomId: query.id
+        })
+    }
   }
 
   useEffect(() => {
@@ -145,7 +186,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
             height="300px"
             defaultLanguage={props.language}
             language={language}
-            onChange={(codeBlock) => setState({ codeBlock })}
+            onChange={onEditorChange}
             defaultValue={props.codeBlock}
             value={codeBlock}
             theme={theme === 'dark' ? 'vs-dark' : 'light'}
@@ -163,6 +204,7 @@ const CodeEditorModal: FC<Props> = ({ isOpen, onClose, ...props }) => {
             className="w-full"
             placeholder="서로를 존중하는 매너를 보여주세요 :)"
             onChange={(e) => setState({ content: e.target.value })}
+            onKeyDown={onKeyDown}
           />
         </div>
       </div>
