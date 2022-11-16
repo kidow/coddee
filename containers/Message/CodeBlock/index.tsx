@@ -31,6 +31,7 @@ export interface Props {
   modifiedCode?: string
   modifiedLanguage?: string
   typingSource?: string
+  chatId?: number
 }
 interface State {
   isCollapse: boolean
@@ -46,6 +47,7 @@ const MessageCodeBlock: FC<Props> = ({
   modifiedCode,
   modifiedLanguage,
   typingSource,
+  chatId,
   ...props
 }) => {
   if (!originalCode) return null
@@ -109,17 +111,28 @@ const MessageCodeBlock: FC<Props> = ({
     editor.layout()
   }
 
-  const onKeyDown = async () => {
+  const onTyping = async () => {
     if (!user) return
-    if (typingSource === 'room') {
+    if (typingSource === 'chat') {
       const channel = supabase
         .getChannels()
-        .find((item) => item.topic === `realtime:is-typing:room/${query.id}`)
+        .find((item) => item.topic === `realtime:is-typing:chat/${query.id}`)
       if (channel)
         await channel.track({
           userId: user.id,
           nickname: user.nickname,
           roomId: query.id
+        })
+    }
+    if (typingSource === 'reply') {
+      const channel = supabase
+        .getChannels()
+        .find((item) => item.topic === `realtime:is-typing:reply/${chatId}`)
+      if (channel)
+        await channel.track({
+          userId: user.id,
+          nickname: user.nickname,
+          chatId
         })
     }
   }
@@ -333,24 +346,8 @@ const MessageCodeBlock: FC<Props> = ({
               loading={false}
               onMount={(editor, monaco) => {
                 editor.getModifiedEditor().onDidChangeModelContent(async () => {
-                  setState({
-                    codeBlock: editor.getModifiedEditor().getValue()
-                  })
-                  if (!user) return
-                  if (typingSource === 'room') {
-                    const channel = supabase
-                      .getChannels()
-                      .find(
-                        (item) =>
-                          item.topic === `realtime:is-typing:room/${query.id}`
-                      )
-                    if (channel)
-                      await channel.track({
-                        userId: user.id,
-                        nickname: user.nickname,
-                        roomId: query.id
-                      })
-                  }
+                  setState({ codeBlock: editor.getModifiedEditor().getValue() })
+                  onTyping()
                 })
               }}
             />
@@ -361,7 +358,7 @@ const MessageCodeBlock: FC<Props> = ({
               className="w-full"
               placeholder="서로를 존중하는 매너를 보여주세요 :)"
               onChange={(e) => setState({ content: e.target.value })}
-              onKeyDown={onKeyDown}
+              onKeyDown={onTyping}
             />
           </div>
         </div>

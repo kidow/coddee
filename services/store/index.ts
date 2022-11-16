@@ -104,12 +104,22 @@ export const presenceListState = atom<
   default: []
 })
 
-export const typingListState = atom<
+export const typingChatListState = atom<
   Array<{
     presence_ref: string
     [key: string]: string
   }>
 >({
-  key: 'typingListState',
+  key: 'typingChatListState',
+  default: []
+})
+
+export const typingReplyListState = atom<
+  Array<{
+    presence_ref: string
+    [key: string]: string
+  }>
+>({
+  key: 'typingReplyListState',
   default: []
 })

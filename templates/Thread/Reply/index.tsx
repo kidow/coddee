@@ -504,6 +504,8 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
             mention={`@[${reply.user.nickname}](${reply.user_id})`}
             modifiedCode={reply.modified_code}
             modifiedLanguage={reply.modified_language}
+            typingSource="reply"
+            chatId={chat.id}
           />
           {reply.opengraphs?.map((item) => (
             <Message.Opengraph {...item} key={item.id} />
@@ -537,6 +539,8 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}
         onSubmit={updateCodeReply}
+        typingSource="reply"
+        chatId={chat.id}
       />
     </>
   )

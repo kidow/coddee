@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import type { FC, KeyboardEvent } from 'react'
+import type { FC } from 'react'
 import Editor from '@monaco-editor/react'
 import type { OnChange } from '@monaco-editor/react'
 import { Modal } from 'containers'
@@ -24,7 +24,8 @@ export interface Props extends ModalProps {
     codeBlock: string
     language: string
   }) => void
-  typingSource?: string
+  typingSource?: 'chat' | 'reply'
+  chatId?: number
 }
 interface State {
   content: string
@@ -37,6 +38,7 @@ const CodeEditorModal: FC<Props> = ({
   isOpen,
   onClose,
   typingSource,
+  chatId,
   ...props
 }) => {
   if (!isOpen) return null
@@ -78,29 +80,12 @@ const CodeEditorModal: FC<Props> = ({
     props.onSubmit({ content, codeBlock, language })
   }
 
-  const onEditorChange: OnChange = async (codeBlock) => {
-    setState({ codeBlock })
-    if (user) {
-      if (typingSource === 'room') {
-        const channel = supabase
-          .getChannels()
-          .find((item) => item.topic === `realtime:is-typing:room/${query.id}`)
-        if (channel)
-          await channel.track({
-            userId: user.id,
-            nickname: user.nickname,
-            roomId: query.id
-          })
-      }
-    }
-  }
-
-  const onKeyDown = async () => {
+  const onTyping = async () => {
     if (!user) return
-    if (typingSource === 'room') {
+    if (typingSource === 'chat') {
       const channel = supabase
         .getChannels()
-        .find((item) => item.topic === `realtime:is-typing:room/${query.id}`)
+        .find((item) => item.topic === `realtime:is-typing:chat/${query.id}`)
       if (channel)
         await channel.track({
           userId: user.id,
@@ -108,6 +93,22 @@ const CodeEditorModal: FC<Props> = ({
           roomId: query.id
         })
     }
+    if (typingSource === 'reply') {
+      const channel = supabase
+        .getChannels()
+        .find((item) => item.topic === `realtime:is-typing:reply/${chatId}`)
+      if (channel)
+        await channel.track({
+          userId: user.id,
+          nickname: user.nickname,
+          chatId
+        })
+    }
+  }
+
+  const onEditorChange: OnChange = async (codeBlock) => {
+    setState({ codeBlock })
+    onTyping()
   }
 
   useEffect(() => {
@@ -204,7 +205,7 @@ const CodeEditorModal: FC<Props> = ({
             className="w-full"
             placeholder="서로를 존중하는 매너를 보여주세요 :)"
             onChange={(e) => setState({ content: e.target.value })}
-            onKeyDown={onKeyDown}
+            onKeyDown={onTyping}
           />
         </div>
       </div>

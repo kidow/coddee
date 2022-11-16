@@ -1,29 +1,33 @@
 import { useMemo } from 'react'
 import type { FC } from 'react'
 import { useRecoilValue } from 'recoil'
-import { typingListState, useUser } from 'services'
+import { typingChatListState, typingReplyListState, useUser } from 'services'
 import { useRouter } from 'next/router'
 
 export interface Props {
   source: string
+  chatId?: number
 }
 interface State {}
 
-const Typing: FC<Props> = ({ source }) => {
-  const typingList = useRecoilValue(typingListState)
+const Typing: FC<Props> = ({ source, chatId }) => {
+  const typingChatList = useRecoilValue(typingChatListState)
+  const typingReplyList = useRecoilValue(typingReplyListState)
   const { query } = useRouter()
   const [user] = useUser()
 
   const list = useMemo(() => {
-    switch (source) {
-      case `room/${query.id}`:
-        return typingList.filter(
-          ({ userId, roomId }) => userId !== user?.id && roomId === query.id
-        )
-      default:
-        return typingList.filter(({ userId }) => userId !== user?.id)
-    }
-  }, [typingList, source, query.id, user])
+    if (source === `chat:${query.id}`)
+      return typingChatList.filter(
+        ({ userId, roomId }) => userId !== user?.id && roomId === query.id
+      )
+    else if (source === `reply:${chatId}`) {
+      return typingReplyList.filter(
+        (item) => item.userId !== user?.id && Number(item.chatId) === chatId
+      )
+    } else return typingChatList.filter(({ userId }) => userId !== user?.id)
+  }, [typingChatList, typingReplyList, source, query.id, user])
+
   if (!list.length) return null
   return (
     <div className="text-xs text-neutral-600 dark:text-neutral-400">

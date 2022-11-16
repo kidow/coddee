@@ -14,7 +14,7 @@ import {
   backdrop,
   useChatList,
   chatListState,
-  typingListState
+  typingChatListState
 } from 'services'
 import { useEffect, useRef } from 'react'
 import type { KeyboardEvent } from 'react'
@@ -23,7 +23,7 @@ import { Message, Modal } from 'containers'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
-import { useRecoilState } from 'recoil'
+import { useRecoilState, useSetRecoilState } from 'recoil'
 import classnames from 'classnames'
 
 dayjs.extend(relativeTime)
@@ -77,7 +77,7 @@ const RoomIdPage: NextPage = () => {
   const { onRegex } = useChatList()
   const [backBottomRef, isBackBottomIntersecting] =
     useIntersectionObserver<HTMLDivElement>()
-  const [typingList, setTypingList] = useRecoilState(typingListState)
+  const setTypingChatListState = useSetRecoilState(typingChatListState)
 
   const getChatList = async (page: number = 1) => {
     if (!query.id || typeof query.id !== 'string') return
@@ -297,20 +297,24 @@ const RoomIdPage: NextPage = () => {
   const onKeyDown = async (
     e: KeyboardEvent<HTMLTextAreaElement> | KeyboardEvent<HTMLInputElement>
   ) => {
-    const channel = supabase
-      .getChannels()
-      .find((item) => item.topic === `realtime:is-typing:room/${query.id}`)
     if (!e.shiftKey && e.keyCode === 13) {
       e.preventDefault()
       createChat()
+      const channel = supabase
+        .getChannels()
+        .find((item) => item.topic === `realtime:is-typing:chat/${query.id}`)
       if (channel) await channel.untrack()
     } else if (user) {
-      if (channel)
+      const channel = supabase
+        .getChannels()
+        .find((item) => item.topic === `realtime:is-typing:chat/${query.id}`)
+      if (channel) {
         await channel.track({
           userId: user.id,
           nickname: user.nickname,
           roomId: query.id
         })
+      }
     }
   }
 
@@ -322,13 +326,13 @@ const RoomIdPage: NextPage = () => {
 
     if (query.id) {
       const channel = supabase
-        .channel(`is-typing:room/${query.id}`)
+        .channel(`is-typing:chat/${query.id}`)
         .on('presence', { event: 'join' }, ({ currentPresences }) => {
-          setTypingList(currentPresences)
+          setTypingChatListState(currentPresences)
           timer = setTimeout(async () => await channel.untrack(), 5000)
         })
         .on('presence', { event: 'leave' }, ({ currentPresences }) =>
-          setTypingList(currentPresences)
+          setTypingChatListState(currentPresences)
         )
         .subscribe()
     }
@@ -338,8 +342,8 @@ const RoomIdPage: NextPage = () => {
       resetState()
       const channel = supabase
         .getChannels()
-        .find((item) => item.topic === `is-typing:room/${query.id}`)
-      if (channel) channel.unsubscribe().then().catch()
+        .find((item) => item.topic === `is-typing:chat/${query.id}`)
+      if (channel) supabase.removeChannel(channel)
     }
   }, [query.id])
 
@@ -700,7 +704,7 @@ const RoomIdPage: NextPage = () => {
               loading={isSubmitting}
             />
           </div>
-          <Typing source={`room/${query.id}`} />
+          <Typing source={`chat:${query.id}`} />
         </footer>
       </div>
       <button
@@ -718,7 +722,7 @@ const RoomIdPage: NextPage = () => {
         onClose={() => setState({ isCodeEditorOpen: false })}
         content={content}
         onSubmit={createCodeChat}
-        typingSource="room"
+        typingSource="chat"
       />
     </>
   )

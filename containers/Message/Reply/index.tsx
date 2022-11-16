@@ -527,6 +527,8 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
             mention={`@[${reply.user.nickname}](${reply.user_id})`}
             modifiedCode={reply.modified_code}
             modifiedLanguage={reply.modified_language}
+            typingSource="reply"
+            chatId={reply.chat_id}
           />
           {reply.opengraphs?.map((item) => (
             <Message.Opengraph {...item} key={item.id} />
@@ -574,6 +576,8 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         content={reply.content}
         codeBlock={reply.code_block}
         language={reply.language}
+        typingSource="reply"
+        chatId={reply.chat_id}
       />
     </>
   )
