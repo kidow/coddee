@@ -149,3 +149,7 @@ namespace NToast {
     type: NToast.Type
   }
 }
+
+interface TooltipProps {
+  position?: 'top' | 'right' | 'bottom' | 'left'
+}

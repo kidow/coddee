@@ -6,7 +6,7 @@ import { useEffect } from 'react'
 import type { FC } from 'react'
 import { EventListener, useObjectState } from 'services'
 
-export interface Props {
+export interface Props extends TooltipProps {
   onClick: () => void
 }
 interface State {
@@ -14,7 +14,7 @@ interface State {
   isLoading: boolean
 }
 
-const DeleteTooltipAction: FC<Props> = ({ onClick }) => {
+const DeleteTooltipAction: FC<Props> = ({ onClick, position }) => {
   const [{ isOpen, isLoading }, setState] = useObjectState<State>({
     isOpen: false,
     isLoading: false
@@ -35,12 +35,11 @@ const DeleteTooltipAction: FC<Props> = ({ onClick }) => {
   }, [isOpen])
   return (
     <>
-      <Tooltip
-        content="삭제"
-        size="sm"
-        className="group/tooltip flex h-7 w-7 items-center justify-center rounded hover:bg-neutral-100 dark:hover:bg-neutral-600"
-      >
-        <button onClick={() => setState({ isOpen: true })}>
+      <Tooltip content="삭제" position={position}>
+        <button
+          className="group/tooltip flex h-7 w-7 items-center justify-center rounded hover:bg-neutral-100 dark:hover:bg-neutral-600"
+          onClick={() => setState({ isOpen: true })}
+        >
           <TrashIcon className="h-4 w-4 text-neutral-600 group-hover/tooltip:text-red-500 dark:text-neutral-400" />
         </button>
       </Tooltip>
