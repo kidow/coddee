@@ -419,6 +419,8 @@ const ThreadChat: FC<Props> = ({ index }) => {
               mention={`@[${chat.user.nickname}](${chat.user_id})`}
               modifiedCode={chat.modified_code}
               modifiedLanguage={chat.modified_language}
+              typingSource="reply"
+              chatId={chat.id}
             />
             {chat.opengraphs?.map((item) => (
               <Message.Opengraph {...item} key={item.id} />
@@ -466,6 +468,8 @@ const ThreadChat: FC<Props> = ({ index }) => {
         codeBlock={chat.code_block}
         language={chat.language}
         onSubmit={updateCodeChat}
+        typingSource="reply"
+        chatId={chat.id}
       />
     </>
   )

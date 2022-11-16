@@ -209,6 +209,8 @@ const Thread: FC<Props> = ({ index }) => {
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}
         onSubmit={createCodeReply}
+        typingSource="reply"
+        chatId={chat.id}
       />
     </>
   )

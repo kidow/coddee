@@ -17,6 +17,7 @@ import { Modal } from 'containers'
 import { Button, Select, Textarea } from 'components'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useRecoilValue } from 'recoil'
+import { useRouter } from 'next/router'
 
 export interface Props {
   originalCode?: string
@@ -29,6 +30,8 @@ export interface Props {
   mention: string
   modifiedCode?: string
   modifiedLanguage?: string
+  typingSource?: string
+  chatId?: number
 }
 interface State {
   isCollapse: boolean
@@ -43,6 +46,8 @@ const MessageCodeBlock: FC<Props> = ({
   mention,
   modifiedCode,
   modifiedLanguage,
+  typingSource,
+  chatId,
   ...props
 }) => {
   if (!originalCode) return null
@@ -62,6 +67,7 @@ const MessageCodeBlock: FC<Props> = ({
   const [user] = useUser()
   const supabase = useSupabaseClient()
   const languageList = useRecoilValue(languageListState)
+  const { query } = useRouter()
 
   const onMount = (
     editor: Monaco.editor.IStandaloneCodeEditor,
@@ -103,6 +109,32 @@ const MessageCodeBlock: FC<Props> = ({
     element.style.height = `${lineHeight * lineCount}px`
     element.style.maxHeight = `${lineHeight * lineCount}px`
     editor.layout()
+  }
+
+  const onTyping = async () => {
+    if (!user) return
+    if (typingSource === 'chat') {
+      const channel = supabase
+        .getChannels()
+        .find((item) => item.topic === `realtime:is-typing:chat/${query.id}`)
+      if (channel)
+        await channel.track({
+          userId: user.id,
+          nickname: user.nickname,
+          roomId: query.id
+        })
+    }
+    if (typingSource === 'reply') {
+      const channel = supabase
+        .getChannels()
+        .find((item) => item.topic === `realtime:is-typing:reply/${chatId}`)
+      if (channel)
+        await channel.track({
+          userId: user.id,
+          nickname: user.nickname,
+          chatId
+        })
+    }
   }
 
   const onSubmit = async () => {
@@ -312,13 +344,12 @@ const MessageCodeBlock: FC<Props> = ({
                 wordWrap: 'on'
               }}
               loading={false}
-              onMount={(editor, monaco) =>
-                editor.getModifiedEditor().onDidChangeModelContent(() =>
-                  setState({
-                    codeBlock: editor.getModifiedEditor().getValue()
-                  })
-                )
-              }
+              onMount={(editor, monaco) => {
+                editor.getModifiedEditor().onDidChangeModelContent(async () => {
+                  setState({ codeBlock: editor.getModifiedEditor().getValue() })
+                  onTyping()
+                })
+              }}
             />
           </div>
           <div className="border p-2 focus-within:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900">
@@ -327,6 +358,7 @@ const MessageCodeBlock: FC<Props> = ({
               className="w-full"
               placeholder="서로를 존중하는 매너를 보여주세요 :)"
               onChange={(e) => setState({ content: e.target.value })}
+              onKeyDown={onTyping}
             />
           </div>
         </div>

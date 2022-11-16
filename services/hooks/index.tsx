@@ -43,6 +43,7 @@ export function useObjectState<T>(
     keys.reduce((acc, cur) => (initial[cur] = initialObject[cur]), initial)
     return initial
   }
+
   const resetState = (keys?: Array<keyof T>) =>
     keys
       ? setState((prevState) => ({ ...prevState, ...arrayToObject(keys) }))
@@ -67,15 +68,17 @@ export const useUser = (): [
   return [user, setUser]
 }
 
-export function useIntersectionObserver<T extends HTMLElement>(): [
-  RefObject<T>,
-  boolean
-] {
+export function useIntersectionObserver<T extends HTMLElement>(
+  options?: IntersectionObserverInit
+): [RefObject<T>, boolean] {
   const ref = useRef<T>(null)
   const [entry, setEntry] = useState<IntersectionObserverEntry>()
 
   useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => setEntry(entry))
+    const observer = new IntersectionObserver(
+      ([entry]) => setEntry(entry),
+      options
+    )
     if (ref.current) observer.observe(ref.current)
     return () => observer.disconnect()
   }, [ref.current])

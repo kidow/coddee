@@ -329,6 +329,7 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
             mention={`@[${chat.user.nickname}](${chat.user_id})`}
             modifiedCode={chat.modified_code}
             modifiedLanguage={chat.modified_language}
+            typingSource="chat"
           />
           {chat.opengraphs?.map((item) => (
             <Message.Opengraph {...item} key={item.id} />
@@ -439,6 +440,8 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
         codeBlock={chat.code_block}
         language={chat.language}
         onSubmit={updateCodeChat}
+        typingSource="reply"
+        chatId={chat.id}
       />
     </>
   )

@@ -9,7 +9,7 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react'
 export interface Props extends Omit<MentionsInputProps, 'children'> {}
 interface State {}
 
-const Textarea = forwardRef<HTMLTextAreaElement, Props>(({ ...props }, ref) => {
+const Textarea = forwardRef<HTMLTextAreaElement, Props>((props, ref) => {
   const [userList, setUserList] = useRecoilState(userListState)
   const supabase = useSupabaseClient()
 
@@ -24,13 +24,11 @@ const Textarea = forwardRef<HTMLTextAreaElement, Props>(({ ...props }, ref) => {
       return
     }
     setUserList(
-      data
-        ? data.map((item) => ({
-            id: item.id,
-            avatarUrl: item.avatar_url,
-            display: item.nickname
-          }))
-        : []
+      data?.map((item) => ({
+        id: item.id,
+        avatarUrl: item.avatar_url,
+        display: item.nickname
+      })) || []
     )
   }
 

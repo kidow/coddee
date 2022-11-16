@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import type { FC } from 'react'
+import type { FC, KeyboardEvent } from 'react'
 import { Drawer, Modal, Message } from 'containers'
 import {
   backdrop,
@@ -7,16 +7,17 @@ import {
   replyListState,
   toast,
   TOAST_MESSAGE,
+  typingReplyListState,
   useChatList,
   useObjectState,
   useUser
 } from 'services'
-import { Spinner, Textarea } from 'components'
+import { Spinner, Textarea, Typing } from 'components'
 import { ArrowSmallUpIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
 import classnames from 'classnames'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import ThreadDrawerChat from './Chat'
-import { useRecoilState } from 'recoil'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 
 export interface Props extends DrawerProps {
   chatIndex: number
@@ -42,6 +43,8 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
   const { onRegex } = useChatList()
   const [chatList, setChatList] = useRecoilState(chatListState)
   const [replyList, setReplyList] = useRecoilState(replyListState)
+  const setTypingReplyList = useSetRecoilState(typingReplyListState)
+  const typingReplyList = useRecoilValue(typingReplyListState)
 
   const get = async () => {
     const { data, error } = await supabase
@@ -252,7 +255,45 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     setState({ content: '', isCodeEditorOpen: false })
   }
 
+  const onKeyDown = async (
+    e: KeyboardEvent<HTMLTextAreaElement> | KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (!e.shiftKey && e.keyCode === 13) {
+      e.preventDefault()
+      createReply()
+      const channel = supabase
+        .getChannels()
+        .find((item) => item.topic === `realtime:is-typing:reply/${chat.id}`)
+      if (channel) await channel.untrack()
+    } else if (user) {
+      const channel = supabase
+        .getChannels()
+        .find((item) => item.topic === `realtime:is-typing:reply/${chat.id}`)
+      if (channel)
+        await channel.track({
+          userId: user.id,
+          nickname: user.nickname,
+          chatId: chat.id
+        })
+    }
+  }
+
   const chat = useMemo(() => chatList[chatIndex], [chatList, chatIndex])
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout | undefined
+
+    const channel = supabase
+      .channel(`is-typing:reply/${chat.id}`)
+      .on('presence', { event: 'join' }, ({ currentPresences }) => {
+        setTypingReplyList(currentPresences)
+        timer = setTimeout(async () => await channel.untrack(), 5000)
+      })
+      .on('presence', { event: 'leave' }, ({ currentPresences }) =>
+        setTypingReplyList(currentPresences)
+      )
+      .subscribe()
+  }, [chatIndex, isOpen])
 
   useEffect(() => {
     get()
@@ -495,7 +536,19 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
   }, [replyList, chat])
   return (
     <>
-      <Drawer isOpen={isOpen} onClose={onClose} position="right">
+      <Drawer
+        isOpen={isOpen}
+        onClose={async () => {
+          onClose()
+          const channel = supabase
+            .getChannels()
+            .find(
+              (item) => item.topic === `realtime:is-typing:reply/${chat.id}`
+            )
+          if (channel) await supabase.removeChannel(channel)
+        }}
+        position="right"
+      >
         <div>
           <ThreadDrawerChat
             onClose={onClose}
@@ -514,19 +567,14 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
               <Message.Reply chatIndex={chatIndex} replyIndex={key} key={key} />
             ))}
           </div>
-          <div className="p-4">
+          <div className="px-4 pt-4 pb-16">
             <div className="flex items-center gap-1 rounded-lg bg-neutral-100 p-2 dark:bg-neutral-700">
               <Textarea
                 placeholder="메시지 보내기"
                 className="flex-1 bg-transparent"
                 value={content}
                 onChange={(e) => setState({ content: e.target.value })}
-                onKeyDown={(e) => {
-                  if (!e.shiftKey && e.keyCode === 13) {
-                    e.preventDefault()
-                    createReply()
-                  }
-                }}
+                onKeyDown={onKeyDown}
               />
               <button
                 onClick={() => setState({ isCodeEditorOpen: true })}
@@ -556,6 +604,9 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
                 )}
               </button>
             </div>
+            <div className="mt-2">
+              <Typing source={`reply:${chat.id}`} chatId={chat.id} />
+            </div>
           </div>
         </div>
       </Drawer>
@@ -564,6 +615,8 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
         onClose={() => setState({ isCodeEditorOpen: false })}
         content={content}
         onSubmit={createCodeReply}
+        typingSource="reply"
+        chatId={chat.id}
       />
     </>
   )
