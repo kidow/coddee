@@ -19,13 +19,11 @@ const AddReactionTooltipAction: FC<Props> = ({
   const [{ isOpen }, setState] = useObjectState<State>({ isOpen: false })
   return (
     <>
-      <Tooltip
-        position={position}
-        content="반응 추가"
-        size="sm"
-        className="flex h-7 w-7 items-center justify-center rounded hover:bg-neutral-100 dark:hover:bg-neutral-600"
-      >
-        <button onClick={() => setState({ isOpen: true })}>
+      <Tooltip position={position} content="반응 추가">
+        <button
+          className="flex h-7 w-7 items-center justify-center rounded hover:bg-neutral-100 dark:hover:bg-neutral-600"
+          onClick={() => setState({ isOpen: true })}
+        >
           <FaceSmileIcon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
         </button>
       </Tooltip>

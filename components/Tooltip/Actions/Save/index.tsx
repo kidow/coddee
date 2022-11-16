@@ -13,12 +13,11 @@ interface State {}
 const SaveTooltipAction: FC<Props> = ({ onClick, isSaved }) => {
   const theme = useTheme()
   return (
-    <Tooltip
-      content={isSaved ? '저장 취소' : '저장'}
-      size="sm"
-      className="flex h-7 w-7 items-center justify-center rounded hover:bg-neutral-100 dark:hover:bg-neutral-600"
-    >
-      <button onClick={onClick}>
+    <Tooltip content={isSaved ? '저장 취소' : '저장'}>
+      <button
+        className="flex h-7 w-7 items-center justify-center rounded hover:bg-neutral-100 dark:hover:bg-neutral-600"
+        onClick={onClick}
+      >
         <BookmarkIcon
           className={classnames(
             'h-4 w-4 dark:text-neutral-400',

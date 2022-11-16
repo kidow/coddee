@@ -98,13 +98,7 @@ const Modal: FC<Props> = ({
               </div>
             )}
           </header>
-          <div
-            className={classnames({
-              'py-6 px-7': padding
-            })}
-          >
-            {children}
-          </div>
+          <div className={classnames({ 'py-6 px-7': padding })}>{children}</div>
           {footer && (
             <footer className="border-t py-4 px-7 dark:border-neutral-700">
               {footer}

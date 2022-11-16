@@ -259,7 +259,10 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
                     }
                     position="bottom"
                   />
-                  <Tooltip.Actions.Delete onClick={deleteChat} />
+                  <Tooltip.Actions.Delete
+                    onClick={deleteChat}
+                    position="bottom"
+                  />
                 </>
               )}
             </div>
