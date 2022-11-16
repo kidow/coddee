@@ -1,5 +1,6 @@
 import type { FC } from 'react'
 import classnames from 'classnames'
+import type { Argument } from 'classnames'
 
 import AddReactionTooltip from './AddReaction'
 import ReactionTooltip from './Reaction'
@@ -8,13 +9,15 @@ import TooltipActions from './Actions'
 export interface Props extends ReactProps, TooltipProps {
   content: string
   arrow?: boolean
+  className?: Argument
 }
 
 const Tooltip: FC<Props> = ({
   children,
   content,
   position = 'top',
-  arrow = true
+  arrow = true,
+  className
 }) => {
   return (
     <div
@@ -51,7 +54,8 @@ const Tooltip: FC<Props> = ({
           'after:top-1/2 after:-translate-y-1/2':
             (position === 'right' || position === 'left') && arrow,
           'after:bottom-auto': position !== 'top' && arrow
-        }
+        },
+        className
       )}
       data-tip={content}
       role="tooltip"
