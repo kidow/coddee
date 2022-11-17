@@ -24,16 +24,11 @@ const Auth: FC<Props> = ({ children }) => {
 
   const get = async () => {
     if (!auth || !!user) return
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('users')
       .select('*')
       .eq('id', auth.id)
       .single()
-    if (error) {
-      captureException(error, auth)
-      console.error(error)
-      return
-    }
     if (data) {
       if (
         data.avatar_url !== auth.user_metadata.avatar_url ||
@@ -61,6 +56,7 @@ const Auth: FC<Props> = ({ children }) => {
       const { data, error } = await supabase
         .from('users')
         .insert({
+          id: auth.id,
           avatar_url: auth.user_metadata.avatar_url,
           nickname: auth.user_metadata.user_name,
           email: auth.email
