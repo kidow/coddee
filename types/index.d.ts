@@ -153,3 +153,45 @@ namespace NToast {
 interface TooltipProps {
   position?: 'top' | 'right' | 'bottom' | 'left'
 }
+
+// interface Database {
+//   public: {
+//     Tables: {
+//       users: {
+//         Row: {
+//           id: string
+//           email: string
+//           nickname: string
+//           avatar_url: string
+//           job_category: string
+//           created_at: string
+//           updated_at: string
+//         }
+//         Insert: {
+//           id?: string
+//           email: string
+//           nickname: string
+//           avatar_url?: string
+//           job_category?: string
+//           created_at?: string
+//           updated_at?: string
+//         }
+//         Update: Partial<Database['public']['Tables']['users']['Row']>
+//       }
+//       rooms: {
+//         Row: {}
+//         Insert: {}
+//         Update: {}
+//       }
+//       chats: { Row: {}; Insert: {}; Update: {} }
+//       languages: { Row: {}; Insert: {}; Update: {} }
+//       reactions: { Row: {}; Insert: {}; Update: {} }
+//       replies: { Row: {}; Insert: {}; Update: {} }
+//       reply_reactions: { Row: {}; Insert: {}; Update: {} }
+//       mentions: { Row: {}; Insert: {}; Update: {} }
+//       opengraphs: { Row: {}; Insert: {}; Update: {} }
+//       saves: { Row: {}; Insert: {}; Update: {} }
+//       posts: { Row: {}; Insert: {}; Update: {} }
+//     }
+//   }
+// }
