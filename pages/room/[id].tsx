@@ -362,8 +362,8 @@ const RoomIdPage: NextPage = () => {
       resetState()
       const channel = supabase
         .getChannels()
-        .find((item) => item.topic === `is-typing:chat/${query.id}`)
-      if (channel) supabase.removeChannel(channel)
+        .find((item) => item.topic === `realtime:is-typing:chat/${query.id}`)
+      if (channel) supabase.removeChannel(channel).then()
     }
   }, [query.id])
 
@@ -747,6 +747,12 @@ const RoomIdPage: NextPage = () => {
         onSubmit={createCodeChat}
         typingSource="chat"
       />
+      <button
+        onClick={() => console.log(supabase.getChannels())}
+        className="fixed top-2 left-2"
+      >
+        Test
+      </button>
     </>
   )
 }
