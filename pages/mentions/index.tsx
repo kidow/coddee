@@ -4,6 +4,7 @@ import type { NextPage } from 'next'
 import { useEffect } from 'react'
 import {
   backdrop,
+  captureException,
   EventListener,
   toast,
   TOAST_MESSAGE,
@@ -117,6 +118,7 @@ const MentionsPage: NextPage = () => {
       .order('created_at', { ascending: false })
       .range((page - 1) * 20, page * 20 - 1)
     if (error) {
+      captureException(error, auth.user)
       console.error(error)
       setState({ isLoading: false })
       return
@@ -186,6 +188,7 @@ const MentionsPage: NextPage = () => {
     })
     backdrop(false)
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -238,8 +241,14 @@ const MentionsPage: NextPage = () => {
               .single()
           ])
           if (userError || chatError) {
-            if (userError) console.error(userError)
-            if (chatError) console.error(chatError)
+            if (userError) {
+              captureException(userError, user)
+              console.error(userError)
+            }
+            if (chatError) {
+              captureException(chatError, user)
+              console.error(chatError)
+            }
             return
           }
           setState({

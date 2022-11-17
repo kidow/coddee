@@ -1,7 +1,7 @@
 import { Fragment, useEffect } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
-import { useObjectState } from 'services'
+import { captureException, useObjectState } from 'services'
 import { Divider, Form } from 'components'
 import {
   ArrowTopRightOnSquareIcon,
@@ -75,6 +75,7 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       .eq('id', userId)
       .single()
     if (error) {
+      captureException(error, user)
       console.error(error)
       setState({ isLoading: false })
       return

@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import type { FC } from 'react'
 import {
   backdrop,
+  captureException,
   threadListState,
   toast,
   TOAST_MESSAGE,
@@ -69,6 +70,7 @@ const Thread: FC<Props> = ({ index }) => {
       .select()
       .single()
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -116,6 +118,7 @@ const Thread: FC<Props> = ({ index }) => {
       .single()
     backdrop(false)
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return

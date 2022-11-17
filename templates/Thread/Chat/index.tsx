@@ -7,6 +7,7 @@ import type { FC } from 'react'
 import { useRecoilState } from 'recoil'
 import {
   backdrop,
+  captureException,
   EventListener,
   threadListState,
   toast,
@@ -68,6 +69,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
       .single()
     setState({ isSubmitting: false, isUpdateMode: false })
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -107,6 +109,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
         room_id: chat.room.id
       })
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
@@ -135,6 +138,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
         .delete()
         .eq('id', reaction.id)
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
@@ -182,6 +186,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
         .select()
         .single()
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
@@ -231,6 +236,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
           .select()
           .single()
         if (error) {
+          captureException(error, user)
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
@@ -269,6 +275,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
           .delete()
           .eq('id', chat.reactions[reactionIndex].id)
         if (error) {
+          captureException(error, user)
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
@@ -315,6 +322,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
       .single()
     backdrop(false)
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -353,6 +361,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
       .single()
     backdrop(false)
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return

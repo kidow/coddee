@@ -3,6 +3,7 @@ import type { FC } from 'react'
 import classnames from 'classnames'
 import Link from 'next/link'
 import {
+  captureException,
   languageListState,
   REGEXP,
   toast,
@@ -23,7 +24,10 @@ import {
   UserIcon
 } from '@heroicons/react/24/outline'
 import { HomeIcon as HomeSolidIcon } from '@heroicons/react/24/solid'
-import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import {
+  useSupabaseClient,
+  useUser as useAuth
+} from '@supabase/auth-helpers-react'
 import { useRecoilState } from 'recoil'
 
 dayjs.extend(relativeTime)
@@ -63,6 +67,7 @@ const Layout: FC<Props> = ({ children }) => {
   const { query, pathname, replace, push } = useRouter()
   const supabase = useSupabaseClient()
   const [languageList, setLanguageList] = useRecoilState(languageListState)
+  const auth = useAuth()
 
   const getRoomList = async () => {
     const { data, error } = await supabase
@@ -83,6 +88,7 @@ const Layout: FC<Props> = ({ children }) => {
       .order('created_at', { ascending: false, foreignTable: 'chats' })
       .limit(1, { foreignTable: 'chats' })
     if (error) {
+      captureException(error, auth)
       console.error(error)
       return
     }
@@ -107,8 +113,10 @@ const Layout: FC<Props> = ({ children }) => {
       .select('*')
       .order('label', { ascending: true })
 
-    if (error) console.error(error)
-    else setLanguageList(data)
+    if (error) {
+      captureException(error, auth)
+      console.error(error)
+    } else setLanguageList(data)
   }
 
   useEffect(() => {
@@ -229,8 +237,14 @@ const Layout: FC<Props> = ({ children }) => {
                 ])
 
                 if (userError || chatError) {
-                  if (userError) console.error(userError)
-                  if (chatError) console.error(chatError)
+                  if (userError) {
+                    captureException(userError, auth)
+                    console.error(userError)
+                  }
+                  if (chatError) {
+                    captureException(chatError, auth)
+                    console.error(chatError)
+                  }
                   return
                 }
 

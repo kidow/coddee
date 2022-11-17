@@ -4,6 +4,7 @@ import { Modal } from 'containers'
 import classnames from 'classnames'
 import {
   backdrop,
+  captureException,
   toast,
   TOAST_MESSAGE,
   useObjectState,
@@ -98,6 +99,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       .eq('id', user?.id)
       .single()
     if (error) {
+      captureException(error, user)
       console.error(error)
       setState({ isLoading: false })
       return
@@ -120,7 +122,8 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
         isLoading: false
       })
     } catch (err) {
-      console.error(err)
+      if (process.env.NODE_ENV === 'development') console.error(err)
+      captureException(err)
       setState({ isLoading: false })
     }
   }
@@ -138,14 +141,19 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       .update({ job_category: jobCategory })
       .eq('id', user?.id)
       .single()
-    if (error) console.error(error)
-    else toast.success('변경되었습니다.')
+    if (error) {
+      captureException(error, user)
+      console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
+    } else toast.success('변경되었습니다.')
   }
 
   const onLogout = async () => {
     const { error } = await supabase.auth.signOut()
     if (error) {
+      captureException(error, user)
       console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
     onClose()
@@ -180,7 +188,9 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
 
     const { error } = await supabase.from('users').delete().eq('id', user.id)
     if (error) {
+      captureException(error, user)
       console.error(error)
+      toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
     await supabase.auth.signOut()

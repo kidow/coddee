@@ -4,6 +4,7 @@ import dayjs from 'dayjs'
 import classnames from 'classnames'
 import {
   backdrop,
+  captureException,
   chatListState,
   EventListener,
   toast,
@@ -77,6 +78,7 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
       .single()
     setState({ isSubmitting: false, isUpdateMode: false })
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -100,6 +102,7 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
         .select('deleted_at')
         .single()
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         EventListener.emit('tooltip:delete:error')
@@ -114,6 +117,7 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
     } else {
       const { error } = await supabase.from('chats').delete().eq('id', chat.id)
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         EventListener.emit('tooltip:delete:error')
@@ -146,6 +150,7 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
         .delete()
         .eq('id', chat.saves[0].id)
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
@@ -162,6 +167,7 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
         .select()
         .single()
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
@@ -191,6 +197,7 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
       .single()
     backdrop(false)
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -229,6 +236,7 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
       .single()
     backdrop(false)
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return

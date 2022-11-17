@@ -7,7 +7,8 @@ import {
   REGEXP,
   toast,
   TOAST_MESSAGE,
-  EventListener
+  EventListener,
+  captureException
 } from 'services'
 
 export default () => {
@@ -98,6 +99,7 @@ export default () => {
         .select()
         .single()
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
@@ -147,6 +149,7 @@ export default () => {
           .select()
           .single()
         if (error) {
+          captureException(error, user)
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
@@ -186,6 +189,7 @@ export default () => {
           .delete()
           .eq('id', chat.reactions[reactionIndex].id)
         if (error) {
+          captureException(error, user)
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
@@ -244,6 +248,7 @@ export default () => {
         room_id: chat.room_id
       })
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
@@ -272,6 +277,7 @@ export default () => {
         .delete()
         .eq('id', reaction.id)
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return

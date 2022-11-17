@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/nextjs'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { WebClient } from '@slack/web-api'
 
@@ -16,6 +17,7 @@ export default async function (req: NextApiRequest, res: NextApiResponse) {
     res.json({ success: true })
   } catch (err: any) {
     console.log(err)
+    captureException(err)
     res.json({ success: false, message: err?.message })
   }
 }

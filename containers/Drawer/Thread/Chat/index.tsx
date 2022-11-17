@@ -8,6 +8,7 @@ import type { FC } from 'react'
 import { useRecoilState } from 'recoil'
 import {
   backdrop,
+  captureException,
   chatListState,
   EventListener,
   toast,
@@ -71,6 +72,7 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
       .single()
     setState({ isUpdating: false, isUpdateMode: false })
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -94,6 +96,7 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
         .select('deleted_at')
         .single()
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         EventListener.emit('tooltip:delete:error')
@@ -108,6 +111,7 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
     } else {
       const { error } = await supabase.from('chats').delete().eq('id', chat.id)
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         EventListener.emit('tooltip:delete:error')
@@ -141,6 +145,7 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
       .eq('id', chat.id)
     backdrop(false)
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -164,6 +169,7 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
     })
     backdrop(false)
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return

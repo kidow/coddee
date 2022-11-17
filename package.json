@@ -12,7 +12,7 @@
   "dependencies": {
     "@heroicons/react": "^2.0.12",
     "@monaco-editor/react": "^4.4.6",
-    "@sentry/nextjs": "^7.16.0",
+    "@sentry/nextjs": "^7.19.0",
     "@slack/web-api": "^6.7.2",
     "@supabase/auth-helpers-nextjs": "^0.4.4",
     "@supabase/auth-helpers-react": "^0.3.1",

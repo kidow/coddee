@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Timeline } from 'components'
 import type { FC } from 'react'
-import { useObjectState, useUser } from 'services'
+import { captureException, useObjectState, useUser } from 'services'
 import dayjs from 'dayjs'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
@@ -28,6 +28,7 @@ const MyInfoHistory: FC<Props> = () => {
       )
       .eq('user_id', user?.id)
     if (error) {
+      captureException(error, user)
       console.error(error)
       return
     }

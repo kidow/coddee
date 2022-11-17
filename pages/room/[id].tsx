@@ -14,7 +14,8 @@ import {
   backdrop,
   useChatList,
   chatListState,
-  typingChatListState
+  typingChatListState,
+  captureException
 } from 'services'
 import { useEffect, useRef } from 'react'
 import type { KeyboardEvent } from 'react'
@@ -140,6 +141,7 @@ const RoomIdPage: NextPage = () => {
       .order('created_at', { ascending: false, foreignTable: 'replies' })
       .range((page - 1) * 100 + count, page * 100 - 1 + count)
     if (error) {
+      captureException(error, user)
       console.error(error)
       return
     }
@@ -193,6 +195,7 @@ const RoomIdPage: NextPage = () => {
       .eq('id', query.id)
       .single()
     if (error) {
+      captureException(error, user)
       console.error(error)
       return
     }
@@ -232,6 +235,7 @@ const RoomIdPage: NextPage = () => {
       .single()
     setState({ isSubmitting: false, spamCount: spamCount + 1 })
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -272,6 +276,7 @@ const RoomIdPage: NextPage = () => {
       .single()
     backdrop(false)
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -317,6 +322,21 @@ const RoomIdPage: NextPage = () => {
       }
     }
   }
+
+  // const onFocus = (e: globalThis.KeyboardEvent) => {
+  //   if (!e.target) return
+  //   const target = e.target as HTMLElement
+  //   if (!target.tagName) return
+
+  //   if (target.tagName.toLowerCase() !== 'textarea')
+  //     textareaRef.current?.focus()
+  // }
+
+  // useEffect(() => {
+  //   if (isCodeEditorOpen) return
+  //   document.addEventListener('keydown', onFocus)
+  //   return () => document.removeEventListener('keydown', onFocus)
+  // }, [isCodeEditorOpen])
 
   useEffect(() => {
     getChatList()
@@ -366,6 +386,7 @@ const RoomIdPage: NextPage = () => {
             .eq('id', payload.new.user_id)
             .single()
           if (error) {
+            captureException(error, user)
             console.error(error)
             return
           }
@@ -446,6 +467,7 @@ const RoomIdPage: NextPage = () => {
             .eq('id', payload.new.user_id)
             .single()
           if (error) {
+            captureException(error, user)
             console.error(error)
             return
           }
@@ -551,6 +573,7 @@ const RoomIdPage: NextPage = () => {
             .eq('id', payload.new.user_id)
             .single()
           if (error) {
+            captureException(error, user)
             console.error(error)
             return
           }

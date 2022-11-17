@@ -1,6 +1,12 @@
 import { useEffect } from 'react'
 import type { FC } from 'react'
-import { presenceListState, toast, TOAST_MESSAGE, useUser } from 'services'
+import {
+  captureException,
+  presenceListState,
+  toast,
+  TOAST_MESSAGE,
+  useUser
+} from 'services'
 import {
   useUser as useAuth,
   useSupabaseClient
@@ -24,6 +30,7 @@ const Auth: FC<Props> = ({ children }) => {
       .eq('id', auth.id)
       .single()
     if (error) {
+      captureException(error, auth)
       console.error(error)
       return
     }
@@ -42,6 +49,7 @@ const Auth: FC<Props> = ({ children }) => {
           .select()
           .single()
         if (error) {
+          captureException(error, auth)
           console.error(error)
           return
         }
@@ -60,6 +68,7 @@ const Auth: FC<Props> = ({ children }) => {
         .select()
         .single()
       if (error) {
+        captureException(error, auth)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
@@ -126,6 +135,7 @@ const Auth: FC<Props> = ({ children }) => {
           }
           break
         case 'CHANNEL_ERROR':
+          captureException(error, auth.user)
           console.error(error)
           break
         case 'CLOSED':

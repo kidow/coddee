@@ -1,5 +1,6 @@
 import { Component } from 'react'
 import type { ErrorInfo } from 'react'
+import { captureException } from 'services'
 
 interface Error {
   stack?: string
@@ -20,10 +21,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.log('componentDidCatch error: ')
-    console.dir(error)
-    console.log('componentDidCatch errorInfo: ')
-    console.dir(errorInfo)
+    captureException(error)
   }
 
   render() {
