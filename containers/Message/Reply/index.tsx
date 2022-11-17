@@ -6,6 +6,7 @@ import { useMemo } from 'react'
 import type { FC } from 'react'
 import {
   backdrop,
+  captureException,
   chatListState,
   EventListener,
   replyListState,
@@ -67,6 +68,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
       .single()
     setState({ isSubmitting: false, isUpdateMode: false })
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -81,6 +83,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
   const deleteReply = async () => {
     const { error } = await supabase.from('replies').delete().eq('id', reply.id)
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       EventListener.emit('tooltip:delete:error')
@@ -134,6 +137,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         .select()
         .single()
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
@@ -171,6 +175,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         .delete()
         .eq('id', reply.reply_reactions[reactionIndex].id)
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
@@ -229,6 +234,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         .select()
         .single()
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
@@ -277,6 +283,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
           .select()
           .single()
         if (error) {
+          captureException(error, user)
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
@@ -316,6 +323,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
           .delete()
           .eq('id', reply.reply_reactions[reactionIndex].id)
         if (error) {
+          captureException(error, user)
           console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
@@ -363,6 +371,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         .delete()
         .eq('id', reply.saves[0].id)
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
@@ -379,6 +388,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         .select()
         .single()
       if (error) {
+        captureException(error, user)
         console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
@@ -408,6 +418,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
       .single()
     backdrop(false)
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -446,6 +457,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
       .single()
     backdrop(false)
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return

@@ -3,6 +3,7 @@ import type { FC, KeyboardEvent } from 'react'
 import { Drawer, Modal, Message } from 'containers'
 import {
   backdrop,
+  captureException,
   chatListState,
   replyListState,
   toast,
@@ -44,7 +45,6 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
   const [chatList, setChatList] = useRecoilState(chatListState)
   const [replyList, setReplyList] = useRecoilState(replyListState)
   const setTypingReplyList = useSetRecoilState(typingReplyListState)
-  const typingReplyList = useRecoilValue(typingReplyListState)
 
   const get = async () => {
     const { data, error } = await supabase
@@ -91,6 +91,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       .order('created_at', { ascending: true })
       .order('created_at', { ascending: true, foreignTable: 'reply_reactions' })
     if (error) {
+      captureException(error, user)
       console.error(error)
       return
     }
@@ -167,6 +168,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       .single()
     setState({ isSubmitting: false, spamCount: spamCount + 1 })
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -222,6 +224,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       .single()
     backdrop(false)
     if (error) {
+      captureException(error, user)
       console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
@@ -327,6 +330,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
             .eq('id', payload.new.user_id)
             .single()
           if (error) {
+            captureException(error, user)
             console.error(error)
             return
           }
@@ -413,6 +417,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
             .eq('id', payload.new.user_id)
             .single()
           if (error) {
+            captureException(error, user)
             console.error(error)
             return
           }
@@ -540,6 +545,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
         isOpen={isOpen}
         onClose={async () => {
           onClose()
+          setReplyList([])
           const channel = supabase
             .getChannels()
             .find(

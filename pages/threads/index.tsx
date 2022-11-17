@@ -6,7 +6,8 @@ import {
   toast,
   useIntersectionObserver,
   useObjectState,
-  useUser
+  useUser,
+  captureException
 } from 'services'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useEffect } from 'react'
@@ -32,10 +33,8 @@ const ThreadsPage: NextPage = () => {
   const [list, setList] = useRecoilState(threadListState)
 
   const get = async (page: number = 1) => {
-    const {
-      data: { user }
-    } = await supabase.auth.getUser()
-    if (!user) {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!auth.user) {
       setState({ isLoading: false })
       return
     }
@@ -115,7 +114,7 @@ const ThreadsPage: NextPage = () => {
         site_name,
         url,
         image
-      ),
+      )
       saves (
         id
       )
@@ -125,10 +124,11 @@ const ThreadsPage: NextPage = () => {
       .order('created_at', { ascending: false })
       .order('created_at', { ascending: true, foreignTable: 'reactions' })
       .order('created_at', { ascending: true, foreignTable: 'replies' })
-      .or(`user_id.eq.${user.id}`, { foreignTable: 'replies' })
+      .or(`user_id.eq.${auth.user.id}`, { foreignTable: 'replies' })
       .range((page - 1) * 8, page * 8 - 1)
     if (error) {
       console.error(error)
+      captureException(error, auth.user)
       setState({ isLoading: false })
       return
     }
@@ -266,6 +266,7 @@ const ThreadsPage: NextPage = () => {
             .eq('id', payload.new.user_id)
             .single()
           if (error) {
+            captureException(error, user)
             console.error(error)
             return
           }
@@ -372,6 +373,7 @@ const ThreadsPage: NextPage = () => {
             .eq('id', payload.new.user_id)
             .single()
           if (error) {
+            captureException(error, user)
             console.error(error)
             return
           }
@@ -482,6 +484,7 @@ const ThreadsPage: NextPage = () => {
             .eq('id', payload.new.user_id)
             .single()
           if (error) {
+            captureException(error, user)
             console.error(error)
             return
           }

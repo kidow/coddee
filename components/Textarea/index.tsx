@@ -20,7 +20,8 @@ const Textarea = forwardRef<HTMLTextAreaElement, Props>((props, ref) => {
       .select('id, avatar_url, nickname')
       .order('nickname', { ascending: true })
     if (error) {
-      console.error(error)
+      const { data: auth } = await supabase.auth.getUser()
+      console.error(error, auth)
       return
     }
     setUserList(
