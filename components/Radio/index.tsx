@@ -1,5 +1,4 @@
 import classnames from 'classnames'
-import { memo } from 'react'
 
 export interface Props<T> {
   value: T
@@ -72,4 +71,4 @@ function Radio<T>({
   )
 }
 
-export default memo(Radio)
+export default Radio
