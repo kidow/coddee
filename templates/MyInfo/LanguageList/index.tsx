@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import type { FC } from 'react'
 import Editor from '@monaco-editor/react'
 import { Button, Input } from 'components'
-import { backdrop, toast, useObjectState, useTheme } from 'services'
+import { backdrop, useObjectState, useTheme } from 'services'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
@@ -28,7 +28,10 @@ const MyInfoLanguageList: FC<Props> = () => {
   const theme = useTheme()
 
   const get = async () => {
-    const { data } = await supabase.from('languages').select('*').order('value')
+    const { data } = await supabase
+      .from('languages')
+      .select('*')
+      .order('value', { ascending: true })
     setState({ langaugeList: data || [] })
   }
 
@@ -41,7 +44,6 @@ const MyInfoLanguageList: FC<Props> = () => {
     backdrop(false)
     if (error) console.error(error)
     else {
-      toast.success('생성되었습니다.')
       setState({ label: '', language: '', template: '' })
       get()
     }
@@ -57,7 +59,6 @@ const MyInfoLanguageList: FC<Props> = () => {
     backdrop(false)
     if (error) console.error(error)
     else {
-      toast.success('수정되었습니다.')
       setState({ id: 0, label: '', language: '', template: '' })
       get()
     }
@@ -70,7 +71,6 @@ const MyInfoLanguageList: FC<Props> = () => {
     backdrop(false)
     if (error) console.log(error)
     else {
-      toast.error('삭제되었습니다.')
       setState({ id: 0 })
       get()
     }
@@ -102,6 +102,7 @@ const MyInfoLanguageList: FC<Props> = () => {
             float={false}
           />
           <button
+            tabIndex={-1}
             className="group"
             onClick={() => setState({ id: 0, language: '', label: '' })}
           >
@@ -113,6 +114,7 @@ const MyInfoLanguageList: FC<Props> = () => {
             disabled={!label || !language}
             onClick={update}
             theme="primary"
+            tabIndex={-1}
           >
             수정
           </Button>
@@ -121,6 +123,7 @@ const MyInfoLanguageList: FC<Props> = () => {
             disabled={!label || !language}
             onClick={create}
             theme="primary"
+            tabIndex={-1}
           >
             등록
           </Button>
@@ -134,7 +137,12 @@ const MyInfoLanguageList: FC<Props> = () => {
           language={language}
           className="text-lg"
           onChange={(template) => setState({ template })}
-          options={{ minimap: { enabled: false }, fontSize: 14 }}
+          options={{
+            wordWrap: 'on',
+            minimap: { enabled: false },
+            fontSize: 14,
+            scrollbar: { vertical: 'hidden', alwaysConsumeMouseWheel: false }
+          }}
         />
       </div>
       <ul className="space-y-4">

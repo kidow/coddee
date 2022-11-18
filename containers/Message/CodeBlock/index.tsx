@@ -341,7 +341,11 @@ const MessageCodeBlock: FC<Props> = ({
               options={{
                 fontSize: 14,
                 minimap: { enabled: false },
-                wordWrap: 'on'
+                wordWrap: 'on',
+                scrollbar: {
+                  vertical: 'hidden',
+                  alwaysConsumeMouseWheel: false
+                }
               }}
               loading={false}
               onMount={(editor, monaco) => {
