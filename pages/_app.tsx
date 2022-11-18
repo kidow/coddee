@@ -7,13 +7,12 @@ import 'dayjs/locale/ko'
 import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { SessionContextProvider, Session } from '@supabase/auth-helpers-react'
 
-interface Props {}
+interface Props {
+  initialSession: Session
+}
 interface State {}
 
-function MyApp({
-  Component,
-  pageProps
-}: AppProps<{ initialSession: Session }>) {
+function MyApp({ Component, pageProps }: AppProps<Props>) {
   const [supabaseClient] = useState(() => createBrowserSupabaseClient())
 
   useEffect(() => {

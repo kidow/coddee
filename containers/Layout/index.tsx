@@ -89,7 +89,6 @@ const Layout: FC<Props> = ({ children }) => {
       .limit(1, { foreignTable: 'chats' })
     if (error) {
       captureException(error, auth)
-      console.error(error)
       return
     }
     setState({
@@ -115,7 +114,6 @@ const Layout: FC<Props> = ({ children }) => {
 
     if (error) {
       captureException(error, auth)
-      console.error(error)
     } else setLanguageList(data)
   }
 
@@ -237,14 +235,8 @@ const Layout: FC<Props> = ({ children }) => {
                 ])
 
                 if (userError || chatError) {
-                  if (userError) {
-                    captureException(userError, auth)
-                    console.error(userError)
-                  }
-                  if (chatError) {
-                    captureException(chatError, auth)
-                    console.error(chatError)
-                  }
+                  if (userError) captureException(userError, auth)
+                  if (chatError) captureException(chatError, auth)
                   return
                 }
 

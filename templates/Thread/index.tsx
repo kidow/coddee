@@ -71,7 +71,6 @@ const Thread: FC<Props> = ({ index }) => {
       .single()
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -119,7 +118,6 @@ const Thread: FC<Props> = ({ index }) => {
     backdrop(false)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }

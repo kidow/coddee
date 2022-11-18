@@ -153,7 +153,6 @@ const SavedPage: NextPage = () => {
       .range((page - 1) * 20, page * 20 - 1)
     if (error) {
       captureException(error, auth.user)
-      console.error(error)
       setState({ isLoading: false })
       return
     }
@@ -241,7 +240,6 @@ const SavedPage: NextPage = () => {
       .eq('id', list[index].id)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -284,7 +282,6 @@ const SavedPage: NextPage = () => {
       backdrop(false)
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -302,7 +299,6 @@ const SavedPage: NextPage = () => {
       backdrop(false)
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }

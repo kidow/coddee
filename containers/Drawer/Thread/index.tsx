@@ -92,7 +92,6 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       .order('created_at', { ascending: true, foreignTable: 'reply_reactions' })
     if (error) {
       captureException(error, user)
-      console.error(error)
       return
     }
     for (const reply of data) {
@@ -169,7 +168,6 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     setState({ isSubmitting: false, spamCount: spamCount + 1 })
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -225,7 +223,6 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     backdrop(false)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -331,7 +328,6 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
             .single()
           if (error) {
             captureException(error, user)
-            console.error(error)
             return
           }
           setReplyList([
@@ -418,7 +414,6 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
             .single()
           if (error) {
             captureException(error, user)
-            console.error(error)
             return
           }
 

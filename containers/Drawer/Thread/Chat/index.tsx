@@ -73,7 +73,6 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
     setState({ isUpdating: false, isUpdateMode: false })
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -97,7 +96,6 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
         .single()
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         EventListener.emit('tooltip:delete:error')
         return
@@ -112,7 +110,6 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
       const { error } = await supabase.from('chats').delete().eq('id', chat.id)
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         EventListener.emit('tooltip:delete:error')
         return
@@ -146,7 +143,6 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
     backdrop(false)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -170,7 +166,6 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
     backdrop(false)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }

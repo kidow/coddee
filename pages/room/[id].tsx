@@ -142,7 +142,6 @@ const RoomIdPage: NextPage = () => {
       .range((page - 1) * 100 + count, page * 100 - 1 + count)
     if (error) {
       captureException(error, user)
-      console.error(error)
       return
     }
     for (const chat of data) {
@@ -196,7 +195,6 @@ const RoomIdPage: NextPage = () => {
       .single()
     if (error) {
       captureException(error, user)
-      console.error(error)
       return
     }
     setState({ name: data.name })
@@ -236,7 +234,6 @@ const RoomIdPage: NextPage = () => {
     setState({ isSubmitting: false, spamCount: spamCount + 1 })
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -277,7 +274,6 @@ const RoomIdPage: NextPage = () => {
     backdrop(false)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -387,7 +383,6 @@ const RoomIdPage: NextPage = () => {
             .single()
           if (error) {
             captureException(error, user)
-            console.error(error)
             return
           }
           setList([
@@ -468,7 +463,6 @@ const RoomIdPage: NextPage = () => {
             .single()
           if (error) {
             captureException(error, user)
-            console.error(error)
             return
           }
           const chat = list[chatIndex]
@@ -575,7 +569,6 @@ const RoomIdPage: NextPage = () => {
             .single()
           if (error) {
             captureException(error, user)
-            console.error(error)
             return
           }
           setList([

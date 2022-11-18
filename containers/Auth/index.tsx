@@ -45,7 +45,6 @@ const Auth: FC<Props> = ({ children }) => {
           .single()
         if (error) {
           captureException(error, auth)
-          console.error(error)
           return
         }
         setUser(result)
@@ -65,7 +64,6 @@ const Auth: FC<Props> = ({ children }) => {
         .single()
       if (error) {
         captureException(error, auth)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -133,7 +131,7 @@ const Auth: FC<Props> = ({ children }) => {
           }
           break
         case 'CHANNEL_ERROR':
-          console.error(error)
+          captureException(error)
           break
         case 'CLOSED':
           break

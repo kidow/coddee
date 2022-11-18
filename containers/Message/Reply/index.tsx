@@ -69,7 +69,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     setState({ isSubmitting: false, isUpdateMode: false })
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -84,7 +83,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     const { error } = await supabase.from('replies').delete().eq('id', reply.id)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       EventListener.emit('tooltip:delete:error')
       return
@@ -138,7 +136,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         .single()
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -176,7 +173,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         .eq('id', reply.reply_reactions[reactionIndex].id)
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -235,7 +231,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         .single()
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -284,7 +279,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
           .single()
         if (error) {
           captureException(error, user)
-          console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
@@ -324,7 +318,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
           .eq('id', reply.reply_reactions[reactionIndex].id)
         if (error) {
           captureException(error, user)
-          console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
@@ -372,7 +365,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         .eq('id', reply.saves[0].id)
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -389,7 +381,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         .single()
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -419,7 +410,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     backdrop(false)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -458,7 +448,6 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     backdrop(false)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }

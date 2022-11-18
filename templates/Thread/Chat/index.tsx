@@ -70,7 +70,6 @@ const ThreadChat: FC<Props> = ({ index }) => {
     setState({ isSubmitting: false, isUpdateMode: false })
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -110,7 +109,6 @@ const ThreadChat: FC<Props> = ({ index }) => {
       })
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -139,7 +137,6 @@ const ThreadChat: FC<Props> = ({ index }) => {
         .eq('id', reaction.id)
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -187,7 +184,6 @@ const ThreadChat: FC<Props> = ({ index }) => {
         .single()
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -237,7 +233,6 @@ const ThreadChat: FC<Props> = ({ index }) => {
           .single()
         if (error) {
           captureException(error, user)
-          console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
@@ -276,7 +271,6 @@ const ThreadChat: FC<Props> = ({ index }) => {
           .eq('id', chat.reactions[reactionIndex].id)
         if (error) {
           captureException(error, user)
-          console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
@@ -323,7 +317,6 @@ const ThreadChat: FC<Props> = ({ index }) => {
     backdrop(false)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -362,7 +355,6 @@ const ThreadChat: FC<Props> = ({ index }) => {
     backdrop(false)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }

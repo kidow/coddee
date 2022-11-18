@@ -79,7 +79,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
     setState({ isSubmitting: false, isUpdateMode: false })
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -103,7 +102,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
         .single()
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         EventListener.emit('tooltip:delete:error')
         return
@@ -118,7 +116,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
       const { error } = await supabase.from('chats').delete().eq('id', chat.id)
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         EventListener.emit('tooltip:delete:error')
         return
@@ -151,7 +148,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
         .eq('id', chat.saves[0].id)
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -168,7 +164,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
         .single()
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -198,7 +193,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
     backdrop(false)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -237,7 +231,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
     backdrop(false)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
