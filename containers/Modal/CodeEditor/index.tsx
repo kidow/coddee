@@ -194,7 +194,11 @@ const CodeEditorModal: FC<Props> = ({
             options={{
               wordWrap: 'on',
               fontSize: 14,
-              minimap: { enabled: false }
+              minimap: { enabled: false },
+              scrollbar: {
+                vertical: 'hidden',
+                alwaysConsumeMouseWheel: false
+              }
             }}
             loading={false}
           />
