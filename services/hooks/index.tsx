@@ -126,3 +126,23 @@ export function useOnClickOutside<T extends HTMLElement>(
     }
   }, [ref, handler])
 }
+
+export const useContentEditable = (initialValue: string = '') => {
+  const ref = useRef<HTMLDivElement>(null)
+  const [value, setValue] = useState<string>(initialValue)
+
+  const onInput = (e: ChangeEvent<HTMLDivElement>) =>
+    setValue(e.target.innerText)
+
+  const setContent = (content: string) => {
+    if (!ref.current) return
+    ref.current.innerText = content
+    setValue(content)
+  }
+
+  useEffect(() => {
+    if (initialValue) setContent(initialValue)
+  }, [])
+
+  return { content: value, setContent, onInput, ref }
+}
