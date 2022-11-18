@@ -559,7 +559,8 @@ const RoomIdPage: NextPage = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'replies'
+          table: 'replies',
+          filter: `room_id=eq.${query.id}`
         },
         async (payload) => {
           if (payload.new.user_id === user?.id || !list.length) return
@@ -596,7 +597,12 @@ const RoomIdPage: NextPage = () => {
       )
       .on(
         'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'replies' },
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'replies',
+          filter: `room_id=eq.${query.id}`
+        },
         (payload) => {
           if (payload.old.user_id === user?.id || !list.length) return
           const chatIndex = list.findIndex(

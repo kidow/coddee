@@ -87,6 +87,7 @@ namespace NTable {
     id: number
     chat_id: number
     user_id: string
+    room_id: string
     content: string
     language: string
     code_block: string
