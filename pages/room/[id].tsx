@@ -362,8 +362,8 @@ const RoomIdPage: NextPage = () => {
       resetState()
       const channel = supabase
         .getChannels()
-        .find((item) => item.topic === `is-typing:chat/${query.id}`)
-      if (channel) supabase.removeChannel(channel)
+        .find((item) => item.topic === `realtime:is-typing:chat/${query.id}`)
+      if (channel) supabase.removeChannel(channel).then()
     }
   }, [query.id])
 
@@ -625,8 +625,7 @@ const RoomIdPage: NextPage = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'opengraphs',
-          filter: `room_id=eq.${query.id}`
+          table: 'opengraphs'
         },
         (payload: any) => {
           const index = list.findIndex(

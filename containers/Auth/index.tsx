@@ -96,8 +96,10 @@ const Auth: FC<Props> = ({ children }) => {
   }, [auth])
 
   useEffect(() => {
+    if (!user) return
+
     const online = supabase
-      .channel('online-users')
+      .channel('online-users', { config: { presence: { key: user.id } } })
       .on('presence', { event: 'sync' }, () => {
         setPresenceList(Object.values(online.presenceState()).map(([v]) => v))
       })
@@ -131,7 +133,6 @@ const Auth: FC<Props> = ({ children }) => {
           }
           break
         case 'CHANNEL_ERROR':
-          captureException(error, auth.user)
           console.error(error)
           break
         case 'CLOSED':
@@ -146,7 +147,7 @@ const Auth: FC<Props> = ({ children }) => {
       document.removeEventListener('visibilitychange', onVisibilityChange)
       online.unsubscribe().then().catch()
     }
-  }, [])
+  }, [user])
 
   return <>{children}</>
 }

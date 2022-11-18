@@ -52,20 +52,24 @@ export default () => {
       const json = await Promise.all(res.map((result) => result.json()))
       json
         .filter((item) => item.success)
-        .forEach(({ data }) =>
-          supabase.from('opengraphs').insert({
-            title: data.title || data['og:title'] || data['twitter:title'],
-            description:
-              data.description ||
-              data['og:description'] ||
-              data['twitter:description'],
-            image: data.image || data['og:image'] || data['twitter:image'],
-            url: data.url || data['og:url'] || data['twitter:domain'],
-            site_name: data['og:site_name'] || '',
-            room_id: query.id,
-            ...(!!replyId ? { reply_id: replyId } : { chat_id: chatId })
-          })
-        )
+        .forEach(async ({ data }) => {
+          await supabase
+            .from('opengraphs')
+            .insert({
+              title: data.title || data['og:title'] || data['twitter:title'],
+              description:
+                data.description ||
+                data['og:description'] ||
+                data['twitter:description'],
+              image: data.image || data['og:image'] || data['twitter:image'],
+              url: data.url || data['og:url'] || data['twitter:domain'],
+              site_name: data['og:site_name'] || '',
+              room_id: query.id,
+              ...(!!replyId ? { reply_id: replyId } : { chat_id: chatId })
+            })
+            .select()
+            .single()
+        })
     }
   }
 
