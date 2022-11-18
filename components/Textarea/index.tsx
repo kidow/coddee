@@ -1,4 +1,4 @@
-import { forwardRef, useEffect } from 'react'
+import { forwardRef, memo, useEffect } from 'react'
 import { MentionsInput, Mention } from 'react-mentions'
 import type { MentionsInputProps } from 'react-mentions'
 import { useRecoilState } from 'recoil'
@@ -85,4 +85,4 @@ const Textarea = forwardRef<HTMLTextAreaElement, Props>((props, ref) => {
   )
 })
 
-export default Textarea
+export default memo(Textarea)

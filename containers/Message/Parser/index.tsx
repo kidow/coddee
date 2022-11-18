@@ -1,5 +1,5 @@
 import { Modal } from 'containers'
-import { Fragment } from 'react'
+import { Fragment, memo } from 'react'
 import type { FC } from 'react'
 import { REGEXP, useObjectState } from 'services'
 
@@ -73,4 +73,4 @@ const MessageParser: FC<Props> = ({ content, updatedAt }) => {
   )
 }
 
-export default MessageParser
+export default memo(MessageParser)

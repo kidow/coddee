@@ -1,5 +1,6 @@
 import { TrashIcon } from '@heroicons/react/24/outline'
 import { Modal } from 'containers'
+import { memo } from 'react'
 import type { FC } from 'react'
 import { useObjectState } from 'services'
 
@@ -37,4 +38,4 @@ const MessageAvatar: FC<Props> = ({ url, userId, deletedAt }) => {
   )
 }
 
-export default MessageAvatar
+export default memo(MessageAvatar)

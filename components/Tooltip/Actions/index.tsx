@@ -4,10 +4,10 @@ import SaveTooltipAction from './Save'
 import ThreadTooltipAction from './Thread'
 import UpdateTooltipAction from './Update'
 
-export default Object.assign(() => <></>, {
+export default {
   AddReaction: AddReactionTooltipAction,
   Update: UpdateTooltipAction,
   Thread: ThreadTooltipAction,
   Delete: DeleteTooltipAction,
   Save: SaveTooltipAction
-})
+}

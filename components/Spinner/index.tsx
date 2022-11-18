@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { FC } from 'react'
 
 export interface Props {
@@ -42,4 +43,4 @@ const Spinner: FC<Props> = ({ className }) => {
   )
 }
 
-export default Spinner
+export default memo(Spinner)

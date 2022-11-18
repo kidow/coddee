@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { memo, useEffect } from 'react'
 import type { FC } from 'react'
 import classnames from 'classnames'
 import type { Argument } from 'classnames'
@@ -82,4 +82,4 @@ const Drawer: FC<Props> = ({
   )
 }
 
-export default Object.assign(Drawer, { Thread: ThreadDrawer })
+export default Object.assign(memo(Drawer), { Thread: ThreadDrawer })

@@ -8,8 +8,9 @@ import MessageReactions from './Reactions'
 import MessageReply from './Reply'
 import MessageUpdate from './Update'
 import MessageOpengraph from './Opengraph'
+import MessageDivider from './Divider'
 
-export default Object.assign(() => <></>, {
+export default {
   Parser: MessageParser,
   Update: MessageUpdate,
   Reply: MessageReply,
@@ -19,5 +20,6 @@ export default Object.assign(() => <></>, {
   Avatar: MessageAvatar,
   Actions: MessageActions,
   Button: MessageButton,
-  Opengraph: MessageOpengraph
-})
+  Opengraph: MessageOpengraph,
+  Divider: MessageDivider
+}

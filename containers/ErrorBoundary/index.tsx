@@ -1,4 +1,4 @@
-import { Component } from 'react'
+import { PureComponent } from 'react'
 import type { ErrorInfo } from 'react'
 import { captureException } from 'services'
 
@@ -10,7 +10,7 @@ interface State {
   hasError: boolean
 }
 
-class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundary extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = { hasError: false }

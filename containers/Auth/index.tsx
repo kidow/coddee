@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { memo, useEffect } from 'react'
 import type { FC } from 'react'
 import {
   captureException,
@@ -150,4 +150,4 @@ const Auth: FC<Props> = ({ children }) => {
   return <>{children}</>
 }
 
-export default Auth
+export default memo(Auth)

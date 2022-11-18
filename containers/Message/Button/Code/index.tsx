@@ -1,4 +1,5 @@
 import { CodeBracketIcon } from '@heroicons/react/24/outline'
+import { memo } from 'react'
 import type { FC } from 'react'
 
 export interface Props {
@@ -17,4 +18,4 @@ const MessageCodeButton: FC<Props> = ({ onClick }) => {
   )
 }
 
-export default MessageCodeButton
+export default memo(MessageCodeButton, () => true)

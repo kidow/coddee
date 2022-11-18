@@ -2,7 +2,7 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { Tooltip } from 'components'
 import { Message, Modal } from 'containers'
 import dayjs from 'dayjs'
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import type { FC } from 'react'
 import {
   backdrop,
@@ -584,4 +584,4 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
   )
 }
 
-export default MessageReply
+export default memo(MessageReply)

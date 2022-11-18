@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { FC } from 'react'
 import { useRecoilValue } from 'recoil'
 import { presenceListState, useObjectState } from 'services'
@@ -72,4 +73,4 @@ const Presence: FC<Props> = () => {
   )
 }
 
-export default Presence
+export default memo(Presence)

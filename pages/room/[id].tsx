@@ -1,4 +1,11 @@
-import { Dropdown, SEO, Spinner, Textarea, Typing } from 'components'
+import {
+  BackBottom,
+  Dropdown,
+  SEO,
+  Spinner,
+  Textarea,
+  Typing
+} from 'components'
 import type { NextPage } from 'next'
 import {
   ArrowLeftIcon,
@@ -15,7 +22,8 @@ import {
   useChatList,
   chatListState,
   typingChatListState,
-  captureException
+  captureException,
+  EventListener
 } from 'services'
 import { useEffect, useRef } from 'react'
 import type { KeyboardEvent } from 'react'
@@ -319,6 +327,14 @@ const RoomIdPage: NextPage = () => {
     }
   }
 
+  const onNicknameClick = ({ detail }: any) =>
+    setState(
+      {
+        content: !!content ? `${content} ${detail} ` : `${detail} `
+      },
+      () => textareaRef.current?.focus()
+    )
+
   // const onFocus = (e: globalThis.KeyboardEvent) => {
   //   if (!e.target) return
   //   const target = e.target as HTMLElement
@@ -333,6 +349,11 @@ const RoomIdPage: NextPage = () => {
   //   document.addEventListener('keydown', onFocus)
   //   return () => document.removeEventListener('keydown', onFocus)
   // }, [isCodeEditorOpen])
+
+  useEffect(() => {
+    EventListener.add('nickname:click', onNicknameClick)
+    return () => EventListener.remove('nickname:click', onNicknameClick)
+  }, [content])
 
   useEffect(() => {
     getChatList()
@@ -683,15 +704,7 @@ const RoomIdPage: NextPage = () => {
         <main className="flex flex-1 flex-col-reverse py-3">
           <div ref={backBottomRef} />
           {list.map((_, key) => (
-            <Message.Chat
-              key={key}
-              chatIndex={key}
-              onNicknameClick={(mention) =>
-                setState({
-                  content: !!content ? `${content} ${mention} ` : `${mention} `
-                })
-              }
-            />
+            <Message.Chat key={key} chatIndex={key} />
           ))}
           {!isLoading && !list.length && (
             <div className="flex h-full items-center justify-center text-xs text-neutral-400">
@@ -728,16 +741,7 @@ const RoomIdPage: NextPage = () => {
           <Typing source={`chat:${query.id}`} />
         </footer>
       </div>
-      <button
-        className={classnames(
-          'fixed bottom-6 right-6 flex h-10 w-10 items-center justify-center rounded-full bg-blue-400 duration-150',
-          isBackBottomIntersecting ? 'scale-0' : 'scale-100'
-        )}
-        tabIndex={-1}
-        onClick={() => window.scrollTo(0, document.body.scrollHeight)}
-      >
-        <ChevronDownIcon className="h-6 w-6 text-neutral-50" />
-      </button>
+      <BackBottom isIntersecting={isBackBottomIntersecting} />
       <Modal.CodeEditor
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}
