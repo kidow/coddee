@@ -75,7 +75,7 @@ const Thread: FC<Props> = ({ index }) => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onRegex(content, data.id)
+    onRegex(content, data.chat_id, data.id)
     setState({ content: '' })
     setList([
       ...list.slice(0, index),

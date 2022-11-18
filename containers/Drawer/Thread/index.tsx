@@ -18,7 +18,7 @@ import { ArrowSmallUpIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
 import classnames from 'classnames'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import ThreadDrawerChat from './Chat'
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
+import { useRecoilState, useSetRecoilState } from 'recoil'
 
 export interface Props extends DrawerProps {
   chatIndex: number
@@ -173,7 +173,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onRegex(content, data.id)
+    onRegex(content, data.chat_id, data.id)
     setState({ content: '' })
     setReplyList([
       ...replyList,
