@@ -194,7 +194,7 @@ const MessageCodeBlock: FC<Props> = ({
               />
             ) : (
               <Editor
-                language={language}
+                language={props.language}
                 onMount={onMount}
                 theme={theme === 'dark' ? 'vs-dark' : 'light'}
                 options={{
