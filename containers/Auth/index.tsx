@@ -101,7 +101,6 @@ const Auth: FC<Props> = ({ children }) => {
     const online = supabase
       .channel('online-users', { config: { presence: { key: user.id } } })
       .on('presence', { event: 'sync' }, () => {
-        console.log('online.presenceState()', online.presenceState())
         setPresenceList(Object.values(online.presenceState()).map(([v]) => v))
       })
       .on('presence', { event: 'join' }, ({ currentPresences }) => {

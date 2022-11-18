@@ -625,8 +625,7 @@ const RoomIdPage: NextPage = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'opengraphs',
-          filter: `room_id=eq.${query.id}`
+          table: 'opengraphs'
         },
         (payload: any) => {
           const index = list.findIndex(
@@ -747,12 +746,6 @@ const RoomIdPage: NextPage = () => {
         onSubmit={createCodeChat}
         typingSource="chat"
       />
-      <button
-        onClick={() => console.log(supabase.getChannels())}
-        className="fixed top-2 left-2"
-      >
-        Test
-      </button>
     </>
   )
 }
