@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, memo } from 'react'
 import type { FC } from 'react'
 import { Spinner } from 'components'
 import { createPortal } from 'react-dom'
@@ -28,4 +28,4 @@ const Backdrop: FC = () => {
   )
 }
 
-export default Backdrop
+export default memo(Backdrop)

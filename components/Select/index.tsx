@@ -1,5 +1,6 @@
 import { ChevronDownIcon } from '@heroicons/react/24/solid'
 import classnames from 'classnames'
+import { memo } from 'react'
 import type {
   FC,
   DetailedHTMLProps,
@@ -63,4 +64,4 @@ const Select: FC<Props> = ({
   )
 }
 
-export default Select
+export default memo(Select)

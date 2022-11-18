@@ -127,7 +127,6 @@ const ThreadsPage: NextPage = () => {
       .or(`user_id.eq.${auth.user.id}`, { foreignTable: 'replies' })
       .range((page - 1) * 8, page * 8 - 1)
     if (error) {
-      console.error(error)
       captureException(error, auth.user)
       setState({ isLoading: false })
       return
@@ -267,7 +266,6 @@ const ThreadsPage: NextPage = () => {
             .single()
           if (error) {
             captureException(error, user)
-            console.error(error)
             return
           }
 
@@ -374,7 +372,6 @@ const ThreadsPage: NextPage = () => {
             .single()
           if (error) {
             captureException(error, user)
-            console.error(error)
             return
           }
           setList([
@@ -485,7 +482,6 @@ const ThreadsPage: NextPage = () => {
             .single()
           if (error) {
             captureException(error, user)
-            console.error(error)
             return
           }
 

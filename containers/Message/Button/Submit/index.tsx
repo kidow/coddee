@@ -1,5 +1,6 @@
 import { ArrowSmallUpIcon } from '@heroicons/react/24/outline'
 import { Spinner } from 'components'
+import { memo } from 'react'
 import type { FC } from 'react'
 
 export interface Props {
@@ -25,4 +26,4 @@ const MessageSubmitButton: FC<Props> = ({ onClick, disabled, loading }) => {
   )
 }
 
-export default MessageSubmitButton
+export default memo(MessageSubmitButton)

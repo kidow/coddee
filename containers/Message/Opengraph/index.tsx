@@ -2,7 +2,7 @@ import {
   ArrowTopRightOnSquareIcon,
   DocumentDuplicateIcon
 } from '@heroicons/react/24/outline'
-import { useEffect } from 'react'
+import { memo, useEffect } from 'react'
 import type { FC } from 'react'
 import { EventListener, toast, useObjectState } from 'services'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
@@ -104,4 +104,4 @@ const ChatOpengraph: FC<Props> = ({
   )
 }
 
-export default ChatOpengraph
+export default memo(ChatOpengraph)

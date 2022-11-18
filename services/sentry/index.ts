@@ -1,6 +1,11 @@
 import { configureScope, captureException } from '@sentry/nextjs'
 
 export default async (error: any, user?: any) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.error(error)
+    return
+  }
+
   configureScope((scope) => {
     if (error.message) {
       scope.setFingerprint([error.message])
@@ -30,7 +35,7 @@ export default async (error: any, user?: any) => {
 
     if (Object.prototype.hasOwnProperty.call(error, 'hint')) {
       scope.setContext('supabase', error)
-      captureException(new Error(error.message))
+      captureException(error)
       return
     }
 

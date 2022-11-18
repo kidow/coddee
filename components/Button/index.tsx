@@ -1,5 +1,6 @@
 import classnames from 'classnames'
 import { Spinner } from 'components'
+import { memo } from 'react'
 import type { FC, DetailedHTMLProps, ButtonHTMLAttributes } from 'react'
 
 export interface Props
@@ -93,4 +94,4 @@ const Button: FC<Props> = ({
   )
 }
 
-export default Button
+export default memo(Button)

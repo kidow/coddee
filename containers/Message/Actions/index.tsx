@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { FC } from 'react'
 
 export interface Props extends ReactProps {}
@@ -11,4 +12,4 @@ const MessageActions: FC<Props> = ({ children }) => {
   )
 }
 
-export default MessageActions
+export default memo(MessageActions)

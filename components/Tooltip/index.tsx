@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { FC } from 'react'
 import classnames from 'classnames'
 import type { Argument } from 'classnames'
@@ -65,7 +66,7 @@ const Tooltip: FC<Props> = ({
   )
 }
 
-export default Object.assign(Tooltip, {
+export default Object.assign(memo(Tooltip), {
   AddReaction: AddReactionTooltip,
   Reaction: ReactionTooltip,
   Actions: TooltipActions

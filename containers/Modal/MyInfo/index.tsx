@@ -100,7 +100,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       .single()
     if (error) {
       captureException(error, user)
-      console.error(error)
       setState({ isLoading: false })
       return
     }
@@ -122,7 +121,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
         isLoading: false
       })
     } catch (err) {
-      if (process.env.NODE_ENV === 'development') console.error(err)
       captureException(err)
       setState({ isLoading: false })
     }
@@ -143,7 +141,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       .single()
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
     } else toast.success('변경되었습니다.')
   }
@@ -152,7 +149,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     const { error } = await supabase.auth.signOut()
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -189,7 +185,6 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     const { error } = await supabase.from('users').delete().eq('id', user.id)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }

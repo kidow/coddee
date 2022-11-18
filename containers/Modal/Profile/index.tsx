@@ -76,7 +76,6 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       .single()
     if (error) {
       captureException(error, user)
-      console.error(error)
       setState({ isLoading: false })
       return
     }

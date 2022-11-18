@@ -104,7 +104,6 @@ export default () => {
         .single()
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -154,7 +153,6 @@ export default () => {
           .single()
         if (error) {
           captureException(error, user)
-          console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
@@ -194,7 +192,6 @@ export default () => {
           .eq('id', chat.reactions[reactionIndex].id)
         if (error) {
           captureException(error, user)
-          console.error(error)
           toast.error(TOAST_MESSAGE.API_ERROR)
           return
         }
@@ -253,7 +250,6 @@ export default () => {
       })
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -282,7 +278,6 @@ export default () => {
         .eq('id', reaction.id)
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }

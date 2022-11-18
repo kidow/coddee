@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import type { FC } from 'react'
 import { useRecoilValue } from 'recoil'
 import { typingChatListState, typingReplyListState, useUser } from 'services'
@@ -49,4 +49,4 @@ const Typing: FC<Props> = ({ source, chatId }) => {
   )
 }
 
-export default Typing
+export default memo(Typing)

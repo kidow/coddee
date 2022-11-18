@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import type { FC } from 'react'
 import dayjs from 'dayjs'
 import classnames from 'classnames'
@@ -23,7 +23,6 @@ import { useRecoilState } from 'recoil'
 
 export interface Props {
   chatIndex: number
-  onNicknameClick: (mention: string) => void
 }
 interface State {
   isUpdateMode: boolean
@@ -32,7 +31,7 @@ interface State {
   isCodeEditorOpen: boolean
 }
 
-const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
+const MessageChat: FC<Props> = ({ chatIndex }) => {
   const [
     { isUpdateMode, isThreadOpen, isSubmitting, isCodeEditorOpen },
     setState
@@ -79,7 +78,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
     setState({ isSubmitting: false, isUpdateMode: false })
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -103,7 +101,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
         .single()
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         EventListener.emit('tooltip:delete:error')
         return
@@ -118,7 +115,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
       const { error } = await supabase.from('chats').delete().eq('id', chat.id)
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         EventListener.emit('tooltip:delete:error')
         return
@@ -151,7 +147,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
         .eq('id', chat.saves[0].id)
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -168,7 +163,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
         .single()
       if (error) {
         captureException(error, user)
-        console.error(error)
         toast.error(TOAST_MESSAGE.API_ERROR)
         return
       }
@@ -198,7 +192,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
     backdrop(false)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -237,7 +230,6 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
     backdrop(false)
     if (error) {
       captureException(error, user)
-      console.error(error)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
@@ -294,11 +286,12 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
               <div className="flex items-center gap-2">
                 <div className="flex items-center text-sm font-medium">
                   <span
-                    onClick={() =>
-                      onNicknameClick(
+                    onClick={() => {
+                      EventListener.emit(
+                        'nickname:click',
                         `@[${chat.user?.nickname}](${chat.user_id})`
                       )
-                    }
+                    }}
                     className="cursor-pointer"
                   >
                     {chat.user?.nickname}
@@ -425,17 +418,7 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
           </div>
         )}
       </div>
-      {(!!dayjs(dayjs(chat.created_at).format('YYYY-MM-DD')).diff(
-        dayjs(chatList[chatIndex + 1]?.created_at).format('YYYY-MM-DD'),
-        'day'
-      ) ||
-        chatIndex === chatList.length - 1) && (
-        <div className="relative z-[9] mx-5 flex items-center justify-center py-5 text-xs before:absolute before:h-px before:w-full before:bg-neutral-200 dark:before:bg-neutral-700">
-          <div className="absolute bottom-1/2 left-1/2 z-10 translate-y-[calc(50%-1px)] -translate-x-[46px] select-none bg-white px-5 text-neutral-400 dark:bg-neutral-800">
-            {dayjs(chat.created_at).format('MM월 DD일')}
-          </div>
-        </div>
-      )}
+      <Message.Divider chatIndex={chatIndex} />
       <Drawer.Thread
         isOpen={isThreadOpen}
         onClose={() => setState({ isThreadOpen: false })}
@@ -455,4 +438,4 @@ const MessageChat: FC<Props> = ({ chatIndex, onNicknameClick }) => {
   )
 }
 
-export default MessageChat
+export default memo(MessageChat)

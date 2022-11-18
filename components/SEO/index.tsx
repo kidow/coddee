@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { FC } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -49,4 +50,4 @@ const SEO: FC<Props> = ({
   )
 }
 
-export default SEO
+export default memo(SEO)

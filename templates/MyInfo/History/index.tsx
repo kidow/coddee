@@ -29,7 +29,6 @@ const MyInfoHistory: FC<Props> = () => {
       .eq('user_id', user?.id)
     if (error) {
       captureException(error, user)
-      console.error(error)
       return
     }
     setState({ list: data || [] })

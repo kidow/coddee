@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { FC } from 'react'
 
 export interface Props {}
@@ -23,4 +24,4 @@ const Logo: FC<Props> = () => {
   )
 }
 
-export default Logo
+export default memo(Logo)

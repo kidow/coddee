@@ -1,8 +1,8 @@
-import { forwardRef, useEffect } from 'react'
+import { forwardRef, memo, useEffect } from 'react'
 import { MentionsInput, Mention } from 'react-mentions'
 import type { MentionsInputProps } from 'react-mentions'
 import { useRecoilState } from 'recoil'
-import { userListState } from 'services'
+import { captureException, userListState } from 'services'
 import classnames from 'classnames'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
@@ -21,7 +21,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, Props>((props, ref) => {
       .order('nickname', { ascending: true })
     if (error) {
       const { data: auth } = await supabase.auth.getUser()
-      console.error(error, auth)
+      captureException(error, auth)
       return
     }
     setUserList(
@@ -85,4 +85,4 @@ const Textarea = forwardRef<HTMLTextAreaElement, Props>((props, ref) => {
   )
 })
 
-export default Textarea
+export default memo(Textarea)

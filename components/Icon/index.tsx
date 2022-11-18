@@ -1,4 +1,6 @@
-const AddReaction = () => {
+import { memo } from 'react'
+
+const AddReaction = memo(() => {
   return (
     <svg
       width="16px"
@@ -14,6 +16,6 @@ const AddReaction = () => {
       />
     </svg>
   )
-}
+})
 
-export default Object.assign(() => <></>, { AddReaction })
+export default { AddReaction }

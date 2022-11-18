@@ -1,4 +1,4 @@
-import { useId, useMemo } from 'react'
+import { memo, useId, useMemo } from 'react'
 import type {
   FC,
   ReactNode,
@@ -142,4 +142,4 @@ Input.defaultProps = {
   type: 'text'
 }
 
-export default Input
+export default memo(Input)
