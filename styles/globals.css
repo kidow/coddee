@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+@import './quill.css';
+@import './quill-emoji.css';
+@import './quill-mention.css';
+
 * {
   font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
     Pretendard, Roboto, 'Noto Sans KR', 'Segoe UI', 'Malgun Gothic', sans-serif;
@@ -30,5 +34,40 @@
 @layer components {
   .skeleton {
     @apply animate-pulse bg-neutral-200 dark:bg-neutral-700;
+  }
+
+  .tribute-container {
+    @apply absolute top-0 left-0 z-[9999] block h-auto w-80 overflow-auto overscroll-contain rounded border bg-neutral-50 py-1;
+  }
+  .tribute-container ul {
+    @apply m-0 mt-0.5 list-none p-0;
+  }
+  .tribute-item {
+    @apply flex cursor-pointer items-center gap-3 px-2 py-1;
+  }
+  .tribute-item img {
+    @apply h-8 w-8 rounded;
+  }
+  .tribute-item .nickname {
+    @apply text-sm;
+  }
+  .tribute-item .email {
+    @apply text-xs text-neutral-500;
+  }
+  .tribute-item.highlight {
+    @apply bg-sky-700 text-neutral-50;
+  }
+  .tribute-item.highlight .email {
+    @apply text-neutral-300;
+  }
+  .tribute-item span {
+    @apply font-bold;
+  }
+  .tribute-container .no-match,
+  .tribute-container .loader {
+    @apply flex h-[44px] items-center justify-center text-sm text-neutral-400;
+  }
+  .tribute-selected {
+    @apply rounded bg-blue-100 p-1 text-blue-500;
   }
 }

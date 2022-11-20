@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { ChangeEvent, RefObject } from 'react'
+import type { ChangeEvent, RefObject, ForwardedRef } from 'react'
 import { EventListener, themeState, userState } from 'services'
 import { useRecoilState } from 'recoil'
 import type { SetterOrUpdater } from 'recoil'
@@ -127,22 +127,20 @@ export function useOnClickOutside<T extends HTMLElement>(
   }, [ref, handler])
 }
 
-export const useContentEditable = (initialValue: string = '') => {
-  const ref = useRef<HTMLDivElement>(null)
-  const [value, setValue] = useState<string>(initialValue)
-
-  const onInput = (e: ChangeEvent<HTMLDivElement>) =>
-    setValue(e.target.innerText)
-
-  const setContent = (content: string) => {
-    if (!ref.current) return
-    ref.current.innerText = content
-    setValue(content)
-  }
+export function useCombinedRefs<T>(
+  ...refs: (RefObject<T> | ForwardedRef<T>)[]
+): RefObject<T> {
+  const targetRef = useRef<T>(null)
 
   useEffect(() => {
-    if (initialValue) setContent(initialValue)
-  }, [])
+    refs.forEach((ref) => {
+      if (!ref) return
 
-  return { content: value, setContent, onInput, ref }
+      if (typeof ref === 'function') ref(targetRef.current)
+      // @ts-ignore
+      else ref.current = targetRef.current
+    })
+  }, [refs])
+
+  return targetRef
 }
