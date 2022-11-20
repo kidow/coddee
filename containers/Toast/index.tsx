@@ -30,7 +30,7 @@ const Toast: FC<Props> = () => {
               ...list,
               {
                 id: Math.random().toString(36).slice(2),
-                message: detail.message,
+                message: detail?.message,
                 type: detail.type
               }
             ]
@@ -73,7 +73,7 @@ const Toast: FC<Props> = () => {
                   <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
                 )}
               </span>
-              <span className="select-none text-sm">{item.message}</span>
+              <span className="select-none text-sm">{item?.message}</span>
             </div>
           </div>
         ))}

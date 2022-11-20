@@ -305,7 +305,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
                 </span>
               </div>
             )}
-          <div>
+          <div className="max-w-[726px] break-all">
             {!!chat.deleted_at ? (
               <div className="flex h-8 items-center text-sm text-neutral-400">
                 이 메시지는 삭제되었습니다.

@@ -7,8 +7,8 @@ export default async (error: any, user?: any) => {
   }
 
   configureScope((scope) => {
-    if (error.message) {
-      scope.setFingerprint([error.message])
+    if (error?.message) {
+      scope.setFingerprint([error?.message])
     }
 
     if (user) {

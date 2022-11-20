@@ -22,7 +22,7 @@ const HomePage: NextPage = () => {
             공간을 만들고자
           </li>
           <li>
-            코드 관련 질문들을 <strong>코드 블록</strong>를 첨부해서 할 수
+            코드 관련 질문들을 <strong>코드 블록</strong>을 첨부해서 할 수
             있도록
           </li>
           <li>업무 중에 심심하면 와서 떠들 수 있는 장소</li>

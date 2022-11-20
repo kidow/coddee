@@ -1,6 +1,7 @@
 import { PureComponent } from 'react'
 import type { ErrorInfo } from 'react'
 import { captureException } from 'services'
+import { Error } from 'components'
 
 interface Error {
   stack?: string
@@ -17,10 +18,7 @@ class ErrorBoundary extends PureComponent<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('getDerivedStateFromError: ')
-      console.error(error)
-    }
+    captureException(error)
     return { hasError: true }
   }
 
@@ -49,6 +47,7 @@ class ErrorBoundary extends PureComponent<Props, State> {
   }
 
   render() {
+    if (this.state.hasError) return <Error />
     return this.props.children
   }
 }
