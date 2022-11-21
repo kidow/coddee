@@ -1,31 +1,35 @@
-import { ContentEditable } from 'components'
+import { Quill } from 'components'
 import type { NextPage } from 'next'
-import { useObjectState } from 'services'
+import { useId } from 'react'
+import { EventListener, useObjectState } from 'services'
 
 interface State {
-  content: string
+  value: string
 }
 
-const TestPage: NextPage = () => {
-  const [{ content }, setState] = useObjectState<State>({
-    content: ''
-  })
+const QuillPage: NextPage = () => {
+  const [{ value }, setState] = useObjectState<State>({ value: '' })
+  const id = useId()
   return (
-    <div className="flex h-full flex-col-reverse p-4">
-      <ContentEditable
-        value={content}
-        onInput={(e) => setState({ content: e.target.innerText })}
-        autoFocus
-      />
-
+    <>
+      <div className="flex h-full flex-col-reverse p-4">
+        <Quill
+          id={id}
+          value={value}
+          onChange={(value) => setState({ value })}
+        />
+      </div>
       <button
-        onClick={() => console.log(content)}
         className="fixed bottom-2 left-2"
+        onClick={() => {
+          EventListener.emit(`quill:focus:${id}`)
+          console.log(value)
+        }}
       >
-        test
+        Focus
       </button>
-    </div>
+    </>
   )
 }
 
-export default TestPage
+export default QuillPage

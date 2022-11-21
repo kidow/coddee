@@ -1,9 +1,9 @@
 .mention {
-  @apply rounded bg-blue-50 p-0.5 text-blue-500;
+  @apply rounded bg-blue-50 p-0.5 text-blue-500 dark:bg-sky-700 dark:text-blue-50;
 }
 
 .ql-mention-list-container {
-  @apply max-h-96 overflow-y-auto rounded border py-1;
+  @apply max-h-96 overflow-y-auto rounded border py-1 dark:border-neutral-700 dark:bg-neutral-900;
 }
 
 .ql-mention-list-item {

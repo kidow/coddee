@@ -51,12 +51,15 @@ const Textarea: FC<Props> = ({ id, ...props }) => {
       linkify: true,
       mention: {
         mentionDenotationChars: ['@'],
-        // @ts-ignore
-        source: async function (searchTerm: string, renderList) {
+        source: async function (
+          searchTerm: string,
+          renderList: (data: any[], searchTerm: string) => void
+        ) {
           const { data, error } = await supabase
             .from('users')
             .select('id, nickname, email, avatar_url')
             .like('nickname', `%${searchTerm}%`)
+            .order('nickname', { ascending: true })
             .limit(10)
           if (error) {
             captureException(error)
@@ -68,7 +71,7 @@ const Textarea: FC<Props> = ({ id, ...props }) => {
             searchTerm
           )
         },
-        maxChars: 8,
+        maxChars: 5,
         renderLoading: () =>
           `<div class="ql-mention-loader">불러오는 중...</div>`,
         renderItem: (data: NTable.Users) => `
@@ -82,6 +85,11 @@ const Textarea: FC<Props> = ({ id, ...props }) => {
         `
       }
     }),
+    []
+  )
+
+  const formats: string[] = useMemo(
+    () => ['bold', 'italic', 'link', 'mention', 'emoji'],
     []
   )
 
@@ -109,12 +117,13 @@ const Textarea: FC<Props> = ({ id, ...props }) => {
       // @ts-ignore
       forwardedRef={ref}
       modules={modules}
+      formats={formats}
     />
   )
 }
 
 Textarea.defaultProps = {
-  placeholder: '서로 존중하는 매너를 보여주세요.'
+  placeholder: '서로 존중하는 매너를 보여주세요. (":"는 이모지, "@"는 맨션)'
 }
 
 export default Textarea
