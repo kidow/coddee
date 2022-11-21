@@ -10,6 +10,7 @@ import {
   backdrop,
   captureException,
   chatListState,
+  cheerio,
   EventListener,
   toast,
   TOAST_MESSAGE,
@@ -57,8 +58,8 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
       return
     }
 
-    if (!content.trim()) return
-    if (content.length > 300) {
+    if (!content.trim() || content === '<p><br></p>') return
+    if (cheerio.getText(content).length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -203,9 +204,10 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
                   content={chat.content || ''}
                   onCancel={() => setState({ isUpdateMode: false })}
                   onSave={updateChat}
+                  className="max-w-[338px]"
                 />
               ) : (
-                <Message.Parser
+                <Message
                   content={chat.content || ''}
                   updatedAt={chat.updated_at || ''}
                 />

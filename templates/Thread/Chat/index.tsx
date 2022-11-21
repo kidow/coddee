@@ -8,6 +8,7 @@ import { useRecoilState } from 'recoil'
 import {
   backdrop,
   captureException,
+  cheerio,
   EventListener,
   threadListState,
   toast,
@@ -54,8 +55,8 @@ const ThreadChat: FC<Props> = ({ index }) => {
       return
     }
 
-    if (!content.trim()) return
-    if (content.length > 300) {
+    if (!content.trim() || content === '<p><br></p>') return
+    if (cheerio.getText(content).length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -405,12 +406,10 @@ const ThreadChat: FC<Props> = ({ index }) => {
                   content={chat.content}
                   onCancel={() => setState({ isUpdateMode: false })}
                   onSave={updateChat}
+                  className="max-w-[684px]"
                 />
               ) : (
-                <Message.Parser
-                  content={chat.content}
-                  updatedAt={chat.updated_at}
-                />
+                <Message content={chat.content} updatedAt={chat.updated_at} />
               )}
             </div>
             <Message.CodeBlock

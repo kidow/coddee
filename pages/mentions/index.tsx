@@ -321,7 +321,7 @@ const MentionsPage: NextPage = () => {
                       {dayjs(item.created_at).locale('ko').fromNow()}
                     </span>
                   </div>
-                  <Message.Parser
+                  <Message
                     content={item.chat.content}
                     updatedAt={item.chat.updated_at}
                   />

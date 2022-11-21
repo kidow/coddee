@@ -5,7 +5,6 @@ import {
 } from '@heroicons/react/24/outline'
 import { SEO } from 'components'
 import type { NextPage } from 'next'
-import classnames from 'classnames'
 import { useObjectState } from 'services'
 import Link from 'next/link'
 

@@ -1,6 +1,6 @@
 ## Coddee (커디)
 
-> Coddee is a chatting room for developers. It provides code block editor with monaco editor.
+> Coddee is a chatting room platform for developers. It provides code block editor with monaco editor.
 
 Link: [https://coddee.dev](https://coddee.dev)
 
@@ -11,7 +11,9 @@ Link: [https://coddee.dev](https://coddee.dev)
 - TailwindCSS
 - Supabase
 - Monaco Editor
+- Quill
 - dayjs
 - classnames
 - recoil
 - heroicons
+- cheerio

@@ -4,6 +4,7 @@ import classnames from 'classnames'
 import Link from 'next/link'
 import {
   captureException,
+  cheerio,
   languageListState,
   REGEXP,
   toast,
@@ -94,10 +95,9 @@ const Layout: FC<Props> = ({ children }) => {
     setState({
       roomList: (data as any[]).map((item) => ({
         ...item,
-        newChat:
-          (item.chats?.at(0)?.code_block
-            ? '코드'
-            : item.chats?.at(0)?.content) || '',
+        newChat: !!item.chats?.at(0)?.code_block
+          ? '코드'
+          : cheerio.getText(item.chats?.at(0)?.content),
         newDate: item.chats?.at(0)?.created_at || '',
         newCount: 0
       }))
@@ -140,9 +140,9 @@ const Layout: FC<Props> = ({ children }) => {
                   ...roomList.slice(0, index),
                   {
                     ...roomList[index],
-                    newChat: payload.new.code_block
+                    newChat: !!payload.new.code_block
                       ? '코드'
-                      : payload.new.content,
+                      : cheerio.getText(payload.new.content),
                     newDate: payload.new.created_at,
                     ...(payload.new.room_id !== query.id
                       ? { newCount: roomList[index].newCount + 1 }

@@ -3,6 +3,7 @@ import type { FC } from 'react'
 import {
   backdrop,
   captureException,
+  cheerio,
   threadListState,
   toast,
   TOAST_MESSAGE,
@@ -57,8 +58,8 @@ const Thread: FC<Props> = ({ index }) => {
       return
     }
 
-    if (!content.trim()) return
-    if (content.length > 300) {
+    if (!content.trim() || content === '<p><br></p>') return
+    if (cheerio.getText(content).length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -189,12 +190,14 @@ const Thread: FC<Props> = ({ index }) => {
             ))}
           <div className="mt-2 px-4">
             <div className="flex items-center gap-3 rounded-xl border py-2 px-3 dark:border-neutral-700">
-              <Textarea
-                value={content}
-                onChange={(e) => setState({ content: e.target.value })}
-                placeholder="답글 남기기"
-                className="flex-1 dark:bg-transparent"
-              />
+              <div className="max-w-[630px] flex-1">
+                <Textarea
+                  value={content}
+                  onChange={(content) => setState({ content })}
+                  placeholder="답글 남기기"
+                  readOnly={isSubmitting}
+                />
+              </div>
               <Message.Button.Code
                 onClick={() => setState({ isCodeEditorOpen: true })}
               />

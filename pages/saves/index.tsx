@@ -367,7 +367,7 @@ const SavedPage: NextPage = () => {
                       {dayjs(item.created_at).locale('ko').fromNow()}
                     </span>
                   </div>
-                  <Message.Parser
+                  <Message
                     content={item.chat?.content || item.reply?.content || ''}
                     updatedAt={
                       item.chat?.updated_at || item.reply?.updated_at || ''
