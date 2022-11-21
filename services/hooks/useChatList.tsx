@@ -11,7 +11,6 @@ import {
   captureException
 } from 'services'
 import * as cheerio from 'cheerio'
-import { url } from 'inspector'
 
 export default () => {
   const { query } = useRouter()

@@ -4,6 +4,7 @@ import classnames from 'classnames'
 import Link from 'next/link'
 import {
   captureException,
+  cheerio,
   languageListState,
   REGEXP,
   toast,
@@ -29,7 +30,6 @@ import {
   useUser as useAuth
 } from '@supabase/auth-helpers-react'
 import { useRecoilState } from 'recoil'
-import * as cheerio from 'cheerio'
 
 dayjs.extend(relativeTime)
 
@@ -97,7 +97,7 @@ const Layout: FC<Props> = ({ children }) => {
         ...item,
         newChat: !!item.chats?.at(0)?.code_block
           ? '코드'
-          : cheerio.load(item.chats?.at(0)?.content, null, false).text(),
+          : cheerio.getText(item.chats?.at(0)?.content),
         newDate: item.chats?.at(0)?.created_at || '',
         newCount: 0
       }))
@@ -142,7 +142,7 @@ const Layout: FC<Props> = ({ children }) => {
                     ...roomList[index],
                     newChat: !!payload.new.code_block
                       ? '코드'
-                      : cheerio.load(payload.new.content).text(),
+                      : cheerio.getText(payload.new.content),
                     newDate: payload.new.created_at,
                     ...(payload.new.room_id !== query.id
                       ? { newCount: roomList[index].newCount + 1 }

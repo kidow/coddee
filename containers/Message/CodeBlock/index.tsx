@@ -4,6 +4,7 @@ import Editor, { DiffEditor } from '@monaco-editor/react'
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
 import {
   backdrop,
+  cheerio,
   EventListener,
   languageListState,
   toast,
@@ -18,7 +19,6 @@ import { Button, Textarea, Select } from 'components'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useRecoilValue } from 'recoil'
 import { useRouter } from 'next/router'
-import * as cheerio from 'cheerio'
 
 export interface Props {
   originalCode?: string
@@ -151,7 +151,7 @@ const MessageCodeBlock: FC<Props> = ({
       return
     }
     if (!content.trim() || content === '<p><br></p>') return
-    if (cheerio.load(content, null, false).text().length > 300) {
+    if (cheerio.getText(content).length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }

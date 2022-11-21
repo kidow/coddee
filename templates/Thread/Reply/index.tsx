@@ -8,6 +8,7 @@ import { useRecoilState } from 'recoil'
 import {
   backdrop,
   captureException,
+  cheerio,
   EventListener,
   threadListState,
   toast,
@@ -16,7 +17,6 @@ import {
   useObjectState,
   useUser
 } from 'services'
-import * as cheerio from 'cheerio'
 
 export interface Props {
   chatIndex: number
@@ -57,7 +57,7 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     }
 
     if (!content?.trim() || content === '<p><br></p>') return
-    if (cheerio.load(content, null, false).text().length > 300) {
+    if (cheerio.getText(content).length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }

@@ -3,6 +3,7 @@ import type { FC } from 'react'
 import {
   backdrop,
   captureException,
+  cheerio,
   threadListState,
   toast,
   TOAST_MESSAGE,
@@ -16,7 +17,6 @@ import Link from 'next/link'
 import { Message, Modal } from 'containers'
 import { Textarea } from 'components'
 import { useRecoilState } from 'recoil'
-import * as cheerio from 'cheerio'
 
 import ThreadChat from './Chat'
 import ThreadReply from './Reply'
@@ -59,7 +59,7 @@ const Thread: FC<Props> = ({ index }) => {
     }
 
     if (!content.trim() || content === '<p><br></p>') return
-    if (cheerio.load(content, null, false).text().length > 300) {
+    if (cheerio.getText(content).length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }

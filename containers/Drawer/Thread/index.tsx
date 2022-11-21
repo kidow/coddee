@@ -5,6 +5,7 @@ import {
   backdrop,
   captureException,
   chatListState,
+  cheerio,
   EventListener,
   replyListState,
   toast,
@@ -20,7 +21,6 @@ import classnames from 'classnames'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import ThreadDrawerChat from './Chat'
 import { useRecoilState, useSetRecoilState } from 'recoil'
-import * as cheerio from 'cheerio'
 
 export interface Props extends DrawerProps {
   chatIndex: number
@@ -163,7 +163,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     const v = value || content
 
     if (!v.trim() || v === '<p><br></p>') return
-    if (cheerio.load(v, null, false).text().length > 300) {
+    if (cheerio.getText(v).length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }

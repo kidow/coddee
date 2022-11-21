@@ -22,7 +22,8 @@ import {
   chatListState,
   typingChatListState,
   captureException,
-  EventListener
+  EventListener,
+  cheerio
 } from 'services'
 import { useEffect, useId } from 'react'
 import { useRouter } from 'next/router'
@@ -31,7 +32,6 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useRecoilState, useSetRecoilState } from 'recoil'
-import * as cheerio from 'cheerio'
 
 dayjs.extend(relativeTime)
 
@@ -229,7 +229,7 @@ const RoomIdPage: NextPage = () => {
     const v = value || content
 
     if (!v.trim() || v === '<p><br></p>') return
-    if (cheerio.load(v, null, false).text().length > 300) {
+    if (cheerio.getText(v).length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }

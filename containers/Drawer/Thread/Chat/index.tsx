@@ -10,6 +10,7 @@ import {
   backdrop,
   captureException,
   chatListState,
+  cheerio,
   EventListener,
   toast,
   TOAST_MESSAGE,
@@ -17,7 +18,6 @@ import {
   useObjectState,
   useUser
 } from 'services'
-import * as cheerio from 'cheerio'
 
 export interface Props {
   chatIndex: number
@@ -59,7 +59,7 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
     }
 
     if (!content.trim() || content === '<p><br></p>') return
-    if (cheerio.load(content, null, false).text().length > 300) {
+    if (cheerio.getText(content).length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
