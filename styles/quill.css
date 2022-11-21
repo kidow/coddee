@@ -1,0 +1,22 @@
+.ql-container {
+  @apply relative text-base;
+}
+.ql-clipboard {
+  left: -100000px;
+  @apply absolute top-1/2 h-px overflow-y-hidden;
+}
+.ql-editor {
+  word-wrap: break-word;
+  @apply max-w-[682px] overflow-y-auto whitespace-pre-wrap focus:outline-none;
+}
+.ql-editor > * {
+}
+.ql-editor p {
+  counter-reset: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+.ql-editor a {
+  @apply text-blue-500 underline;
+}
+.ql-blank:before {
+  @apply pointer-events-none absolute left-0 top-0 text-base text-neutral-400 content-[attr(data-placeholder)];
+}

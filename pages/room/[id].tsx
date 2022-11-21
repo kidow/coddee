@@ -110,6 +110,7 @@ const RoomIdPage: NextPage = () => {
       updated_at,
       deleted_at,
       user_id,
+      room_id,
       user:user_id (
         nickname,
         avatar_url

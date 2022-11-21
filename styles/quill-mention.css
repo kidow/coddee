@@ -1,0 +1,43 @@
+.mention {
+  @apply rounded bg-blue-50 p-0.5 text-blue-500 dark:bg-sky-700 dark:text-blue-50;
+}
+
+.ql-mention-list-container {
+  @apply max-h-96 overflow-y-auto rounded border py-1 dark:border-neutral-700 dark:bg-neutral-900;
+}
+
+.ql-mention-list-item {
+  @apply px-2 py-1;
+}
+
+.ql-mention-list-item.selected {
+  @apply cursor-pointer bg-sky-700;
+}
+
+.ql-mention-loader {
+  @apply flex h-[44px] w-48 items-center justify-center text-sm text-neutral-400;
+}
+
+.ql-mention-item {
+  @apply flex items-center gap-3;
+}
+
+.ql-mention-item img {
+  @apply h-8 w-8 rounded;
+}
+
+.ql-mention-nickname {
+  @apply text-sm font-bold;
+}
+
+.ql-mention-email {
+  @apply text-xs text-neutral-400;
+}
+
+.selected .ql-mention-nickname {
+  @apply text-neutral-50;
+}
+
+.selected .ql-mention-email {
+  @apply text-neutral-200;
+}
