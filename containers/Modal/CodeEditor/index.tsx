@@ -11,9 +11,10 @@ import {
   useTheme,
   useUser
 } from 'services'
-import { Button, Select, Textarea } from 'components'
+import { Button, Textarea, Select } from 'components'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useRouter } from 'next/router'
+import * as cheerio from 'cheerio'
 
 export interface Props extends ModalProps {
   content?: string
@@ -71,8 +72,8 @@ const CodeEditorModal: FC<Props> = ({
       onClose()
       return
     }
-    if (!content.trim()) return
-    if (content.length > 300) {
+    if (!content.trim() || content === '<p><br></p>') return
+    if (cheerio.load(content, null, false).text().length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -206,9 +207,7 @@ const CodeEditorModal: FC<Props> = ({
         <div className="border p-2 focus-within:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900">
           <Textarea
             value={content}
-            className="w-full"
-            placeholder="서로를 존중하는 매너를 보여주세요 :)"
-            onChange={(e) => setState({ content: e.target.value })}
+            onChange={(content) => setState({ content })}
             onKeyDown={onTyping}
           />
         </div>

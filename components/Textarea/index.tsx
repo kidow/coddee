@@ -1,88 +1,157 @@
-import { forwardRef, memo, useEffect } from 'react'
-import { MentionsInput, Mention } from 'react-mentions'
-import type { MentionsInputProps } from 'react-mentions'
-import { useRecoilState } from 'recoil'
-import { captureException, userListState } from 'services'
-import classnames from 'classnames'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
+import type { FC } from 'react'
+import dynamic from 'next/dynamic'
+import type { ReactQuillProps } from 'react-quill'
+import ReactQuill from 'react-quill'
+import { Linkify } from 'quill-linkify'
+import { captureException, EventListener } from 'services'
+import type { StringMap } from 'quill'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
-export interface Props extends Omit<MentionsInputProps, 'children'> {}
+const Editor = dynamic<ReactQuillProps>(
+  async () => {
+    const { default: RQ } = await import('react-quill')
+    // @ts-ignore
+    await Promise.all([import('quill-mention'), import('quill-emoji')])
+    RQ.Quill.register('modules/linkify', Linkify)
+    // @ts-ignore
+    return ({ forwardedRef, ...props }) => <RQ ref={forwardedRef} {...props} />
+  },
+  { ssr: false }
+)
+
+export interface Props extends ReactQuillProps {
+  onEnter?: (value: string) => void
+  onKeyDown?: () => void
+}
 interface State {}
 
-const Textarea = forwardRef<HTMLTextAreaElement, Props>((props, ref) => {
-  const [userList, setUserList] = useRecoilState(userListState)
+const Textarea: FC<Props> = ({ id, onEnter, ...props }) => {
+  const ref = useRef<ReactQuill>()
   const supabase = useSupabaseClient()
 
-  const get = async () => {
-    if (!!userList.length) return
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, avatar_url, nickname')
-      .order('nickname', { ascending: true })
-    if (error) {
-      const { data: auth } = await supabase.auth.getUser()
-      captureException(error, auth)
+  const onFocus = useCallback(() => {
+    if (!props.value) {
+      ref.current?.focus()
       return
     }
-    setUserList(
-      data?.map((item) => ({
-        id: item.id,
-        avatarUrl: item.avatar_url,
-        display: item.nickname
-      })) || []
-    )
+
+    const selection = window.getSelection()
+    if (!selection) return
+    const range = document.createRange()
+    if (!ref.current) return
+    range.selectNodeContents(ref.current.editor!.root)
+    range.collapse(false)
+    selection.removeAllRanges()
+    selection.addRange(range)
+  }, [ref])
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (!e.shiftKey && e.keyCode === 13) {
+      if (typeof props.value === 'string' && onEnter) onEnter(props.value)
+    } else if (props.onKeyDown) props.onKeyDown()
   }
 
-  useEffect(() => {
-    get()
-  }, [])
-  return (
-    <MentionsInput
-      {...props}
-      allowSuggestionsAboveCursor
-      forceSuggestionsAboveCursor
-      spellCheck={false}
-      autoComplete="off"
-      customSuggestionsContainer={(children) => (
-        <ul
-          className="max-h-48 w-80 overflow-auto overscroll-contain border py-2 shadow-md dark:border-neutral-700 dark:bg-neutral-800"
-          role="listbox"
-        >
-          {children}
-        </ul>
-      )}
-      inputRef={ref}
-    >
-      <Mention
-        trigger="@"
-        data={userList}
-        appendSpaceOnAdd
-        renderSuggestion={(
-          suggestion,
-          search,
-          highlightedDisplay,
-          index,
-          focused
-        ) => (
-          <li
-            tabIndex={-1}
-            role="option"
-            className={classnames('flex h-8 items-center gap-2 px-4', {
-              'bg-blue-600 text-white dark:bg-blue-500': focused
-            })}
-          >
-            <img
-              src={userList[index].avatarUrl}
-              alt=""
-              className="h-5 w-5 rounded"
-            />
-            <span className="text-sm font-bold">{suggestion.display}</span>
-          </li>
-        )}
-        className="rounded bg-blue-100 dark:bg-cyan-600"
-      />
-    </MentionsInput>
+  const modules: StringMap = useMemo(
+    () => ({
+      keyboard: {
+        bindings: {
+          enter: {
+            key: 13,
+            shiftKey: false,
+            handler: () => {}
+          }
+        }
+      },
+      toolbar: false,
+      'emoji-toolbar': false,
+      'emoji-textarea': false,
+      'emoji-shortname': true,
+      linkify: true,
+      mention: {
+        mentionDenotationChars: ['@'],
+        source: async function (
+          searchTerm: string,
+          renderList: (data: any[], searchTerm: string) => void
+        ) {
+          const { data, error } = await supabase
+            .from('users')
+            .select('id, nickname, email, avatar_url')
+            .like('nickname', `%${searchTerm}%`)
+            .order('nickname', { ascending: true })
+            .limit(10)
+          if (error) {
+            captureException(error)
+            renderList([], searchTerm)
+            return
+          }
+          renderList(
+            data.map((item) => ({ ...item, value: item.nickname })),
+            searchTerm
+          )
+        },
+        maxChars: 5,
+        renderLoading: () =>
+          `<div class="ql-mention-loader">불러오는 중...</div>`,
+        renderItem: (data: NTable.Users) => `
+          <div class="ql-mention-item">
+            <img src="${data.avatar_url}" alt="" />
+            <div class="ql-mention-block">
+              <div class="ql-mention-nickname">${data.nickname}</div>
+              <div class="ql-mention-email">${data.email}</div>
+            </div>
+          </div>
+        `,
+        defaultMenuOrientation: 'top'
+      }
+    }),
+    []
   )
-})
 
-export default memo(Textarea)
+  const formats: string[] = useMemo(
+    () => ['bold', 'italic', 'link', 'mention', 'emoji'],
+    []
+  )
+
+  useEffect(() => {
+    const init = () => {
+      if (ref.current) {
+        ref.current.editor?.root.setAttribute('spellcheck', 'false')
+        ref.current.editor?.root.setAttribute('role', 'textbox')
+        ref.current.editor?.root.setAttribute('tabindex', '0')
+        return
+      }
+      setTimeout(init, 200)
+    }
+    init()
+  }, [ref])
+
+  useEffect(() => {
+    if (!ref.current) return
+    ref.current.editor?.root.addEventListener('keydown', onKeyDown)
+    return () => {
+      ref.current?.editor?.root.removeEventListener('keydown', onKeyDown)
+    }
+  }, [ref, props.value])
+
+  useEffect(() => {
+    if (!id) return
+    EventListener.add(`quill:focus:${id}`, onFocus)
+    return () => EventListener.remove(`quill:focus:${id}`, onFocus)
+  }, [ref, id])
+  return (
+    <Editor
+      {...props}
+      // @ts-ignore
+      forwardedRef={ref}
+      modules={modules}
+      formats={formats}
+    />
+  )
+}
+
+Textarea.defaultProps = {
+  placeholder: '서로 존중하는 매너를 보여주세요.'
+}
+
+export default Textarea

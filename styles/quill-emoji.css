@@ -1,14 +1,8 @@
 .emoji_completions {
-  @apply !left-0 !bottom-5 !top-auto rounded border p-1 text-sm shadow-lg dark:border-neutral-700 dark:bg-neutral-900;
-}
-.emoji_completions li {
-  @apply my-0.5 inline-block;
-}
-.emoji_completions li:not(:last-of-type) {
-  margin-right: 3px;
+  @apply !left-0 !bottom-5 !top-auto max-h-56 overflow-auto overscroll-contain rounded border bg-white py-1 text-sm shadow-lg dark:border-neutral-700 dark:bg-neutral-900;
 }
 .emoji_completions > li > button {
-  @apply rounded bg-neutral-200 p-1 dark:bg-neutral-800;
+  @apply h-8 w-full px-2 text-left dark:bg-neutral-800;
 }
 .emoji_completions > li > button:hover {
   @apply bg-blue-400 text-neutral-50;
@@ -132,6 +126,7 @@ button.ql-table[value='append-col']:after {
 .ql-emojiblot {
   display: inline-block;
   vertical-align: text-top;
+  height: 20px;
 }
 .ap {
   background-image: url(emoji-palette.png);

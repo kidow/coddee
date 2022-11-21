@@ -17,6 +17,7 @@ import {
   useObjectState,
   useUser
 } from 'services'
+import * as cheerio from 'cheerio'
 
 export interface Props {
   chatIndex: number
@@ -57,8 +58,8 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
       return
     }
 
-    if (!content.trim()) return
-    if (content.length > 300) {
+    if (!content.trim() || content === '<p><br></p>') return
+    if (cheerio.load(content, null, false).text().length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -203,9 +204,10 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
                   content={chat.content || ''}
                   onCancel={() => setState({ isUpdateMode: false })}
                   onSave={updateChat}
+                  className="max-w-[338px]"
                 />
               ) : (
-                <Message.Parser
+                <Message
                   content={chat.content || ''}
                   updatedAt={chat.updated_at || ''}
                 />

@@ -20,6 +20,7 @@ import { useRouter } from 'next/router'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { TrashIcon } from '@heroicons/react/24/outline'
 import { useRecoilState } from 'recoil'
+import * as cheerio from 'cheerio'
 
 export interface Props {
   chatIndex: number
@@ -62,8 +63,8 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
       return
     }
 
-    if (!content.trim()) return
-    if (content.length > 300) {
+    if (!content.trim() || content === '<p><br></p>') return
+    if (cheerio.load(content, null, false).text().length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -285,17 +286,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
             chat.user_id !== chatList[chatIndex + 1]?.user_id && (
               <div className="flex items-center gap-2">
                 <div className="flex items-center text-sm font-medium">
-                  <span
-                    onClick={() => {
-                      EventListener.emit(
-                        'nickname:click',
-                        `@[${chat.user?.nickname}](${chat.user_id})`
-                      )
-                    }}
-                    className="cursor-pointer"
-                  >
-                    {chat.user?.nickname}
-                  </span>
+                  <span>{chat.user?.nickname}</span>
                   {chat.user_id === user?.id && (
                     <span className="ml-1 text-xs text-neutral-400">(나)</span>
                   )}
@@ -317,10 +308,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
                 onSave={updateChat}
               />
             ) : (
-              <Message.Parser
-                content={chat.content}
-                updatedAt={chat.updated_at}
-              />
+              <Message content={chat.content} updatedAt={chat.updated_at} />
             )}
           </div>
           <Message.CodeBlock

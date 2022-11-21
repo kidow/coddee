@@ -1,10 +1,11 @@
-import { useEffect, useMemo } from 'react'
-import type { FC, KeyboardEvent } from 'react'
+import { useEffect, useId, useMemo } from 'react'
+import type { FC } from 'react'
 import { Drawer, Modal, Message } from 'containers'
 import {
   backdrop,
   captureException,
   chatListState,
+  EventListener,
   replyListState,
   toast,
   TOAST_MESSAGE,
@@ -13,12 +14,13 @@ import {
   useObjectState,
   useUser
 } from 'services'
-import { Spinner, Textarea, Typing } from 'components'
+import { Textarea, Spinner, Typing } from 'components'
 import { ArrowSmallUpIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
 import classnames from 'classnames'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import ThreadDrawerChat from './Chat'
 import { useRecoilState, useSetRecoilState } from 'recoil'
+import * as cheerio from 'cheerio'
 
 export interface Props extends DrawerProps {
   chatIndex: number
@@ -41,10 +43,11 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     })
   const supabase = useSupabaseClient()
   const [user] = useUser()
-  const { onRegex } = useChatList()
+  const { onNewRegex } = useChatList()
   const [chatList, setChatList] = useRecoilState(chatListState)
   const [replyList, setReplyList] = useRecoilState(replyListState)
   const setTypingReplyList = useSetRecoilState(typingReplyListState)
+  const id = useId()
 
   const get = async () => {
     const { data, error } = await supabase
@@ -94,6 +97,10 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       captureException(error, user)
       return
     }
+    if (!data.length) {
+      EventListener.emit(`quill:focus:${id}`)
+      return
+    }
     for (const reply of data) {
       let reply_reactions: Array<{
         id: number
@@ -135,7 +142,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     setReplyList(data as any[])
   }
 
-  const createReply = async () => {
+  const createReply = async (value?: string) => {
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
@@ -153,8 +160,10 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       return
     }
 
-    if (!content.trim()) return
-    if (content.length > 300) {
+    const v = value || content
+
+    if (!v.trim() || v === '<p><br></p>') return
+    if (cheerio.load(v, null, false).text().length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -162,7 +171,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     setState({ isSubmitting: true })
     const { data, error } = await supabase
       .from('replies')
-      .insert({ user_id: user.id, chat_id: chat.id, content })
+      .insert({ user_id: user.id, chat_id: chat.id, content: v })
       .select()
       .single()
     setState({ isSubmitting: false, spamCount: spamCount + 1 })
@@ -171,7 +180,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onRegex(content, data.chat_id, data.id)
+    onNewRegex(content, data.chat_id, data.id)
     setState({ content: '' })
     setReplyList([
       ...replyList,
@@ -226,7 +235,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onRegex(payload.content, data.chat_id, data.id)
+    onNewRegex(payload.content, data.chat_id, data.id)
     setReplyList([
       ...replyList,
       {
@@ -255,27 +264,25 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     setState({ content: '', isCodeEditorOpen: false })
   }
 
-  const onKeyDown = async (
-    e: KeyboardEvent<HTMLTextAreaElement> | KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (!e.shiftKey && e.keyCode === 13) {
-      e.preventDefault()
-      createReply()
-      const channel = supabase
-        .getChannels()
-        .find((item) => item.topic === `realtime:is-typing:reply/${chat.id}`)
-      if (channel) await channel.untrack()
-    } else if (user) {
-      const channel = supabase
-        .getChannels()
-        .find((item) => item.topic === `realtime:is-typing:reply/${chat.id}`)
-      if (channel)
-        await channel.track({
-          userId: user.id,
-          nickname: user.nickname,
-          chatId: chat.id
-        })
-    }
+  const onEnter = async (value: string) => {
+    createReply(value)
+    const channel = supabase
+      .getChannels()
+      .find((item) => item.topic === `realtime:is-typing:reply/${chat.id}`)
+    if (channel) await channel.untrack()
+  }
+
+  const onKeyDown = async () => {
+    if (!user) return
+    const channel = supabase
+      .getChannels()
+      .find((item) => item.topic === `realtime:is-typing:reply/${chat.id}`)
+    if (channel)
+      await channel.track({
+        userId: user.id,
+        nickname: user.nickname,
+        chatId: chat.id
+      })
   }
 
   const chat = useMemo(() => chatList[chatIndex], [chatList, chatIndex])
@@ -570,13 +577,17 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           </div>
           <div className="px-4 pt-4 pb-16">
             <div className="flex items-center gap-1 rounded-lg bg-neutral-100 p-2 dark:bg-neutral-700">
-              <Textarea
-                placeholder="메시지 보내기"
-                className="flex-1 bg-transparent"
-                value={content}
-                onChange={(e) => setState({ content: e.target.value })}
-                onKeyDown={onKeyDown}
-              />
+              <div className="max-w-[308px] flex-1">
+                <Textarea
+                  value={content}
+                  onChange={(content) => setState({ content })}
+                  placeholder="메시지 보내기"
+                  onKeyDown={onKeyDown}
+                  onEnter={onEnter}
+                  id={id}
+                  readOnly={isSubmitting}
+                />
+              </div>
               <button
                 onClick={() => setState({ isCodeEditorOpen: true })}
                 className="rounded-full border border-transparent p-1.5 text-neutral-500 hover:border-neutral-500 hover:bg-neutral-50"
@@ -589,7 +600,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
                   { 'bg-blue-500': !!user && !!content }
                 )}
                 disabled={isSubmitting || !content}
-                onClick={createReply}
+                onClick={() => createReply()}
               >
                 {isSubmitting ? (
                   <Spinner className="h-5 w-5 text-neutral-500" />

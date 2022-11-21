@@ -19,6 +19,7 @@ import {
 import classnames from 'classnames'
 import { BookmarkIcon } from '@heroicons/react/20/solid'
 import { useRecoilState } from 'recoil'
+import * as cheerio from 'cheerio'
 
 export interface Props {
   chatIndex: number
@@ -53,8 +54,8 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
       return
     }
 
-    if (!content?.trim()) return
-    if (content.length > 300) {
+    if (!content?.trim() || content === '<p><br></p>') return
+    if (cheerio.load(content, null, false).text().length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -513,12 +514,10 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                 content={reply.content}
                 onCancel={() => setState({ isUpdateMode: false })}
                 onSave={updateReply}
+                className="max-w-[330px]"
               />
             ) : (
-              <Message.Parser
-                content={reply.content}
-                updatedAt={reply.updated_at}
-              />
+              <Message content={reply.content} updatedAt={reply.updated_at} />
             )}
           </div>
           <Message.CodeBlock

@@ -1,15 +1,14 @@
 import {
   BackBottom,
   Dropdown,
+  Textarea,
   SEO,
   Spinner,
-  Textarea,
   Typing
 } from 'components'
 import type { NextPage } from 'next'
 import {
   ArrowLeftIcon,
-  ChevronDownIcon,
   EllipsisVerticalIcon
 } from '@heroicons/react/24/outline'
 import {
@@ -25,15 +24,14 @@ import {
   captureException,
   EventListener
 } from 'services'
-import { useEffect, useRef } from 'react'
-import type { KeyboardEvent } from 'react'
+import { useEffect, useId } from 'react'
 import { useRouter } from 'next/router'
 import { Message, Modal } from 'containers'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useRecoilState, useSetRecoilState } from 'recoil'
-import classnames from 'classnames'
+import * as cheerio from 'cheerio'
 
 dayjs.extend(relativeTime)
 
@@ -81,12 +79,12 @@ const RoomIdPage: NextPage = () => {
   const [list, setList] = useRecoilState(chatListState)
   const [morefetchRef, isMoreFetchIntersecting] =
     useIntersectionObserver<HTMLDivElement>()
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const supabase = useSupabaseClient()
-  const { onRegex } = useChatList()
+  const { onNewRegex } = useChatList()
   const [backBottomRef, isBackBottomIntersecting] =
     useIntersectionObserver<HTMLDivElement>()
   const setTypingChatListState = useSetRecoilState(typingChatListState)
+  const id = useId()
 
   const getChatList = async (page: number = 1) => {
     if (!query.id || typeof query.id !== 'string') return
@@ -207,10 +205,10 @@ const RoomIdPage: NextPage = () => {
       return
     }
     setState({ name: data.name })
-    textareaRef.current?.focus()
+    EventListener.emit(`quill:focus:${id}`)
   }
 
-  const createChat = async () => {
+  const createChat = async (value?: string) => {
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
@@ -228,8 +226,10 @@ const RoomIdPage: NextPage = () => {
       return
     }
 
-    if (!content.trim()) return
-    if (content.length > 300) {
+    const v = value || content
+
+    if (!v.trim() || v === '<p><br></p>') return
+    if (cheerio.load(v, null, false).text().length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -237,7 +237,7 @@ const RoomIdPage: NextPage = () => {
     setState({ isSubmitting: true })
     const { data, error } = await supabase
       .from('chats')
-      .insert({ user_id: user.id, room_id: query.id, content })
+      .insert({ user_id: user.id, room_id: query.id, content: v })
       .select()
       .single()
     setState({ isSubmitting: false, spamCount: spamCount + 1 })
@@ -246,7 +246,6 @@ const RoomIdPage: NextPage = () => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onRegex(content, data.id)
     setList([
       {
         ...data,
@@ -258,9 +257,10 @@ const RoomIdPage: NextPage = () => {
       },
       ...list
     ])
+    onNewRegex(v, data.id)
     setState({ content: '' }, () => {
       window.scrollTo(0, document.body.scrollHeight)
-      textareaRef.current?.focus()
+      EventListener.emit(`quill:focus:${id}`)
     })
   }
 
@@ -286,7 +286,7 @@ const RoomIdPage: NextPage = () => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onRegex(payload.content, data.id)
+    onNewRegex(payload.content, data.id)
     setList([
       {
         ...data,
@@ -300,41 +300,30 @@ const RoomIdPage: NextPage = () => {
     ])
     setState({ isCodeEditorOpen: false, content: '' }, () => {
       window.scrollTo(0, document.body.scrollHeight)
-      textareaRef.current?.focus()
+      EventListener.emit(`quill:focus:${id}`)
     })
   }
 
-  const onKeyDown = async (
-    e: KeyboardEvent<HTMLTextAreaElement> | KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (!e.shiftKey && e.keyCode === 13) {
-      e.preventDefault()
-      createChat()
-      const channel = supabase
-        .getChannels()
-        .find((item) => item.topic === `realtime:is-typing:chat/${query.id}`)
-      if (channel) await channel.untrack()
-    } else if (user) {
-      const channel = supabase
-        .getChannels()
-        .find((item) => item.topic === `realtime:is-typing:chat/${query.id}`)
-      if (channel) {
-        await channel.track({
-          userId: user.id,
-          nickname: user.nickname,
-          roomId: query.id
-        })
-      }
-    }
+  const onEnter = async (value: string) => {
+    createChat(value)
+    const channel = supabase
+      .getChannels()
+      .find((item) => item.topic === `realtime:is-typing:chat/${query.id}`)
+    if (channel) await channel.untrack()
   }
 
-  const onNicknameClick = ({ detail }: any) =>
-    setState(
-      {
-        content: !!content ? `${content} ${detail} ` : `${detail} `
-      },
-      () => textareaRef.current?.focus()
-    )
+  const onKeyDown = async () => {
+    if (!user) return
+    const channel = supabase
+      .getChannels()
+      .find((item) => item.topic === `realtime:is-typing:chat/${query.id}`)
+    if (channel)
+      await channel.track({
+        userId: user.id,
+        nickname: user.nickname,
+        roomId: query.id
+      })
+  }
 
   // const onFocus = (e: globalThis.KeyboardEvent) => {
   //   if (!e.target) return
@@ -342,7 +331,7 @@ const RoomIdPage: NextPage = () => {
   //   if (!target.tagName) return
 
   //   if (target.tagName.toLowerCase() !== 'textarea')
-  //     textareaRef.current?.focus()
+  //     EventListener.emit(`quill:focus:${id}`)
   // }
 
   // useEffect(() => {
@@ -350,11 +339,6 @@ const RoomIdPage: NextPage = () => {
   //   document.addEventListener('keydown', onFocus)
   //   return () => document.removeEventListener('keydown', onFocus)
   // }, [isCodeEditorOpen])
-
-  useEffect(() => {
-    EventListener.add('nickname:click', onNicknameClick)
-    return () => EventListener.remove('nickname:click', onNicknameClick)
-  }, [content])
 
   useEffect(() => {
     getChatList()
@@ -721,21 +705,22 @@ const RoomIdPage: NextPage = () => {
         </main>
         <footer className="sticky bottom-16 z-20 min-h-[59px] w-full border-t bg-white py-3 px-5 dark:border-neutral-700 dark:bg-neutral-800 sm:bottom-0">
           <div className="flex items-center gap-3">
-            <Textarea
-              value={content}
-              onChange={(e) => setState({ content: e.target.value })}
-              disabled={isSubmitting}
-              placeholder="서로를 존중하는 매너를 보여주세요 :)"
-              className="flex-1 dark:bg-transparent"
-              ref={textareaRef}
-              onKeyDown={onKeyDown}
-            />
+            <div className="max-w-[682px] flex-1">
+              <Textarea
+                value={content}
+                onChange={(content) => setState({ content })}
+                readOnly={isSubmitting}
+                onEnter={onEnter}
+                onKeyDown={onKeyDown}
+                id={id}
+              />
+            </div>
             <Message.Button.Code
               onClick={() => setState({ isCodeEditorOpen: true })}
             />
             <Message.Button.Submit
               disabled={isSubmitting || !content}
-              onClick={createChat}
+              onClick={() => createChat()}
               loading={isSubmitting}
             />
           </div>

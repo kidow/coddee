@@ -12,7 +12,7 @@ const Error: FC<Props> = () => {
           죄송합니다. 에러가 발생했습니다.
         </div>
         <div className="mt-2 text-neutral-600">
-          문제가 지속된다면 문의 부탁드립니다.
+          문제가 지속된다면 제보 부탁드립니다.
         </div>
       </div>
     </div>

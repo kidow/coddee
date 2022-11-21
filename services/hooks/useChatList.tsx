@@ -10,6 +10,8 @@ import {
   EventListener,
   captureException
 } from 'services'
+import * as cheerio from 'cheerio'
+import { url } from 'inspector'
 
 export default () => {
   const { query } = useRouter()
@@ -70,6 +72,63 @@ export default () => {
             .select()
             .single()
         })
+    }
+  }
+
+  const onNewRegex = async (
+    content: string,
+    chatId: number,
+    replyId?: number
+  ) => {
+    const $ = cheerio.load(content)
+    const mentions = $('.mention')
+    if (mentions.length > 0) {
+      await Promise.all(
+        Array.from({ length: mentions.length }, (v, i) =>
+          supabase.from('mentions').insert({
+            mention_to: mentions[i].attribs['data-id'],
+            mention_from: user?.id,
+            chat_id: chatId,
+            ...(!!replyId ? { reply_id: replyId } : {})
+          })
+        )
+      )
+    }
+    const anchors = $('a')
+    if (anchors.length > 0) {
+      const urls = Array.from(
+        { length: anchors.length },
+        (v, i) => anchors[i].attribs.href
+      ).filter((link) => link.startsWith('http'))
+      if (!!urls.length) {
+        const res = await Promise.all(
+          urls.map((url) =>
+            fetch('/api/opengraph', {
+              method: 'POST',
+              headers: new Headers({ 'Content-Type': 'application/json' }),
+              body: JSON.stringify({ url })
+            })
+          )
+        )
+        const json = await Promise.all(res.map((result) => result.json()))
+        json
+          .filter((item) => item.success)
+          .forEach(
+            async ({ data }) =>
+              await supabase.from('opengraphs').insert({
+                title: data.title || data['og:title'] || data['twitter:title'],
+                description:
+                  data.description ||
+                  data['og:description'] ||
+                  data['twitter:description'],
+                image: data.image || data['og:image'] || data['twitter:image'],
+                url: data.url || data['og:url'] || data['twitter:domain'],
+                site_name: data['og:site_name'] || '',
+                room_id: query.id,
+                ...(!!replyId ? { reply_id: replyId } : { chat_id: chatId })
+              })
+          )
+      }
     }
   }
 
@@ -296,5 +355,5 @@ export default () => {
     }
   }
 
-  return { onRegex, onEmojiSelect, onReactionClick }
+  return { onRegex, onEmojiSelect, onReactionClick, onNewRegex }
 }

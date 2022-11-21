@@ -16,6 +16,7 @@ import {
   useObjectState,
   useUser
 } from 'services'
+import * as cheerio from 'cheerio'
 
 export interface Props {
   chatIndex: number
@@ -55,8 +56,8 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
       return
     }
 
-    if (!content?.trim()) return
-    if (content.length > 300) {
+    if (!content?.trim() || content === '<p><br></p>') return
+    if (cheerio.load(content, null, false).text().length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -490,12 +491,10 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                 content={reply.content}
                 onCancel={() => setState({ isUpdateMode: false })}
                 onSave={updateReply}
+                className="max-w-[684px]"
               />
             ) : (
-              <Message.Parser
-                content={reply.content}
-                updatedAt={reply.updated_at}
-              />
+              <Message content={reply.content} updatedAt={reply.updated_at} />
             )}
           </div>
           <Message.CodeBlock

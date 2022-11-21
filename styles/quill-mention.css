@@ -3,7 +3,7 @@
 }
 
 .ql-mention-list-container {
-  @apply max-h-96 overflow-y-auto rounded border py-1 dark:border-neutral-700 dark:bg-neutral-900;
+  @apply z-[9999] max-h-96 w-56 overflow-y-auto rounded border bg-white py-2 dark:border-neutral-700 dark:bg-neutral-900;
 }
 
 .ql-mention-list-item {

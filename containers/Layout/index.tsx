@@ -29,6 +29,7 @@ import {
   useUser as useAuth
 } from '@supabase/auth-helpers-react'
 import { useRecoilState } from 'recoil'
+import * as cheerio from 'cheerio'
 
 dayjs.extend(relativeTime)
 
@@ -94,10 +95,9 @@ const Layout: FC<Props> = ({ children }) => {
     setState({
       roomList: (data as any[]).map((item) => ({
         ...item,
-        newChat:
-          (item.chats?.at(0)?.code_block
-            ? '코드'
-            : item.chats?.at(0)?.content) || '',
+        newChat: !!item.chats?.at(0)?.code_block
+          ? '코드'
+          : cheerio.load(item.chats?.at(0)?.content, null, false).text(),
         newDate: item.chats?.at(0)?.created_at || '',
         newCount: 0
       }))
@@ -140,9 +140,9 @@ const Layout: FC<Props> = ({ children }) => {
                   ...roomList.slice(0, index),
                   {
                     ...roomList[index],
-                    newChat: payload.new.code_block
+                    newChat: !!payload.new.code_block
                       ? '코드'
-                      : payload.new.content,
+                      : cheerio.load(payload.new.content).text(),
                     newDate: payload.new.created_at,
                     ...(payload.new.room_id !== query.id
                       ? { newCount: roomList[index].newCount + 1 }
