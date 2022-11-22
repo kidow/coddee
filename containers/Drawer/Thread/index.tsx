@@ -285,7 +285,20 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       })
   }
 
+  const onFocus = (e: globalThis.KeyboardEvent) => {
+    if (!e.target) return
+    const target = e.target as HTMLElement
+
+    if (target?.className !== 'ql-editor')
+      EventListener.emit(`quill:focus:${id}`)
+  }
+
   const chat = useMemo(() => chatList[chatIndex], [chatList, chatIndex])
+
+  useEffect(() => {
+    document.addEventListener('keydown', onFocus)
+    return () => document.removeEventListener('keydown', onFocus)
+  }, [])
 
   useEffect(() => {
     let timer: NodeJS.Timeout | undefined

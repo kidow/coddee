@@ -325,20 +325,27 @@ const RoomIdPage: NextPage = () => {
       })
   }
 
-  // const onFocus = (e: globalThis.KeyboardEvent) => {
-  //   if (!e.target) return
-  //   const target = e.target as HTMLElement
-  //   if (!target.tagName) return
+  const onFocus = (e: globalThis.KeyboardEvent) => {
+    if (!e.target) return
+    const target = e.target as HTMLElement
 
-  //   if (target.tagName.toLowerCase() !== 'textarea')
-  //     EventListener.emit(`quill:focus:${id}`)
-  // }
+    if (target?.className !== 'ql-editor')
+      EventListener.emit(`quill:focus:${id}`)
+  }
 
-  // useEffect(() => {
-  //   if (isCodeEditorOpen) return
-  //   document.addEventListener('keydown', onFocus)
-  //   return () => document.removeEventListener('keydown', onFocus)
-  // }, [isCodeEditorOpen])
+  const onFocusHandler = ({ detail }: any) =>
+    detail
+      ? document.removeEventListener('keydown', onFocus)
+      : document.addEventListener('keydown', onFocus)
+
+  useEffect(() => {
+    document.addEventListener('keydown', onFocus)
+    EventListener.add('focus:freeze', onFocusHandler)
+    return () => {
+      document.removeEventListener('keydown', onFocus)
+      EventListener.remove('focus:freeze', onFocusHandler)
+    }
+  }, [])
 
   useEffect(() => {
     getChatList()
