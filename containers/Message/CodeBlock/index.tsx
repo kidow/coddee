@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useId } from 'react'
 import type { FC } from 'react'
 import Editor, { DiffEditor } from '@monaco-editor/react'
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
@@ -28,7 +28,8 @@ export interface Props {
     language: string
     content: string
   }) => void
-  mention: string
+  username: string
+  userId: string
   modifiedCode?: string
   modifiedLanguage?: string
   typingSource?: string
@@ -44,11 +45,12 @@ interface State {
 
 const MessageCodeBlock: FC<Props> = ({
   originalCode,
-  mention,
   modifiedCode,
   modifiedLanguage,
   typingSource,
   chatId,
+  userId,
+  username,
   ...props
 }) => {
   if (!originalCode) return null
@@ -69,6 +71,7 @@ const MessageCodeBlock: FC<Props> = ({
   const supabase = useSupabaseClient()
   const languageList = useRecoilValue(languageListState)
   const { query } = useRouter()
+  const id = useId()
 
   const onMount = (
     editor: Monaco.editor.IStandaloneCodeEditor,
@@ -164,6 +167,7 @@ const MessageCodeBlock: FC<Props> = ({
   useEffect(() => {
     if (!isDiffEditorOpen) return
     EventListener.add('message:codeblock', listener)
+    EventListener.emit(`quill:insert:${id}`, { username, userId })
     return () => EventListener.remove('message:codeblock', listener)
   }, [isDiffEditorOpen])
   return (
@@ -191,7 +195,7 @@ const MessageCodeBlock: FC<Props> = ({
                   lineNumbers: 'off'
                 }}
                 onMount={onDiffMount}
-                loading={false}
+                loading=""
               />
             ) : (
               <Editor
@@ -211,7 +215,7 @@ const MessageCodeBlock: FC<Props> = ({
                   lineNumbers: 'off'
                 }}
                 value={originalCode}
-                loading={false}
+                loading=""
               />
             )}
           </div>
@@ -248,7 +252,6 @@ const MessageCodeBlock: FC<Props> = ({
                   setState({
                     isDiffEditorOpen: true,
                     codeBlock: modifiedCode || originalCode,
-                    content: `${mention} `,
                     language: props.language
                   })
                 }}
@@ -348,7 +351,7 @@ const MessageCodeBlock: FC<Props> = ({
                   alwaysConsumeMouseWheel: false
                 }
               }}
-              loading={false}
+              loading=""
               onMount={(editor, monaco) => {
                 editor.getModifiedEditor().onDidChangeModelContent(async () => {
                   setState({ codeBlock: editor.getModifiedEditor().getValue() })
@@ -362,6 +365,7 @@ const MessageCodeBlock: FC<Props> = ({
               value={content}
               onChange={(content) => setState({ content })}
               onKeyDown={onTyping}
+              id={id}
             />
           </div>
         </div>

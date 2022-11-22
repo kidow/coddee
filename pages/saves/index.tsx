@@ -385,9 +385,6 @@ const SavedPage: NextPage = () => {
                         reply: item.reply
                       })
                     }
-                    mention={`@[${
-                      item.chat?.user.nickname || item.reply?.user.nickname
-                    }](${item.chat?.user_id || item.reply?.user_id})`}
                     modifiedCode={
                       item.chat?.modified_code || item.reply?.modified_code
                     }
@@ -395,6 +392,12 @@ const SavedPage: NextPage = () => {
                       item.chat?.modified_language ||
                       item.reply?.modified_language
                     }
+                    username={
+                      item.chat?.user.nickname ||
+                      item.reply?.user.nickname ||
+                      ''
+                    }
+                    userId={item.chat?.user_id || item.reply?.user_id || ''}
                   />
                   {item.chat?.opengraphs?.map((item) => (
                     <Message.Opengraph {...item} key={item.id} />
