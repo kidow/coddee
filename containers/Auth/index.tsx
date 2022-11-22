@@ -68,6 +68,11 @@ const Auth: FC<Props> = ({ children }) => {
         return
       }
       setUser(data)
+      await fetch('/api/register', {
+        method: 'POST',
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ email: data.email })
+      })
     }
   }
 
