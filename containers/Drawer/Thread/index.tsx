@@ -43,7 +43,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     })
   const supabase = useSupabaseClient()
   const [user] = useUser()
-  const { onNewRegex } = useChatList()
+  const { onRegex } = useChatList()
   const [chatList, setChatList] = useRecoilState(chatListState)
   const [replyList, setReplyList] = useRecoilState(replyListState)
   const setTypingReplyList = useSetRecoilState(typingReplyListState)
@@ -180,7 +180,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onNewRegex(content, data.chat_id, data.id)
+    onRegex(content, data.chat_id, data.id)
     setState({ content: '' })
     setReplyList([
       ...replyList,
@@ -235,7 +235,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onNewRegex(payload.content, data.chat_id, data.id)
+    onRegex(payload.content, data.chat_id, data.id)
     setReplyList([
       ...replyList,
       {

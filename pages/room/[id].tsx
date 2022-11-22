@@ -80,7 +80,7 @@ const RoomIdPage: NextPage = () => {
   const [morefetchRef, isMoreFetchIntersecting] =
     useIntersectionObserver<HTMLDivElement>()
   const supabase = useSupabaseClient()
-  const { onNewRegex } = useChatList()
+  const { onRegex } = useChatList()
   const [backBottomRef, isBackBottomIntersecting] =
     useIntersectionObserver<HTMLDivElement>()
   const setTypingChatListState = useSetRecoilState(typingChatListState)
@@ -257,7 +257,7 @@ const RoomIdPage: NextPage = () => {
       },
       ...list
     ])
-    onNewRegex(v, data.id)
+    onRegex(v, data.id)
     setState({ content: '' }, () => {
       window.scrollTo(0, document.body.scrollHeight)
       EventListener.emit(`quill:focus:${id}`)
@@ -286,7 +286,7 @@ const RoomIdPage: NextPage = () => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onNewRegex(payload.content, data.id)
+    onRegex(payload.content, data.id)
     setList([
       {
         ...data,

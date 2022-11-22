@@ -6,7 +6,6 @@ import {
   captureException,
   cheerio,
   languageListState,
-  REGEXP,
   toast,
   useObjectState,
   useUser
@@ -241,7 +240,7 @@ const Layout: FC<Props> = ({ children }) => {
                 }
 
                 new Notification(userData?.nickname, {
-                  body: chatData?.content.replace(REGEXP.MENTION, ''),
+                  body: cheerio.getText(chatData?.content),
                   icon: userData?.avatar_url
                 })
 
@@ -341,11 +340,7 @@ const Layout: FC<Props> = ({ children }) => {
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="w-56 truncate text-xs text-neutral-500 dark:text-neutral-400 sm:w-40">
-                              {REGEXP.MENTION.test(item.newChat)
-                                ? item.newChat.replace(REGEXP.MENTION, (v) =>
-                                    v.slice(2, -39)
-                                  )
-                                : item.newChat}
+                              {item.newChat}
                             </div>
                             <div className="flex h-4 justify-end">
                               {item.newCount > 0 && (
