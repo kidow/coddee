@@ -276,7 +276,7 @@ const MentionsPage: NextPage = () => {
     return () => {
       const channels = supabase.getChannels()
       const mention = channels.find((item) => item.topic === 'pages/mentions')
-      if (mention) supabase.removeChannel(mention)
+      if (mention) supabase.removeChannel(mention).then()
     }
   }, [list])
   return (

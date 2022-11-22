@@ -538,7 +538,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(channel).then()
     }
   }, [replyList, chat])
   return (
@@ -577,7 +577,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           </div>
           <div className="px-4 pt-4 pb-16">
             <div className="flex items-center gap-1 rounded-lg bg-neutral-100 p-2 dark:bg-neutral-700">
-              <div className="max-w-[308px] flex-1">
+              <div className="max-w-[515px] flex-1 md:max-w-[308px]">
                 <Textarea
                   value={content}
                   onChange={(content) => setState({ content })}

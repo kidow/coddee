@@ -603,7 +603,7 @@ const ThreadsPage: NextPage = () => {
       )
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(channel).then()
     }
   }, [list])
 

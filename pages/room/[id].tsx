@@ -441,7 +441,7 @@ const RoomIdPage: NextPage = () => {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(channel).then()
     }
   }, [list, query.id, count])
 
@@ -651,7 +651,7 @@ const RoomIdPage: NextPage = () => {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(channel).then()
     }
   }, [list, query.id])
 
