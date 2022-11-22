@@ -52,6 +52,16 @@ const Textarea: FC<Props> = ({ id, onEnter, ...props }) => {
     } else if (props.onKeyDown) props.onKeyDown()
   }
 
+  const onInsertItem = ({ detail }: any) => {
+    if (!ref.current) return
+    ref.current.editor
+      ?.getModule('mention')
+      .insertItem(
+        { denotationChar: '@', id: detail?.userId, value: detail?.username },
+        true
+      )
+  }
+
   const modules: StringMap = useMemo(
     () => ({
       keyboard: {
@@ -137,7 +147,11 @@ const Textarea: FC<Props> = ({ id, onEnter, ...props }) => {
   useEffect(() => {
     if (!id) return
     EventListener.add(`quill:focus:${id}`, onFocus)
-    return () => EventListener.remove(`quill:focus:${id}`, onFocus)
+    EventListener.add(`quill:insert:${id}`, onInsertItem)
+    return () => {
+      EventListener.remove(`quill:focus:${id}`, onFocus)
+      EventListener.remove(`quill:insert:${id}`, onInsertItem)
+    }
   }, [ref, id])
   return (
     <Editor

@@ -6,7 +6,6 @@ import {
   captureException,
   cheerio,
   languageListState,
-  REGEXP,
   toast,
   useObjectState,
   useUser
@@ -127,138 +126,143 @@ const Layout: FC<Props> = ({ children }) => {
       .channel('containers/layout')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public' },
-        async (payload: any) => {
-          if (payload.table === 'chats') {
-            if (payload.eventType === 'INSERT') {
-              const index = roomList.findIndex(
-                (item) => item.id === payload.new.room_id
-              )
-              if (index === -1) return
-              setState({
-                roomList: [
-                  ...roomList.slice(0, index),
-                  {
-                    ...roomList[index],
-                    newChat: !!payload.new.code_block
-                      ? '코드'
-                      : cheerio.getText(payload.new.content),
-                    newDate: payload.new.created_at,
-                    ...(payload.new.room_id !== query.id
-                      ? { newCount: roomList[index].newCount + 1 }
-                      : {})
-                  },
-                  ...roomList.slice(index + 1)
-                ]
-              })
-            }
+        { event: 'INSERT', schema: 'public', table: 'chats' },
+        (payload) => {
+          const index = roomList.findIndex(
+            (item) => item.id === payload.new.room_id
+          )
+          if (index === -1) return
+          setState({
+            roomList: [
+              ...roomList.slice(0, index),
+              {
+                ...roomList[index],
+                newChat: !!payload.new.code_block
+                  ? '코드'
+                  : cheerio.getText(payload.new.content),
+                newDate: payload.new.created_at,
+                ...(payload.new.room_id !== query.id
+                  ? { newCount: roomList[index].newCount + 1 }
+                  : {})
+              },
+              ...roomList.slice(index + 1)
+            ]
+          })
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'rooms'
+        },
+        (payload: any) => {
+          setState({ roomList: [...roomList, payload.new] })
+          toast.info(`새로운 방이 생성되었습니다. ${payload.new?.name}`)
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'rooms' },
+        (payload) => {
+          const index = roomList.findIndex(
+            (item) => item.id === payload.new?.id
+          )
+          if (index === -1) return
+          setState({
+            roomList: [
+              ...roomList.slice(0, index),
+              { ...roomList[index], name: payload.new?.name },
+              ...roomList.slice(index + 1)
+            ]
+          })
+          toast.info(`방 이름이 변경되었습니다. ${payload.new?.name}`)
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'rooms' },
+        (payload) => {
+          const index = roomList.findIndex(
+            (item) => item.id === payload.old?.id
+          )
+          if (index === -1) return
+          setState({
+            roomList: [
+              ...roomList.slice(0, index),
+              ...roomList.slice(index + 1)
+            ]
+          })
+          if (query.id === payload.old?.id) {
+            toast.warn('현재 계신 방이 삭제되었습니다. 홈으로 이동합니다.')
+            replace('/')
+          } else toast.info('방이 삭제되었습니다.')
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'replies' },
+        async (payload) => {
+          const [{ data: chat }, { data: replies }] = await Promise.all([
+            supabase
+              .from('chats')
+              .select('user_id')
+              .eq('id', payload.new.chat_id)
+              .single(),
+            supabase
+              .from('replies')
+              .select('user_id')
+              .eq('chat_id', payload.new.chat_id)
+          ])
+          if (
+            payload.new.user_id !== user?.id &&
+            (chat?.user_id === user?.id ||
+              replies?.findIndex((item) => item.user_id === user?.id) !== -1)
+          ) {
+            setState({ isNewThreadCreated: true })
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'mentions' },
+        async (payload) => {
+          const [
+            { data: userData, error: userError },
+            { data: chatData, error: chatError }
+          ] = await Promise.all([
+            supabase
+              .from('users')
+              .select('nickname, avatar_url')
+              .eq('id', payload.new.mention_from)
+              .single(),
+            supabase
+              .from('chats')
+              .select('content')
+              .eq('id', payload.new.chat_id)
+              .single()
+          ])
+
+          if (userError || chatError) {
+            if (userError) captureException(userError, auth)
+            if (chatError) captureException(chatError, auth)
+            return
           }
 
-          if (payload.table === 'rooms') {
-            if (payload.eventType === 'INSERT') {
-              setState({ roomList: [...roomList, payload.new] })
-              toast.info(`새로운 방이 생성되었습니다. ${payload.new?.name}`)
-            }
-            if (payload.eventType === 'UPDATE') {
-              const index = roomList.findIndex(
-                (item) => item.id === payload.new?.id
-              )
-              if (index === -1) return
-              setState({
-                roomList: [
-                  ...roomList.slice(0, index),
-                  { ...roomList[index], name: payload.new?.name },
-                  ...roomList.slice(index + 1)
-                ]
-              })
-              toast.info(`방 이름이 변경되었습니다. ${payload.new?.name}`)
-            }
-            if (payload.eventType === 'DELETE') {
-              const index = roomList.findIndex(
-                (item) => item.id === payload.old?.id
-              )
-              if (index === -1) return
-              setState({
-                roomList: [
-                  ...roomList.slice(0, index),
-                  ...roomList.slice(index + 1)
-                ]
-              })
-              if (query.id === payload.old?.id) {
-                toast.warn('현재 계신 방이 삭제되었습니다. 홈으로 이동합니다.')
-                replace('/')
-              } else toast.info('방이 삭제되었습니다.')
-            }
-          }
+          new Notification(userData?.nickname, {
+            body: cheerio.getText(chatData?.content),
+            icon: userData?.avatar_url
+          })
 
-          if (payload.table === 'replies') {
-            if (payload.eventType === 'INSERT') {
-              const [{ data: chat }, { data: replies }] = await Promise.all([
-                supabase
-                  .from('chats')
-                  .select('user_id')
-                  .eq('id', payload.new.chat_id)
-                  .single(),
-                supabase
-                  .from('replies')
-                  .select('user_id')
-                  .eq('chat_id', payload.new.chat_id)
-              ])
-              if (
-                payload.new.user_id !== user?.id &&
-                (chat?.user_id === user?.id ||
-                  replies?.findIndex((item) => item.user_id === user?.id) !==
-                    -1)
-              ) {
-                setState({ isNewThreadCreated: true })
-              }
-            }
-          }
-
-          if (payload.table === 'mentions') {
-            if (payload.eventType === 'INSERT') {
-              if (payload.new.mention_to === user?.id) {
-                const [
-                  { data: userData, error: userError },
-                  { data: chatData, error: chatError }
-                ] = await Promise.all([
-                  supabase
-                    .from('users')
-                    .select('nickname, avatar_url')
-                    .eq('id', payload.new.mention_from)
-                    .single(),
-                  supabase
-                    .from('chats')
-                    .select('content')
-                    .eq('id', payload.new.chat_id)
-                    .single()
-                ])
-
-                if (userError || chatError) {
-                  if (userError) captureException(userError, auth)
-                  if (chatError) captureException(chatError, auth)
-                  return
-                }
-
-                new Notification(userData?.nickname, {
-                  body: chatData?.content.replace(REGEXP.MENTION, ''),
-                  icon: userData?.avatar_url
-                })
-
-                if (
-                  pathname !== '/mentions' &&
-                  payload.new.mention_from !== user?.id
-                )
-                  setState({ isNewMentionCreated: true })
-              }
-            }
-          }
+          if (pathname !== '/mentions' && payload.new.mention_from !== user?.id)
+            setState({ isNewMentionCreated: true })
         }
       )
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(channel).then()
     }
   }, [roomList, query.id])
 
@@ -341,11 +345,7 @@ const Layout: FC<Props> = ({ children }) => {
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="w-56 truncate text-xs text-neutral-500 dark:text-neutral-400 sm:w-40">
-                              {REGEXP.MENTION.test(item.newChat)
-                                ? item.newChat.replace(REGEXP.MENTION, (v) =>
-                                    v.slice(2, -39)
-                                  )
-                                : item.newChat}
+                              {item.newChat}
                             </div>
                             <div className="flex h-4 justify-end">
                               {item.newCount > 0 && (
@@ -388,7 +388,7 @@ const Layout: FC<Props> = ({ children }) => {
                           </span>
                           {isNewMentionCreated && (
                             <span className="absolute right-0 top-0 -mr-2 -mt-1 flex h-2 w-2">
-                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400/75"></span>
                               <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
                             </span>
                           )}
@@ -421,7 +421,7 @@ const Layout: FC<Props> = ({ children }) => {
                           </span>
                           {isNewThreadCreated && (
                             <span className="absolute right-0 top-0 -mr-2 -mt-1 flex h-2 w-2">
-                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400/75"></span>
                               <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
                             </span>
                           )}

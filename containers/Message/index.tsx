@@ -32,12 +32,17 @@ const Message: FC<Props> = ({ content, updatedAt }) => {
 
   const value: string = useMemo(() => {
     const $ = cheerio.load(content, null, false)
-    if (!!updatedAt) $('p:last').append(`<span class="updated">(편집됨)</span>`)
+    if (!!updatedAt) {
+      $('p:last').append(`<span class="updated">(편집됨)</span>`)
+    }
     return !!updatedAt ? $.html() : content
   }, [content, updatedAt])
   return (
     <>
-      <div dangerouslySetInnerHTML={{ __html: value }} className="ql-editor" />
+      <div
+        dangerouslySetInnerHTML={{ __html: value }}
+        className="ql-editor overflow-y-hidden"
+      />
       <Modal.Profile
         isOpen={isProfileOpen}
         onClose={() => setState({ isProfileOpen: false, userId: '' })}

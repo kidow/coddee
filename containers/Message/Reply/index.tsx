@@ -524,11 +524,12 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
             originalCode={reply.code_block}
             language={reply.language}
             onSubmit={createModifiedCodeReply}
-            mention={`@[${reply.user.nickname}](${reply.user_id})`}
             modifiedCode={reply.modified_code}
             modifiedLanguage={reply.modified_language}
             typingSource="reply"
             chatId={reply.chat_id}
+            username={reply.user.nickname}
+            userId={reply.user_id}
           />
           {reply.opengraphs?.map((item) => (
             <Message.Opengraph {...item} key={item.id} />

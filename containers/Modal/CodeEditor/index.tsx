@@ -77,6 +77,10 @@ const CodeEditorModal: FC<Props> = ({
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
+    if (codeBlock.length > 2000) {
+      toast.info('코드는 2,000자 이하로 작성 부탁드립니다.')
+      return
+    }
     backdrop(true)
     props.onSubmit({ content, codeBlock, language })
   }
@@ -173,10 +177,10 @@ const CodeEditorModal: FC<Props> = ({
             </Button>
             <Button
               theme="primary"
-              disabled={!content || !codeBlock}
+              disabled={!content || !codeBlock || content === '<p><br></p>'}
               onClick={onSubmit}
             >
-              등록
+              {!!props.codeBlock ? '수정' : '등록'}
             </Button>
           </div>
         </div>
@@ -186,10 +190,8 @@ const CodeEditorModal: FC<Props> = ({
         <div className="hidden border dark:border-none sm:block">
           <Editor
             height="300px"
-            defaultLanguage={props.language}
             language={language}
             onChange={onEditorChange}
-            defaultValue={props.codeBlock}
             value={codeBlock}
             theme={theme === 'dark' ? 'vs-dark' : 'light'}
             options={{
@@ -201,7 +203,7 @@ const CodeEditorModal: FC<Props> = ({
                 alwaysConsumeMouseWheel: false
               }
             }}
-            loading={false}
+            loading=""
           />
         </div>
         <div className="border p-2 focus-within:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900">

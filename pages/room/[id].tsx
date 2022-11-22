@@ -80,7 +80,7 @@ const RoomIdPage: NextPage = () => {
   const [morefetchRef, isMoreFetchIntersecting] =
     useIntersectionObserver<HTMLDivElement>()
   const supabase = useSupabaseClient()
-  const { onNewRegex } = useChatList()
+  const { onRegex } = useChatList()
   const [backBottomRef, isBackBottomIntersecting] =
     useIntersectionObserver<HTMLDivElement>()
   const setTypingChatListState = useSetRecoilState(typingChatListState)
@@ -257,7 +257,7 @@ const RoomIdPage: NextPage = () => {
       },
       ...list
     ])
-    onNewRegex(v, data.id)
+    onRegex(v, data.id)
     setState({ content: '' }, () => {
       window.scrollTo(0, document.body.scrollHeight)
       EventListener.emit(`quill:focus:${id}`)
@@ -286,7 +286,7 @@ const RoomIdPage: NextPage = () => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onNewRegex(payload.content, data.id)
+    onRegex(payload.content, data.id)
     setList([
       {
         ...data,
@@ -325,20 +325,27 @@ const RoomIdPage: NextPage = () => {
       })
   }
 
-  // const onFocus = (e: globalThis.KeyboardEvent) => {
-  //   if (!e.target) return
-  //   const target = e.target as HTMLElement
-  //   if (!target.tagName) return
+  const onFocus = (e: globalThis.KeyboardEvent) => {
+    if (!e.target) return
+    const target = e.target as HTMLElement
 
-  //   if (target.tagName.toLowerCase() !== 'textarea')
-  //     EventListener.emit(`quill:focus:${id}`)
-  // }
+    if (target?.className !== 'ql-editor')
+      EventListener.emit(`quill:focus:${id}`)
+  }
 
-  // useEffect(() => {
-  //   if (isCodeEditorOpen) return
-  //   document.addEventListener('keydown', onFocus)
-  //   return () => document.removeEventListener('keydown', onFocus)
-  // }, [isCodeEditorOpen])
+  const onFocusHandler = ({ detail }: any) =>
+    detail
+      ? document.removeEventListener('keydown', onFocus)
+      : document.addEventListener('keydown', onFocus)
+
+  useEffect(() => {
+    document.addEventListener('keydown', onFocus)
+    EventListener.add('focus:freeze', onFocusHandler)
+    return () => {
+      document.removeEventListener('keydown', onFocus)
+      EventListener.remove('focus:freeze', onFocusHandler)
+    }
+  }, [])
 
   useEffect(() => {
     getChatList()
@@ -441,7 +448,7 @@ const RoomIdPage: NextPage = () => {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(channel).then()
     }
   }, [list, query.id, count])
 
@@ -651,7 +658,7 @@ const RoomIdPage: NextPage = () => {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(channel).then()
     }
   }, [list, query.id])
 

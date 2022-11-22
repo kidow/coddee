@@ -43,7 +43,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     })
   const supabase = useSupabaseClient()
   const [user] = useUser()
-  const { onNewRegex } = useChatList()
+  const { onRegex } = useChatList()
   const [chatList, setChatList] = useRecoilState(chatListState)
   const [replyList, setReplyList] = useRecoilState(replyListState)
   const setTypingReplyList = useSetRecoilState(typingReplyListState)
@@ -180,7 +180,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onNewRegex(content, data.chat_id, data.id)
+    onRegex(content, data.chat_id, data.id)
     setState({ content: '' })
     setReplyList([
       ...replyList,
@@ -235,7 +235,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
-    onNewRegex(payload.content, data.chat_id, data.id)
+    onRegex(payload.content, data.chat_id, data.id)
     setReplyList([
       ...replyList,
       {
@@ -285,7 +285,20 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       })
   }
 
+  const onFocus = (e: globalThis.KeyboardEvent) => {
+    if (!e.target) return
+    const target = e.target as HTMLElement
+
+    if (target?.className !== 'ql-editor')
+      EventListener.emit(`quill:focus:${id}`)
+  }
+
   const chat = useMemo(() => chatList[chatIndex], [chatList, chatIndex])
+
+  useEffect(() => {
+    document.addEventListener('keydown', onFocus)
+    return () => document.removeEventListener('keydown', onFocus)
+  }, [])
 
   useEffect(() => {
     let timer: NodeJS.Timeout | undefined
@@ -538,7 +551,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(channel).then()
     }
   }, [replyList, chat])
   return (
@@ -577,7 +590,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           </div>
           <div className="px-4 pt-4 pb-16">
             <div className="flex items-center gap-1 rounded-lg bg-neutral-100 p-2 dark:bg-neutral-700">
-              <div className="max-w-[308px] flex-1">
+              <div className="max-w-[515px] flex-1 md:max-w-[308px]">
                 <Textarea
                   value={content}
                   onChange={(content) => setState({ content })}

@@ -51,10 +51,10 @@ const Modal: FC<Props> = ({
     >
       <div className="flex min-h-screen items-center justify-center p-0 text-center md:block">
         <div
-          className="fixed inset-0 bg-black opacity-30 transition-opacity"
+          className="fixed inset-0 bg-black/30 transition-opacity"
           aria-hidden="true"
           onClick={onClose}
-        ></div>
+        />
         <span
           className="hidden h-screen align-middle md:inline-block"
           aria-hidden="true"

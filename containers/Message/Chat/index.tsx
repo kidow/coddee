@@ -315,10 +315,11 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
             originalCode={chat.code_block}
             language={chat.language}
             onSubmit={createModifiedCodeChat}
-            mention={`@[${chat.user.nickname}](${chat.user_id})`}
             modifiedCode={chat.modified_code}
             modifiedLanguage={chat.modified_language}
             typingSource="chat"
+            username={chat.user.nickname}
+            userId={chat.user_id}
           />
           {chat.opengraphs?.map((item) => (
             <Message.Opengraph {...item} key={item.id} />
@@ -341,7 +342,10 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
           )}
           {!!chat.replies?.length && (
             <div
-              onClick={() => setState({ isThreadOpen: true })}
+              onClick={() => {
+                setState({ isThreadOpen: true })
+                EventListener.emit('focus:freeze', true)
+              }}
               className="group/reply mt-1 flex cursor-pointer items-center justify-between rounded border border-transparent p-1 duration-150 hover:border-neutral-200 hover:bg-white dark:hover:border-neutral-600 dark:hover:bg-neutral-800"
             >
               <div className="flex flex-1 items-center gap-2">
@@ -383,7 +387,10 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
                 onSelect={(text) => onEmojiSelect(text, chatIndex)}
               />
               <Tooltip.Actions.Thread
-                onClick={() => setState({ isThreadOpen: true })}
+                onClick={() => {
+                  setState({ isThreadOpen: true })
+                  EventListener.emit('focus:freeze', true)
+                }}
               />
               <Tooltip.Actions.Save
                 onClick={onSaveChat}
@@ -409,7 +416,10 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
       <Message.Divider chatIndex={chatIndex} />
       <Drawer.Thread
         isOpen={isThreadOpen}
-        onClose={() => setState({ isThreadOpen: false })}
+        onClose={() => {
+          setState({ isThreadOpen: false })
+          EventListener.emit('focus:freeze', false)
+        }}
         chatIndex={chatIndex}
       />
       <Modal.CodeEditor

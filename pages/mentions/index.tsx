@@ -276,7 +276,7 @@ const MentionsPage: NextPage = () => {
     return () => {
       const channels = supabase.getChannels()
       const mention = channels.find((item) => item.topic === 'pages/mentions')
-      if (mention) supabase.removeChannel(mention)
+      if (mention) supabase.removeChannel(mention).then()
     }
   }, [list])
   return (
@@ -338,9 +338,10 @@ const MentionsPage: NextPage = () => {
                         modifiedLanguage: item.chat.modified_language
                       })
                     }
-                    mention={`@[${item.user.nickname}](${item.user.avatar_url})`}
                     modifiedCode={item.chat.modified_code}
                     modifiedLanguage={item.chat.modified_language}
+                    username={item.user.nickname}
+                    userId={item.user.id}
                   />
                   {item.chat.opengraphs?.map((item) => (
                     <Message.Opengraph {...item} key={item.id} />

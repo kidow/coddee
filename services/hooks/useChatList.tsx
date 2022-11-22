@@ -4,7 +4,6 @@ import { useRecoilState } from 'recoil'
 import {
   useUser,
   chatListState,
-  REGEXP,
   toast,
   TOAST_MESSAGE,
   EventListener,
@@ -19,66 +18,6 @@ export default () => {
   const [list, setList] = useRecoilState(chatListState)
 
   const onRegex = async (content: string, chatId: number, replyId?: number) => {
-    if (REGEXP.MENTION.test(content)) {
-      const mentions = content
-        .match(REGEXP.MENTION)
-        ?.filter((id) => id !== user?.id)
-      if (!mentions) return
-
-      await Promise.all(
-        mentions.map((id) =>
-          supabase.from('mentions').insert({
-            mention_to: id.slice(-37, -1),
-            mention_from: user?.id,
-            chat_id: chatId,
-            ...(!!replyId ? { reply_id: replyId } : {})
-          })
-        )
-      )
-    }
-
-    if (REGEXP.URL.test(content)) {
-      const urls = content.match(REGEXP.URL)
-      if (!urls) return
-
-      const res = await Promise.all(
-        urls.map((url) =>
-          fetch('/api/opengraph', {
-            method: 'POST',
-            headers: new Headers({ 'Content-Type': 'application/json' }),
-            body: JSON.stringify({ url })
-          })
-        )
-      )
-      const json = await Promise.all(res.map((result) => result.json()))
-      json
-        .filter((item) => item.success)
-        .forEach(async ({ data }) => {
-          await supabase
-            .from('opengraphs')
-            .insert({
-              title: data.title || data['og:title'] || data['twitter:title'],
-              description:
-                data.description ||
-                data['og:description'] ||
-                data['twitter:description'],
-              image: data.image || data['og:image'] || data['twitter:image'],
-              url: data.url || data['og:url'] || data['twitter:domain'],
-              site_name: data['og:site_name'] || '',
-              room_id: query.id,
-              ...(!!replyId ? { reply_id: replyId } : { chat_id: chatId })
-            })
-            .select()
-            .single()
-        })
-    }
-  }
-
-  const onNewRegex = async (
-    content: string,
-    chatId: number,
-    replyId?: number
-  ) => {
     const $ = cheerio.load(content)
     const mentions = $('.mention')
     if (mentions.length > 0) {
@@ -354,5 +293,5 @@ export default () => {
     }
   }
 
-  return { onRegex, onEmojiSelect, onReactionClick, onNewRegex }
+  return { onEmojiSelect, onReactionClick, onRegex }
 }

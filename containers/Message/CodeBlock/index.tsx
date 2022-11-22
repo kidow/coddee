@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useId } from 'react'
 import type { FC } from 'react'
 import Editor, { DiffEditor } from '@monaco-editor/react'
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
@@ -28,14 +28,14 @@ export interface Props {
     language: string
     content: string
   }) => void
-  mention: string
+  username: string
+  userId: string
   modifiedCode?: string
   modifiedLanguage?: string
   typingSource?: string
   chatId?: number
 }
 interface State {
-  isCollapse: boolean
   isDiffEditorOpen: boolean
   codeBlock: string
   content: string
@@ -44,21 +44,21 @@ interface State {
 
 const MessageCodeBlock: FC<Props> = ({
   originalCode,
-  mention,
   modifiedCode,
   modifiedLanguage,
   typingSource,
   chatId,
+  userId,
+  username,
   ...props
 }) => {
   if (!originalCode) return null
   const [
-    { isCollapse, isDiffEditorOpen, codeBlock, content, language },
+    { isDiffEditorOpen, codeBlock, content, language },
     setState,
     onChange,
     resetState
   ] = useObjectState<State>({
-    isCollapse: false,
     isDiffEditorOpen: false,
     codeBlock: '',
     content: '',
@@ -69,6 +69,7 @@ const MessageCodeBlock: FC<Props> = ({
   const supabase = useSupabaseClient()
   const languageList = useRecoilValue(languageListState)
   const { query } = useRouter()
+  const id = useId()
 
   const onMount = (
     editor: Monaco.editor.IStandaloneCodeEditor,
@@ -164,99 +165,90 @@ const MessageCodeBlock: FC<Props> = ({
   useEffect(() => {
     if (!isDiffEditorOpen) return
     EventListener.add('message:codeblock', listener)
+    EventListener.emit(`quill:insert:${id}`, { username, userId })
     return () => EventListener.remove('message:codeblock', listener)
   }, [isDiffEditorOpen])
   return (
     <>
       <div className="text-xs text-neutral-600 dark:text-neutral-400">
-        {isCollapse && (
-          <div className="border dark:border-transparent">
-            {!!modifiedCode ? (
-              <DiffEditor
-                original={originalCode}
-                modified={modifiedCode}
-                originalLanguage={props.language}
-                modifiedLanguage={modifiedLanguage}
-                theme={theme === 'dark' ? 'vs-dark' : 'light'}
-                options={{
-                  readOnly: true,
-                  scrollbar: {
-                    vertical: 'hidden',
-                    alwaysConsumeMouseWheel: false
-                  },
-                  scrollBeyondLastLine: false,
-                  minimap: { enabled: false },
-                  fontSize: 14,
-                  wordWrap: 'on',
-                  lineNumbers: 'off'
-                }}
-                onMount={onDiffMount}
-                loading={false}
-              />
-            ) : (
-              <Editor
-                language={props.language}
-                onMount={onMount}
-                theme={theme === 'dark' ? 'vs-dark' : 'light'}
-                options={{
-                  readOnly: true,
-                  scrollbar: {
-                    vertical: 'hidden',
-                    alwaysConsumeMouseWheel: false
-                  },
-                  scrollBeyondLastLine: false,
-                  minimap: { enabled: false },
-                  fontSize: 14,
-                  wordWrap: 'on',
-                  lineNumbers: 'off'
-                }}
-                value={originalCode}
-                loading={false}
-              />
-            )}
-          </div>
-        )}
+        <div className="border dark:border-transparent">
+          {!!modifiedCode ? (
+            <DiffEditor
+              original={originalCode}
+              modified={modifiedCode}
+              originalLanguage={props.language}
+              modifiedLanguage={modifiedLanguage}
+              theme={theme === 'dark' ? 'vs-dark' : 'light'}
+              options={{
+                readOnly: true,
+                scrollbar: {
+                  vertical: 'hidden',
+                  alwaysConsumeMouseWheel: false
+                },
+                scrollBeyondLastLine: false,
+                minimap: { enabled: false },
+                fontSize: 14,
+                wordWrap: 'on',
+                lineNumbers: 'off'
+              }}
+              onMount={onDiffMount}
+              loading=""
+            />
+          ) : (
+            <Editor
+              language={props.language}
+              onMount={onMount}
+              theme={theme === 'dark' ? 'vs-dark' : 'light'}
+              options={{
+                readOnly: true,
+                scrollbar: {
+                  vertical: 'hidden',
+                  alwaysConsumeMouseWheel: false
+                },
+                scrollBeyondLastLine: false,
+                minimap: { enabled: false },
+                fontSize: 14,
+                wordWrap: 'on',
+                lineNumbers: 'off',
+                tabSize: 16
+              }}
+              value={originalCode}
+              loading=""
+            />
+          )}
+        </div>
         <div className="mt-1 flex items-center gap-1">
-          <button onClick={() => setState({ isCollapse: !isCollapse })}>
-            {isCollapse ? '코드 닫기' : '코드 보기'}
-          </button>
           {!!modifiedLanguage ? (
             <>
-              <span>·</span>
               <span>{modifiedLanguage}</span>
+              <span>·</span>
             </>
           ) : (
             !!props.language && (
               <>
-                <span>·</span>
                 <span>{props.language}</span>
+                <span>·</span>
               </>
             )
           )}
-          {!!isCollapse && (
-            <>
-              <span>·</span>
-              <CopyToClipboard
-                text={modifiedCode || originalCode}
-                onCopy={() => toast.success('복사되었습니다.')}
-              >
-                <button>복사</button>
-              </CopyToClipboard>
-              <span>·</span>
-              <button
-                onClick={() => {
-                  setState({
-                    isDiffEditorOpen: true,
-                    codeBlock: modifiedCode || originalCode,
-                    content: `${mention} `,
-                    language: props.language
-                  })
-                }}
-              >
-                답장
-              </button>
-            </>
-          )}
+          <CopyToClipboard
+            text={modifiedCode || originalCode}
+            onCopy={() => toast.success('복사되었습니다.')}
+          >
+            <button>복사</button>
+          </CopyToClipboard>
+          <span>·</span>
+          <button
+            onClick={() => {
+              setState({
+                isDiffEditorOpen: true,
+                codeBlock: modifiedCode || originalCode,
+                language: props.language
+              })
+            }}
+          >
+            답장
+          </button>
         </div>
       </div>
       <Modal
@@ -348,7 +340,7 @@ const MessageCodeBlock: FC<Props> = ({
                   alwaysConsumeMouseWheel: false
                 }
               }}
-              loading={false}
+              loading=""
               onMount={(editor, monaco) => {
                 editor.getModifiedEditor().onDidChangeModelContent(async () => {
                   setState({ codeBlock: editor.getModifiedEditor().getValue() })
@@ -362,6 +354,7 @@ const MessageCodeBlock: FC<Props> = ({
               value={content}
               onChange={(content) => setState({ content })}
               onKeyDown={onTyping}
+              id={id}
             />
           </div>
         </div>
