@@ -388,7 +388,7 @@ const Layout: FC<Props> = ({ children }) => {
                           </span>
                           {isNewMentionCreated && (
                             <span className="absolute right-0 top-0 -mr-2 -mt-1 flex h-2 w-2">
-                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400/75"></span>
                               <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
                             </span>
                           )}
@@ -421,7 +421,7 @@ const Layout: FC<Props> = ({ children }) => {
                           </span>
                           {isNewThreadCreated && (
                             <span className="absolute right-0 top-0 -mr-2 -mt-1 flex h-2 w-2">
-                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400/75"></span>
                               <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
                             </span>
                           )}
