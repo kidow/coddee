@@ -36,7 +36,6 @@ export interface Props {
   chatId?: number
 }
 interface State {
-  isCollapse: boolean
   isDiffEditorOpen: boolean
   codeBlock: string
   content: string
@@ -55,12 +54,11 @@ const MessageCodeBlock: FC<Props> = ({
 }) => {
   if (!originalCode) return null
   const [
-    { isCollapse, isDiffEditorOpen, codeBlock, content, language },
+    { isDiffEditorOpen, codeBlock, content, language },
     setState,
     onChange,
     resetState
   ] = useObjectState<State>({
-    isCollapse: false,
     isDiffEditorOpen: false,
     codeBlock: '',
     content: '',
@@ -173,93 +171,84 @@ const MessageCodeBlock: FC<Props> = ({
   return (
     <>
       <div className="text-xs text-neutral-600 dark:text-neutral-400">
-        {isCollapse && (
-          <div className="border dark:border-transparent">
-            {!!modifiedCode ? (
-              <DiffEditor
-                original={originalCode}
-                modified={modifiedCode}
-                originalLanguage={props.language}
-                modifiedLanguage={modifiedLanguage}
-                theme={theme === 'dark' ? 'vs-dark' : 'light'}
-                options={{
-                  readOnly: true,
-                  scrollbar: {
-                    vertical: 'hidden',
-                    alwaysConsumeMouseWheel: false
-                  },
-                  scrollBeyondLastLine: false,
-                  minimap: { enabled: false },
-                  fontSize: 14,
-                  wordWrap: 'on',
-                  lineNumbers: 'off'
-                }}
-                onMount={onDiffMount}
-                loading=""
-              />
-            ) : (
-              <Editor
-                language={props.language}
-                onMount={onMount}
-                theme={theme === 'dark' ? 'vs-dark' : 'light'}
-                options={{
-                  readOnly: true,
-                  scrollbar: {
-                    vertical: 'hidden',
-                    alwaysConsumeMouseWheel: false
-                  },
-                  scrollBeyondLastLine: false,
-                  minimap: { enabled: false },
-                  fontSize: 14,
-                  wordWrap: 'on',
-                  lineNumbers: 'off'
-                }}
-                value={originalCode}
-                loading=""
-              />
-            )}
-          </div>
-        )}
+        <div className="border dark:border-transparent">
+          {!!modifiedCode ? (
+            <DiffEditor
+              original={originalCode}
+              modified={modifiedCode}
+              originalLanguage={props.language}
+              modifiedLanguage={modifiedLanguage}
+              theme={theme === 'dark' ? 'vs-dark' : 'light'}
+              options={{
+                readOnly: true,
+                scrollbar: {
+                  vertical: 'hidden',
+                  alwaysConsumeMouseWheel: false
+                },
+                scrollBeyondLastLine: false,
+                minimap: { enabled: false },
+                fontSize: 14,
+                wordWrap: 'on',
+                lineNumbers: 'off'
+              }}
+              onMount={onDiffMount}
+              loading=""
+            />
+          ) : (
+            <Editor
+              language={props.language}
+              onMount={onMount}
+              theme={theme === 'dark' ? 'vs-dark' : 'light'}
+              options={{
+                readOnly: true,
+                scrollbar: {
+                  vertical: 'hidden',
+                  alwaysConsumeMouseWheel: false
+                },
+                scrollBeyondLastLine: false,
+                minimap: { enabled: false },
+                fontSize: 14,
+                wordWrap: 'on',
+                lineNumbers: 'off',
+                tabSize: 16
+              }}
+              value={originalCode}
+              loading=""
+            />
+          )}
+        </div>
         <div className="mt-1 flex items-center gap-1">
-          <button onClick={() => setState({ isCollapse: !isCollapse })}>
-            {isCollapse ? '코드 닫기' : '코드 보기'}
-          </button>
           {!!modifiedLanguage ? (
             <>
-              <span>·</span>
               <span>{modifiedLanguage}</span>
+              <span>·</span>
             </>
           ) : (
             !!props.language && (
               <>
-                <span>·</span>
                 <span>{props.language}</span>
+                <span>·</span>
               </>
             )
           )}
-          {!!isCollapse && (
-            <>
-              <span>·</span>
-              <CopyToClipboard
-                text={modifiedCode || originalCode}
-                onCopy={() => toast.success('복사되었습니다.')}
-              >
-                <button>복사</button>
-              </CopyToClipboard>
-              <span>·</span>
-              <button
-                onClick={() => {
-                  setState({
-                    isDiffEditorOpen: true,
-                    codeBlock: modifiedCode || originalCode,
-                    language: props.language
-                  })
-                }}
-              >
-                답장
-              </button>
-            </>
-          )}
+          <CopyToClipboard
+            text={modifiedCode || originalCode}
+            onCopy={() => toast.success('복사되었습니다.')}
+          >
+            <button>복사</button>
+          </CopyToClipboard>
+          <span>·</span>
+          <button
+            onClick={() => {
+              setState({
+                isDiffEditorOpen: true,
+                codeBlock: modifiedCode || originalCode,
+                language: props.language
+              })
+            }}
+          >
+            답장
+          </button>
         </div>
       </div>
       <Modal

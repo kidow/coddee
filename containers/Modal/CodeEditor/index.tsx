@@ -177,7 +177,7 @@ const CodeEditorModal: FC<Props> = ({
             </Button>
             <Button
               theme="primary"
-              disabled={!content || !codeBlock}
+              disabled={!content || !codeBlock || content === '<p><br></p>'}
               onClick={onSubmit}
             >
               {!!props.codeBlock ? '수정' : '등록'}
@@ -190,10 +190,8 @@ const CodeEditorModal: FC<Props> = ({
         <div className="hidden border dark:border-none sm:block">
           <Editor
             height="300px"
-            defaultLanguage={props.language}
             language={language}
             onChange={onEditorChange}
-            defaultValue={props.codeBlock}
             value={codeBlock}
             theme={theme === 'dark' ? 'vs-dark' : 'light'}
             options={{
