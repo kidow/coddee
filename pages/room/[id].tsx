@@ -156,7 +156,8 @@ const RoomIdPage: NextPage = () => {
       let reactions: Array<{
         id: number
         text: string
-        userList: Array<{ id: string; nickname: string }>
+        emoji: string
+        userList: Array<{ id: string; reactionId: number; nickname: string }>
       }> = []
       // @ts-ignore
       if (chat.reactions.length > 0) {
@@ -169,8 +170,13 @@ const RoomIdPage: NextPage = () => {
             reactions.push({
               id: reaction.id,
               text: reaction.text,
+              emoji: reaction.emoji,
               userList: [
-                { id: reaction.user_id, nickname: reaction.user.nickname }
+                {
+                  id: reaction.user_id,
+                  reactionId: reaction.id,
+                  nickname: reaction.user.nickname
+                }
               ]
             })
           } else {
@@ -180,7 +186,11 @@ const RoomIdPage: NextPage = () => {
             if (userIndex === -1)
               reactions[index].userList = [
                 ...reactions[index].userList,
-                { id: reaction.user_id, nickname: reaction.user.nickname }
+                {
+                  id: reaction.user_id,
+                  reactionId: reaction.id,
+                  nickname: reaction.user.nickname
+                }
               ]
           }
         }
@@ -499,7 +509,11 @@ const RoomIdPage: NextPage = () => {
                       {
                         ...payload.new,
                         userList: [
-                          { id: payload.new.user_id, nickname: data.nickname }
+                          {
+                            id: payload.new.user_id,
+                            reactionId: payload.new.id,
+                            nickname: data.nickname
+                          }
                         ]
                       }
                     ]
@@ -509,7 +523,11 @@ const RoomIdPage: NextPage = () => {
                         ...reaction,
                         userList: [
                           ...reaction.userList,
-                          { id: payload.new.user_id, nickname: data.nickname }
+                          {
+                            id: payload.new.user_id,
+                            reactionId: payload.new.id,
+                            nickname: data.nickname
+                          }
                         ]
                       },
                       ...chat.reactions.slice(reactionIndex + 1)

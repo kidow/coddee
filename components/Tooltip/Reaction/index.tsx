@@ -5,10 +5,9 @@ import classnames from 'classnames'
 import { useUser } from 'services'
 
 export interface Props {
-  userList: Array<{ id: string; nickname: string }>
+  userList: Array<{ id: string; reactionId: number; nickname: string }>
   onClick: () => void
   text: string
-  length: number
   emoji: string
   position?: 'left' | 'top' | 'right' | 'bottom'
 }
@@ -18,7 +17,6 @@ const ReactionTooltip: FC<Props> = ({
   userList,
   onClick,
   text,
-  length,
   emoji,
   position
 }) => {
@@ -32,10 +30,10 @@ const ReactionTooltip: FC<Props> = ({
     <Tooltip
       content={
         userList.length > 1
-          ? `${userList[0].nickname} 님 외 ${
+          ? `${userList?.at(0)?.nickname} 님 외 ${
               userList.length - 1
             }명이 반응하였습니다.`
-          : `${userList[0].nickname} 님이 반응하였습니다.`
+          : `${userList?.at(0)?.nickname} 님이 반응하였습니다.`
       }
       position={position}
     >
@@ -50,7 +48,7 @@ const ReactionTooltip: FC<Props> = ({
       >
         <span className={`bem bem-${text} ap ap-${text}`}>{emoji}</span>
         <span className="text-xs font-semibold text-blue-700 dark:text-neutral-400">
-          {length}
+          {userList.length}
         </span>
       </button>
     </Tooltip>

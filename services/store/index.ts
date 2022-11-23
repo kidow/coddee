@@ -47,7 +47,7 @@ export const chatListState = atom<
         emoji: string
         user_id: string
         user: { nickname: string }
-        userList: Array<{ id: string; nickname: string }>
+        userList: Array<{ id: string; reactionId: number; nickname: string }>
       }>
       replies: Array<{
         id: string

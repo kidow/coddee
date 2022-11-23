@@ -236,7 +236,6 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
                     onClick={() => onReactionClick(chat, key)}
                     text={item.text}
                     emoji={item.emoji}
-                    length={item?.userList.length}
                     position={key === 0 ? 'right' : undefined}
                   />
                 ))}

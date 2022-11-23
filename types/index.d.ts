@@ -82,7 +82,7 @@ namespace NTable {
     text: string
     emoji: string
     created_at: string
-    userList: Array<{ id: string; nickname: string }>
+    userList: Array<{ id: string; reactionId: number; nickname: string }>
   }
   interface Replies {
     id: number
@@ -105,7 +105,7 @@ namespace NTable {
     text: string
     emoji: string
     created_at: string
-    userList: Array<{ id: string; nickname: string }>
+    userList: Array<{ id: string; reactionId: number; nickname: string }>
   }
   interface Mentions {
     id: number

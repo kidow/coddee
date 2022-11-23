@@ -1444,9 +1444,9 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
             ))}
           </ul>
         </div>
-        <div className="border-b py-1 px-2 dark:border-neutral-800">
+        <div className="border-b py-1 px-2 dark:border-neutral-700">
           <input
-            className="w-full rounded border py-1 px-3 text-sm"
+            className="w-full rounded border py-1 px-3 text-sm dark:border-neutral-700 dark:bg-transparent"
             value={search}
             name="search"
             onChange={onChange}
@@ -1459,13 +1459,13 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
         <div className="px-3 py-1 text-sm font-semibold">
           {!!search ? '검색 결과' : EMOJI_TOOLBAR[tab]}
         </div>
-        <div className="grid max-h-72 grid-cols-10 gap-1 overflow-y-auto overscroll-contain bg-white px-2">
+        <div className="grid max-h-72 grid-cols-10 gap-1 overflow-y-auto overscroll-contain bg-white px-2 dark:bg-neutral-800">
           {!!search ? (
             searchList.map((item, key) => (
-              <span
+              <button
                 key={key}
                 onClick={() => onEmojiClick(item.text, item.emoji)}
-                className="cursor-pointer rounded p-1 hover:bg-blue-50"
+                className="rounded p-1 hover:bg-blue-50"
                 title={`:${item.text}:`}
                 onMouseOver={() =>
                   setState({ text: item.text, emoji: item.emoji })
@@ -1475,16 +1475,16 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                 <span className={`bem bem-${item.text} ap ap-${item.text}`}>
                   {item.emoji}
                 </span>
-              </span>
+              </button>
             ))
           ) : (
             <>
               {tab === 'people' &&
                 people.map((item, key) => (
-                  <span
+                  <button
                     onClick={() => onEmojiClick(item.text, item.emoji)}
                     key={key}
-                    className="cursor-pointer rounded p-1 hover:bg-blue-50"
+                    className="rounded p-1 hover:bg-blue-50"
                     onMouseOver={() =>
                       setState({ text: item.text, emoji: item.emoji })
                     }
@@ -1496,11 +1496,11 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     >
                       {item.emoji}
                     </span>
-                  </span>
+                  </button>
                 ))}
               {tab === 'nature' &&
                 nature.map((item, key) => (
-                  <span
+                  <button
                     onClick={() => onEmojiClick(item.text, item.emoji)}
                     key={key}
                     className="rounded p-1 hover:bg-blue-50"
@@ -1513,11 +1513,11 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     <span className={`bem bem-${item.text} ap ap-${item.text}`}>
                       {item.emoji}
                     </span>
-                  </span>
+                  </button>
                 ))}
               {tab === 'food' &&
                 food.map((item, key) => (
-                  <span
+                  <button
                     onClick={() => onEmojiClick(item.text, item.emoji)}
                     key={key}
                     className="rounded p-1 hover:bg-blue-50"
@@ -1530,11 +1530,11 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     <span className={`bem bem-${item.text} ap ap-${item.text}`}>
                       {item.emoji}
                     </span>
-                  </span>
+                  </button>
                 ))}
               {tab === 'symbols' &&
                 symbols.map((item, key) => (
-                  <span
+                  <button
                     onClick={() => onEmojiClick(item.text, item.emoji)}
                     key={key}
                     className="rounded p-1 hover:bg-blue-50"
@@ -1549,11 +1549,11 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     >
                       {item.emoji}
                     </span>
-                  </span>
+                  </button>
                 ))}
               {tab === 'activity' &&
                 activity.map((item, key) => (
-                  <span
+                  <button
                     onClick={() => onEmojiClick(item.text, item.emoji)}
                     key={key}
                     className="rounded p-1 hover:bg-blue-50"
@@ -1568,11 +1568,11 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     >
                       {item.emoji}
                     </span>
-                  </span>
+                  </button>
                 ))}
               {tab === 'travel' &&
                 travel.map((item, key) => (
-                  <span
+                  <button
                     onClick={() => onEmojiClick(item.text, item.emoji)}
                     key={key}
                     className="rounded p-1 hover:bg-blue-50"
@@ -1585,11 +1585,11 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     <span className={`bem bem-${item.text} ap ap-${item.text}`}>
                       {item.emoji}
                     </span>
-                  </span>
+                  </button>
                 ))}
               {tab === 'objects' &&
                 objects.map((item, key) => (
-                  <span
+                  <button
                     onClick={() => onEmojiClick(item.text, item.emoji)}
                     key={key}
                     className="rounded p-1 hover:bg-blue-50"
@@ -1602,11 +1602,11 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     <span className={`bem bem-${item.text} ap ap-${item.text}`}>
                       {item.emoji}
                     </span>
-                  </span>
+                  </button>
                 ))}
               {tab === 'flags' &&
                 flags.map((item, key) => (
-                  <span
+                  <button
                     onClick={() => onEmojiClick(item.text, item.emoji)}
                     key={key}
                     className="rounded p-1 hover:bg-blue-50"
@@ -1619,18 +1619,18 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     <span className={`bem bem-${item.text} ap ap-${item.text}`}>
                       {item.emoji}
                     </span>
-                  </span>
+                  </button>
                 ))}
             </>
           )}
         </div>
-        <div className="flex items-center justify-between border-t px-3 pt-2 dark:border-neutral-800">
-          <span className="text-sm font-semibold text-neutral-700">
+        <div className="flex items-center justify-between border-t px-3 pt-2 dark:border-neutral-700">
+          <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-400">
             간편한 반응
           </span>
           <div className="flex items-center gap-1">
             {handy.map((item, key) => (
-              <span
+              <button
                 onClick={() => onEmojiClick(item.text, item.emoji)}
                 key={key}
                 className="rounded p-1 hover:bg-blue-50"
@@ -1643,7 +1643,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                 <span className={`bem bem-${item.text} ap ap-${item.text}`}>
                   {item.emoji}
                 </span>
-              </span>
+              </button>
             ))}
           </div>
         </div>
