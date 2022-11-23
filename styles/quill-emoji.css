@@ -56,6 +56,7 @@
   background-color: #f7f7f7;
   border-bottom: 1px solid rgba(0, 0, 0, 0.15);
   padding: 4px 4px 0;
+  @apply dark:border-neutral-700 dark:bg-neutral-800;
 }
 #tab-toolbar ul {
   margin: 0;
@@ -64,13 +65,6 @@
 }
 #tab-toolbar .active {
   border-bottom: 3px solid #2ab27b;
-}
-#tab-panel {
-  background: #fff;
-  display: flex;
-  flex-wrap: wrap;
-  overflow-y: scroll;
-  padding: 8px 4px;
 }
 #quill-editor x-contain,
 contain {

@@ -102,13 +102,17 @@ const ThreadChat: FC<Props> = ({ index }) => {
     if (userIndex === undefined) return
 
     if (userIndex === -1) {
-      const { error } = await supabase.from('reactions').insert({
-        chat_id: chat.id,
-        user_id: user.id,
-        text: reaction.text,
-        room_id: chat.room.id,
-        emoji: reaction.emoji
-      })
+      const { data, error } = await supabase
+        .from('reactions')
+        .insert({
+          chat_id: chat.id,
+          user_id: user.id,
+          text: reaction.text,
+          room_id: chat.room.id,
+          emoji: reaction.emoji
+        })
+        .select()
+        .single()
       if (error) {
         captureException(error, user)
         toast.error(TOAST_MESSAGE.API_ERROR)
@@ -124,7 +128,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
               ...reaction,
               userList: [
                 ...chat.reactions[reactionIndex].userList,
-                { id: user.id, nickname: user.nickname }
+                { id: user.id, reactionId: data.id, nickname: user.nickname }
               ]
             },
             ...chat.reactions.slice(reactionIndex + 1)
@@ -201,7 +205,13 @@ const ThreadChat: FC<Props> = ({ index }) => {
                   ...chat.reactions,
                   {
                     ...data,
-                    userList: [{ id: user.id, nickname: user.nickname }]
+                    userList: [
+                      {
+                        id: user.id,
+                        reactionId: data.id,
+                        nickname: user.nickname
+                      }
+                    ]
                   }
                 ]
               : [
@@ -210,7 +220,11 @@ const ThreadChat: FC<Props> = ({ index }) => {
                     ...reaction,
                     userList: [
                       ...reaction.userList,
-                      { id: user.id, nickname: user.nickname }
+                      {
+                        id: user.id,
+                        reactionId: data.id,
+                        nickname: user.nickname
+                      }
                     ]
                   },
                   ...chat.reactions.slice(reactionIndex + 1)
@@ -250,7 +264,13 @@ const ThreadChat: FC<Props> = ({ index }) => {
                     ...chat.reactions,
                     {
                       ...data,
-                      userList: [{ id: user.id, nickname: user.nickname }]
+                      userList: [
+                        {
+                          id: user.id,
+                          reactionId: data.id,
+                          nickname: user.nickname
+                        }
+                      ]
                     }
                   ]
                 : [
@@ -259,7 +279,11 @@ const ThreadChat: FC<Props> = ({ index }) => {
                       ...reaction,
                       userList: [
                         ...reaction.userList,
-                        { id: user.id, nickname: user.nickname }
+                        {
+                          id: user.id,
+                          reactionId: data.id,
+                          nickname: user.nickname
+                        }
                       ]
                     },
                     ...chat.reactions.slice(reactionIndex + 1)
@@ -438,7 +462,6 @@ const ThreadChat: FC<Props> = ({ index }) => {
                     onClick={() => onReactionClick(key)}
                     text={item.text}
                     emoji={item.emoji}
-                    length={item?.userList.length}
                   />
                 ))}
                 <Tooltip.AddReaction onSelect={onEmojiSelect} />

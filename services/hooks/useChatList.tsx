@@ -120,7 +120,13 @@ export default () => {
                   ...chat.reactions,
                   {
                     ...data,
-                    userList: [{ id: user.id, nickname: user.nickname }]
+                    userList: [
+                      {
+                        id: user.id,
+                        reactionId: data.id,
+                        nickname: user.nickname
+                      }
+                    ]
                   }
                 ]
               : [
@@ -129,7 +135,11 @@ export default () => {
                     ...reaction,
                     userList: [
                       ...reaction.userList,
-                      { id: user.id, nickname: user.nickname }
+                      {
+                        id: user.id,
+                        reactionId: data.id,
+                        nickname: user.nickname
+                      }
                     ]
                   },
                   ...chat.reactions.slice(reactionIndex + 1)
@@ -170,7 +180,13 @@ export default () => {
                     ...chat.reactions,
                     {
                       ...data,
-                      userList: [{ id: user.id, nickname: user.nickname }]
+                      userList: [
+                        {
+                          id: user.id,
+                          reactionId: data.id,
+                          nickname: user.nickname
+                        }
+                      ]
                     }
                   ]
                 : [
@@ -179,7 +195,11 @@ export default () => {
                       ...reaction,
                       userList: [
                         ...reaction.userList,
-                        { id: user.id, nickname: user.nickname }
+                        {
+                          id: user.id,
+                          reactionId: data.id,
+                          nickname: user.nickname
+                        }
                       ]
                     },
                     ...chat.reactions.slice(reactionIndex + 1)
@@ -245,13 +265,17 @@ export default () => {
     if (userIndex === undefined) return
 
     if (userIndex === -1) {
-      const { error } = await supabase.from('reactions').insert({
-        chat_id: chat.id,
-        user_id: user.id,
-        text: reaction.text,
-        room_id: chat.room_id,
-        emoji: reaction.emoji
-      })
+      const { data, error } = await supabase
+        .from('reactions')
+        .insert({
+          chat_id: chat.id,
+          user_id: user.id,
+          text: reaction.text,
+          room_id: chat.room_id,
+          emoji: reaction.emoji
+        })
+        .select()
+        .single()
       if (error) {
         captureException(error, user)
         toast.error(TOAST_MESSAGE.API_ERROR)
@@ -266,8 +290,8 @@ export default () => {
             {
               ...reaction,
               userList: [
-                ...chat.reactions[reactionIndex].userList,
-                { id: user.id, nickname: user.nickname }
+                ...reaction.userList,
+                { id: user.id, reactionId: data.id, nickname: user.nickname }
               ]
             },
             ...chat.reactions.slice(reactionIndex + 1)
@@ -279,7 +303,7 @@ export default () => {
       const { error } = await supabase
         .from('reactions')
         .delete()
-        .eq('id', reaction.id)
+        .eq('id', reaction.userList[userIndex].reactionId)
       if (error) {
         captureException(error, user)
         toast.error(TOAST_MESSAGE.API_ERROR)
@@ -290,10 +314,23 @@ export default () => {
         ...list.slice(0, chatIndex),
         {
           ...chat,
-          reactions: [
-            ...chat.reactions.slice(0, reactionIndex),
-            ...chat.reactions.slice(reactionIndex + 1)
-          ]
+          reactions:
+            reaction.userList.length > 1
+              ? [
+                  ...chat.reactions.slice(0, reactionIndex),
+                  {
+                    ...reaction,
+                    userList: [
+                      ...reaction.userList.slice(0, userIndex),
+                      ...reaction.userList.slice(userIndex + 1)
+                    ]
+                  },
+                  ...chat.reactions.slice(reactionIndex + 1)
+                ]
+              : [
+                  ...chat.reactions.slice(0, reactionIndex),
+                  ...chat.reactions.slice(reactionIndex + 1)
+                ]
         },
         ...list.slice(chatIndex + 1)
       ])

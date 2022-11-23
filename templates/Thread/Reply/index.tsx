@@ -131,7 +131,13 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                       ...reply.reply_reactions,
                       {
                         ...data,
-                        userList: [{ id: user.id, nickname: user.nickname }]
+                        userList: [
+                          {
+                            id: user.id,
+                            reactionId: data.id,
+                            nickname: user.nickname
+                          }
+                        ]
                       }
                     ]
                   : [
@@ -140,7 +146,11 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                         ...reply.reply_reactions[index],
                         userList: [
                           ...reply.reply_reactions[index].userList,
-                          { id: user.id, nickname: user.nickname }
+                          {
+                            id: user.id,
+                            reactionId: data.id,
+                            nickname: user.nickname
+                          }
                         ]
                       },
                       ...reply.reply_reactions.slice(index + 1)
@@ -241,7 +251,13 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                       ...reply.reply_reactions,
                       {
                         ...data,
-                        userList: [{ id: user.id, nickname: user.nickname }]
+                        userList: [
+                          {
+                            id: user.id,
+                            reactionId: data.id,
+                            nickname: user.nickname
+                          }
+                        ]
                       }
                     ]
                   : [
@@ -250,7 +266,11 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                         ...reply.reply_reactions[reactionIndex],
                         userList: [
                           ...reply.reply_reactions[reactionIndex].userList,
-                          { id: user.id, nickname: user.nickname }
+                          {
+                            id: user.id,
+                            reactionId: data.id,
+                            nickname: user.nickname
+                          }
                         ]
                       },
                       ...reply.reply_reactions.slice(reactionIndex + 1)
@@ -297,7 +317,13 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                         ...reply.reply_reactions,
                         {
                           ...data,
-                          userList: [{ id: user.id, nickname: user.nickname }]
+                          userList: [
+                            {
+                              id: user.id,
+                              reactionId: data.id,
+                              nickname: user.nickname
+                            }
+                          ]
                         }
                       ]
                     : [
@@ -306,7 +332,11 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                           ...reply.reply_reactions[reactionIndex],
                           userList: [
                             ...reply.reply_reactions[reactionIndex].userList,
-                            { id: user.id, nickname: user.nickname }
+                            {
+                              id: user.id,
+                              reactionId: data.id,
+                              nickname: user.nickname
+                            }
                           ]
                         },
                         ...reply.reply_reactions.slice(reactionIndex + 1)
@@ -522,7 +552,6 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                   onClick={() => updateReplyReaction(key)}
                   text={item.text}
                   emoji={item.emoji}
-                  length={item?.userList.length}
                 />
               ))}
               <Tooltip.AddReaction onSelect={onEmojiSelect} />

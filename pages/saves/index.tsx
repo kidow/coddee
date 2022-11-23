@@ -122,6 +122,7 @@ const SavedPage: NextPage = () => {
         reply_reactions (
           id,
           text,
+          emoji,
           user_id,
           user:user_id (
             nickname
@@ -161,7 +162,8 @@ const SavedPage: NextPage = () => {
       let reactions: Array<{
         id: number
         text: string
-        userList: Array<{ id: string; nickname: string }>
+        emoji: string
+        userList: Array<{ id: string; reactionId: number; nickname: string }>
       }> = []
       if (item.chat) {
         // @ts-ignore
@@ -175,8 +177,13 @@ const SavedPage: NextPage = () => {
               reactions.push({
                 id: reaction.id,
                 text: reaction.text,
+                emoji: reaction.emoji,
                 userList: [
-                  { id: reaction.user_id, nickname: reaction.user.nickname }
+                  {
+                    id: reaction.user_id,
+                    reactionId: reaction.id,
+                    nickname: reaction.user.nickname
+                  }
                 ]
               })
             } else {
@@ -186,7 +193,11 @@ const SavedPage: NextPage = () => {
               if (userIndex === -1)
                 reactions[index].userList = [
                   ...reactions[index].userList,
-                  { id: reaction.user_id, nickname: reaction.user.nickname }
+                  {
+                    id: reaction.user_id,
+                    reactionId: reaction.id,
+                    nickname: reaction.user.nickname
+                  }
                 ]
             }
           }
@@ -206,8 +217,13 @@ const SavedPage: NextPage = () => {
               reactions.push({
                 id: reaction.id,
                 text: reaction.text,
+                emoji: reaction.emoji,
                 userList: [
-                  { id: reaction.user_id, nickname: reaction.user.nickname }
+                  {
+                    id: reaction.user_id,
+                    reactionId: reaction.id,
+                    nickname: reaction.user.nickname
+                  }
                 ]
               })
             } else {
@@ -217,7 +233,11 @@ const SavedPage: NextPage = () => {
               if (userIndex === -1)
                 reactions[index].userList = [
                   ...reactions[index].userList,
-                  { id: reaction.user_id, nickname: reaction.user.nickname }
+                  {
+                    id: reaction.user_id,
+                    reactionId: reaction.id,
+                    nickname: reaction.user.nickname
+                  }
                 ]
             }
           }
@@ -415,7 +435,6 @@ const SavedPage: NextPage = () => {
                           onClick={() => {}}
                           text={reaction.text}
                           emoji={reaction.emoji}
-                          length={reaction?.userList.length}
                         />
                       ))}
                     </Message.Reactions>
@@ -429,7 +448,6 @@ const SavedPage: NextPage = () => {
                           onClick={() => {}}
                           emoji={reaction.emoji}
                           text={reaction.text}
-                          length={reaction?.userList.length}
                         />
                       ))}
                     </Message.Reactions>

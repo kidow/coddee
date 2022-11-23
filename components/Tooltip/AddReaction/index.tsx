@@ -16,7 +16,7 @@ const AddReactionTooltip: FC<Props> = ({ onSelect }) => {
     <>
       <Tooltip content="반응 추가" className="h-6 rounded-xl">
         <button
-          className="h-6 items-center justify-center rounded-xl border border-transparent bg-neutral-100 px-1.5 opacity-0 delay-75 duration-200 ease-in-out group-hover:inline-flex group-hover:border-neutral-500 group-hover:bg-white group-hover:opacity-100 dark:bg-neutral-900"
+          className="h-6 items-center justify-center rounded-xl border border-transparent bg-neutral-100 px-1.5 opacity-0 delay-75 duration-200 ease-in-out group-hover:inline-flex group-hover:border-neutral-500 group-hover:bg-white group-hover:opacity-100 dark:bg-neutral-900 dark:group-hover:bg-neutral-900"
           onClick={() => setState({ isOpen: true })}
         >
           <Icon.AddReaction />

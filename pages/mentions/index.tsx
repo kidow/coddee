@@ -127,7 +127,8 @@ const MentionsPage: NextPage = () => {
       let reactions: Array<{
         id: number
         text: string
-        userList: Array<{ id: string; nickname: string }>
+        emoji: string
+        userList: Array<{ id: string; reactionId: number; nickname: string }>
       }> = []
       // @ts-ignore
       if (item.chat.reactions.length > 0) {
@@ -140,8 +141,13 @@ const MentionsPage: NextPage = () => {
             reactions.push({
               id: reaction.id,
               text: reaction.text,
+              emoji: reaction.emoji,
               userList: [
-                { id: reaction.user_id, nickname: reaction.user.nickname }
+                {
+                  id: reaction.user_id,
+                  reactionId: reaction.id,
+                  nickname: reaction.user.nickname
+                }
               ]
             })
           } else {
@@ -151,7 +157,11 @@ const MentionsPage: NextPage = () => {
             if (userIndex === -1)
               reactions[index].userList = [
                 ...reactions[index].userList,
-                { id: reaction.user_id, nickname: reaction.user.nickname }
+                {
+                  id: reaction.user_id,
+                  reactionId: reaction.id,
+                  nickname: reaction.user.nickname
+                }
               ]
           }
         }
@@ -356,7 +366,6 @@ const MentionsPage: NextPage = () => {
                           emoji={reaction.emoji}
                           onClick={() => {}}
                           text={reaction.text}
-                          length={reaction?.userList.length}
                         />
                       ))}
                     </Message.Reactions>

@@ -333,7 +333,6 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
                   onClick={() => onReactionClick(chat, key)}
                   text={item.text}
                   emoji={item.emoji}
-                  length={item?.userList.length}
                 />
               ))}
               <Tooltip.AddReaction

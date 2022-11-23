@@ -72,6 +72,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
         reply_reactions (
           id,
           text,
+          emoji,
           user_id,
           user:user_id (
               nickname
@@ -106,7 +107,8 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
         id: number
         reply_id: number
         text: string
-        userList: Array<{ id: string; nickname: string }>
+        emoji: string
+        userList: Array<{ id: string; reactionId: number; nickname: string }>
       }> = []
       // @ts-ignore
       if (reply.reply_reactions.length > 0) {
@@ -120,8 +122,13 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
               id: reaction.id,
               reply_id: reaction.reply_id,
               text: reaction.text,
+              emoji: reaction.emoji,
               userList: [
-                { id: reaction.user_id, nickname: reaction.user.nickname }
+                {
+                  id: reaction.user_id,
+                  reactionId: reaction.id,
+                  nickname: reaction.user.nickname
+                }
               ]
             })
           } else {
@@ -131,7 +138,11 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
             if (userIndex === -1)
               reply_reactions[index].userList = [
                 ...reply_reactions[index].userList,
-                { id: reaction.user_id, nickname: reaction.user.nickname }
+                {
+                  id: reaction.user_id,
+                  reactionId: reaction.id,
+                  nickname: reaction.user.nickname
+                }
               ]
           }
         }
@@ -454,7 +465,11 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
                       {
                         ...payload.new,
                         userList: [
-                          { id: payload.new.user_id, nickname: data.nickname }
+                          {
+                            id: payload.new.user_id,
+                            reactionId: payload.new.id,
+                            nickname: data.nickname
+                          }
                         ]
                       }
                     ]
@@ -468,7 +483,11 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
                         userList: [
                           ...replyList[index].reply_reactions[reactionIndex]
                             .userList,
-                          { id: payload.new.user_id, nickname: data.nickname }
+                          {
+                            id: payload.new.user_id,
+                            reactionId: payload.new.id,
+                            nickname: data.nickname
+                          }
                         ]
                       },
                       ...replyList[index].reply_reactions.slice(

@@ -78,6 +78,7 @@ const ThreadsPage: NextPage = () => {
         reply_reactions (
           id,
           text,
+          emoji,
           user_id,
           user:user_id (
               nickname
@@ -136,7 +137,8 @@ const ThreadsPage: NextPage = () => {
       let reactions: Array<{
         id: number
         text: string
-        userList: Array<{ id: string; nickname: string }>
+        emoji: string
+        userList: Array<{ id: string; reactionId: number; nickname: string }>
       }> = []
       // @ts-ignore
       if (chat.reactions.length > 0) {
@@ -149,8 +151,13 @@ const ThreadsPage: NextPage = () => {
             reactions.push({
               id: reaction.id,
               text: reaction.text,
+              emoji: reaction.emoji,
               userList: [
-                { id: reaction.user_id, nickname: reaction.user.nickname }
+                {
+                  id: reaction.user_id,
+                  reactionId: reaction.id,
+                  nickname: reaction.user.nickname
+                }
               ]
             })
           } else {
@@ -160,7 +167,11 @@ const ThreadsPage: NextPage = () => {
             if (userIndex === -1)
               reactions[index].userList = [
                 ...reactions[index].userList,
-                { id: reaction.user_id, nickname: reaction.user.nickname }
+                {
+                  id: reaction.user_id,
+                  reactionId: reaction.id,
+                  nickname: reaction.user.nickname
+                }
               ]
           }
         }
@@ -173,7 +184,8 @@ const ThreadsPage: NextPage = () => {
         let replyReactions: Array<{
           id: number
           text: string
-          userList: Array<{ id: string; nickname: string }>
+          emoji: string
+          userList: Array<{ id: string; reactionId: number; nickname: string }>
         }> = []
         if (reply.reply_reactions.length > 0) {
           for (const replyReaction of reply.reply_reactions) {
@@ -184,9 +196,11 @@ const ThreadsPage: NextPage = () => {
               replyReactions.push({
                 id: replyReaction.id,
                 text: replyReaction.text,
+                emoji: replyReaction.emoji,
                 userList: [
                   {
                     id: replyReaction.user_id,
+                    reactionId: replyReaction.id,
                     nickname: replyReaction.user.nickname
                   }
                 ]
@@ -200,6 +214,7 @@ const ThreadsPage: NextPage = () => {
                   ...replyReactions[index].userList,
                   {
                     id: replyReaction.user_id,
+                    reactionId: replyReaction.id,
                     nickname: replyReaction.user.nickname
                   }
                 ]
@@ -284,7 +299,11 @@ const ThreadsPage: NextPage = () => {
                       {
                         ...payload.new,
                         userList: [
-                          { id: payload.new.user_id, nickname: data.nickname }
+                          {
+                            id: payload.new.user_id,
+                            reactionId: payload.new.id,
+                            nickname: data.nickname
+                          }
                         ]
                       }
                     ]
@@ -296,6 +315,7 @@ const ThreadsPage: NextPage = () => {
                           ...list[chatIndex].reactions[reactionIndex].userList,
                           {
                             id: payload.new.user_id,
+                            reactionId: payload.new.id,
                             nickname: data.nickname
                           }
                         ]
@@ -507,6 +527,7 @@ const ThreadsPage: NextPage = () => {
                             userList: [
                               {
                                 id: payload.new.user_id,
+                                reactionId: payload.new.id,
                                 nickname: data.nickname
                               }
                             ]
@@ -524,6 +545,7 @@ const ThreadsPage: NextPage = () => {
                                 .reply_reactions[reactionIndex].userList,
                               {
                                 id: payload.new.user_id,
+                                reactionId: payload.new.id,
                                 nickname: data.nickname
                               }
                             ]
