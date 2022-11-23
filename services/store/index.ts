@@ -44,6 +44,7 @@ export const chatListState = atom<
       reactions: Array<{
         id: number
         text: string
+        emoji: string
         user_id: string
         user: { nickname: string }
         userList: Array<{ id: string; nickname: string }>

@@ -93,6 +93,7 @@ const MentionsPage: NextPage = () => {
           reactions (
             id,
             text,
+            emoji,
             user_id,
             user:user_id (
               nickname
@@ -352,6 +353,7 @@ const MentionsPage: NextPage = () => {
                         <Tooltip.Reaction
                           userList={reaction.userList}
                           key={key}
+                          emoji={reaction.emoji}
                           onClick={() => {}}
                           text={reaction.text}
                           length={reaction?.userList.length}

@@ -332,11 +332,14 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
                   key={key}
                   onClick={() => onReactionClick(chat, key)}
                   text={item.text}
+                  emoji={item.emoji}
                   length={item?.userList.length}
                 />
               ))}
               <Tooltip.AddReaction
-                onSelect={(text) => onEmojiSelect(text, chatIndex)}
+                onSelect={(text, emoji) =>
+                  onEmojiSelect(text, emoji, chatIndex)
+                }
               />
             </Message.Reactions>
           )}
@@ -384,7 +387,9 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
           <div className="absolute right-6 -top-4 z-10 hidden rounded-lg border bg-white group-hover:block dark:border-neutral-800 dark:bg-neutral-700">
             <div className="flex p-0.5">
               <Tooltip.Actions.AddReaction
-                onSelect={(text) => onEmojiSelect(text, chatIndex)}
+                onSelect={(text, emoji) =>
+                  onEmojiSelect(text, emoji, chatIndex)
+                }
               />
               <Tooltip.Actions.Thread
                 onClick={() => {

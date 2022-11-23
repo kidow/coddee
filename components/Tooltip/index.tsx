@@ -23,9 +23,9 @@ const Tooltip: FC<Props> = ({
   return (
     <div
       className={classnames(
-        'relative inline-block text-center before:pointer-events-none before:absolute before:z-[9999] before:w-max before:max-w-xs before:rounded before:bg-neutral-800 before:px-2 before:py-1 before:text-xs before:text-neutral-50 before:opacity-0 before:transition before:delay-100 before:duration-200 before:ease-in-out before:content-[attr(data-tip)] hover:before:opacity-100 hover:before:delay-75 dark:before:bg-black',
+        'relative inline-block text-center before:pointer-events-none before:absolute before:z-[9999] before:w-max before:max-w-xs before:rounded before:bg-neutral-800 before:px-2 before:py-1 before:text-xs before:text-neutral-50 before:opacity-0 before:delay-100 before:duration-200 before:ease-in-out before:content-[attr(data-tip)] hover:before:opacity-100 hover:before:delay-75 dark:before:bg-black',
         {
-          "after:absolute after:z-[9999] after:block after:h-0 after:w-0 after:border-[3px] after:border-transparent after:opacity-0 after:transition after:delay-100 after:duration-200 after:ease-in-out after:content-[''] hover:after:opacity-100 hover:after:delay-75":
+          "after:absolute after:z-[9999] after:block after:h-0 after:w-0 after:border-[3px] after:border-transparent after:opacity-0 after:delay-100 after:duration-200 after:ease-in-out after:content-[''] hover:after:opacity-100 hover:after:delay-75":
             arrow,
 
           'before:top-auto before:bottom-[calc(100%+4px)]': position === 'top',

@@ -25,13 +25,53 @@
   line-height: 0;
   margin-right: 5px;
 }
+#emoji-palette {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.12);
+  max-width: 250px;
+  position: absolute;
+  z-index: 999;
+}
 .bem {
   cursor: pointer;
   display: inline-block;
   font-size: 24px;
-  margin: 2px;
   text-align: center;
   width: 34px;
+  @apply rounded;
+}
+#tab-filters {
+  margin: 20px auto 0;
+  width: 210px;
+}
+.emoji-tab {
+  cursor: pointer;
+  display: inline-table;
+  height: 100%;
+  min-height: 30px;
+  text-align: center;
+  width: 30px;
+}
+#tab-toolbar {
+  background-color: #f7f7f7;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 4px 4px 0;
+}
+#tab-toolbar ul {
+  margin: 0;
+  padding: 0;
+  height: 30px;
+}
+#tab-toolbar .active {
+  border-bottom: 3px solid #2ab27b;
+}
+#tab-panel {
+  background: #fff;
+  display: flex;
+  flex-wrap: wrap;
+  overflow-y: scroll;
+  padding: 8px 4px;
 }
 #quill-editor x-contain,
 contain {

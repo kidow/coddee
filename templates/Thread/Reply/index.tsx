@@ -193,7 +193,7 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     }
   }
 
-  const onEmojiSelect = async (text: string) => {
+  const onEmojiSelect = async (text: string, emoji: string) => {
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
@@ -217,7 +217,8 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
           user_id: user.id,
           reply_id: reply.id,
           text,
-          chat_id: reply.chat_id
+          chat_id: reply.chat_id,
+          emoji
         })
         .select()
         .single()
@@ -272,7 +273,8 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
             user_id: user.id,
             reply_id: reply.id,
             text,
-            chat_id: reply.chat_id
+            chat_id: reply.chat_id,
+            emoji
           })
           .select()
           .single()
@@ -519,6 +521,7 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                   key={key}
                   onClick={() => updateReplyReaction(key)}
                   text={item.text}
+                  emoji={item.emoji}
                   length={item?.userList.length}
                 />
               ))}

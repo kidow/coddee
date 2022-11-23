@@ -4,7 +4,7 @@ import { useObjectState } from 'services'
 import { Modal } from 'containers'
 
 export interface Props {
-  onSelect: (text: string) => void
+  onSelect: (text: string, emoji: string) => void
 }
 interface State {
   isOpen: boolean
@@ -25,8 +25,8 @@ const AddReactionTooltip: FC<Props> = ({ onSelect }) => {
       <Modal.Emoji
         isOpen={isOpen}
         onClose={() => setState({ isOpen: false })}
-        onSelect={(text) => {
-          onSelect(text)
+        onSelect={(text, emoji) => {
+          onSelect(text, emoji)
           setState({ isOpen: false })
         }}
       />

@@ -6,7 +6,7 @@ import { useObjectState } from 'services'
 import { Modal } from 'containers'
 
 export interface Props {
-  onSelect: (text: string) => void
+  onSelect: (text: string, emoji: string) => void
   position?: 'top' | 'right' | 'bottom' | 'left'
 }
 interface State {

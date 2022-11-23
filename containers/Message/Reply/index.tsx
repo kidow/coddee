@@ -131,7 +131,8 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
           user_id: user.id,
           reply_id: reply.id,
           text: reply.reply_reactions[reactionIndex].text,
-          chat_id: reply.chat_id
+          chat_id: reply.chat_id,
+          emoji: reply.reply_reactions[reactionIndex].emoji
         })
         .select()
         .single()
@@ -203,7 +204,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     }
   }
 
-  const onEmojiSelect = async (text: string) => {
+  const onEmojiSelect = async (text: string, emoji: string) => {
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
@@ -226,7 +227,8 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
           user_id: user.id,
           reply_id: reply.id,
           text,
-          chat_id: reply.chat_id
+          chat_id: reply.chat_id,
+          emoji
         })
         .select()
         .single()
@@ -274,7 +276,8 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
             user_id: user.id,
             reply_id: reply.id,
             text,
-            chat_id: reply.chat_id
+            chat_id: reply.chat_id,
+            emoji
           })
           .select()
           .single()
@@ -542,7 +545,9 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                   key={key}
                   onClick={() => updateReplyReaction(key)}
                   text={item.text}
+                  emoji={item.emoji}
                   length={item?.userList.length}
+                  position={key === 0 ? 'right' : undefined}
                 />
               ))}
               <Tooltip.AddReaction onSelect={onEmojiSelect} />
