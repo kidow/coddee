@@ -70,7 +70,11 @@ export default () => {
     }
   }
 
-  const onEmojiSelect = async (text: string, chatIndex: number) => {
+  const onEmojiSelect = async (
+    text: string,
+    emoji: string,
+    chatIndex: number
+  ) => {
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
@@ -95,7 +99,8 @@ export default () => {
           user_id: user.id,
           chat_id: chat.id,
           text,
-          room_id: query.id
+          room_id: query.id,
+          emoji
         })
         .select()
         .single()
@@ -144,7 +149,8 @@ export default () => {
             user_id: user.id,
             chat_id: chat.id,
             text,
-            room_id: query.id
+            room_id: query.id,
+            emoji
           })
           .select()
           .single()
@@ -243,7 +249,8 @@ export default () => {
         chat_id: chat.id,
         user_id: user.id,
         text: reaction.text,
-        room_id: chat.room_id
+        room_id: chat.room_id,
+        emoji: reaction.emoji
       })
       if (error) {
         captureException(error, user)

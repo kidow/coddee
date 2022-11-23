@@ -98,6 +98,7 @@ const ThreadsPage: NextPage = () => {
       reactions (
         id,
         text,
+        emoji,
         user_id,
         user:user_id (
           nickname

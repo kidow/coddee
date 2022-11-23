@@ -80,6 +80,7 @@ namespace NTable {
     chat_id: number
     room_id: string
     text: string
+    emoji: string
     created_at: string
     userList: Array<{ id: string; nickname: string }>
   }
@@ -102,6 +103,7 @@ namespace NTable {
     reply_id: number
     chat_id: number
     text: string
+    emoji: string
     created_at: string
     userList: Array<{ id: string; nickname: string }>
   }

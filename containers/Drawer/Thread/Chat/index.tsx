@@ -235,11 +235,15 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
                     key={item.id}
                     onClick={() => onReactionClick(chat, key)}
                     text={item.text}
+                    emoji={item.emoji}
                     length={item?.userList.length}
+                    position={key === 0 ? 'right' : undefined}
                   />
                 ))}
                 <Tooltip.AddReaction
-                  onSelect={(text) => onEmojiSelect(text, chatIndex)}
+                  onSelect={(text, emoji) =>
+                    onEmojiSelect(text, emoji, chatIndex)
+                  }
                 />
               </Message.Reactions>
             )}
@@ -249,7 +253,9 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
           <div className="absolute top-4 right-4 z-10 hidden rounded-lg border bg-white group-hover:flex dark:border-neutral-800 dark:bg-neutral-700">
             <div className="flex p-0.5">
               <Tooltip.Actions.AddReaction
-                onSelect={(text) => onEmojiSelect(text, chatIndex)}
+                onSelect={(text, emoji) =>
+                  onEmojiSelect(text, emoji, chatIndex)
+                }
                 position="bottom"
               />
               {chat.user_id === user?.id && (

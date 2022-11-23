@@ -106,7 +106,8 @@ const ThreadChat: FC<Props> = ({ index }) => {
         chat_id: chat.id,
         user_id: user.id,
         text: reaction.text,
-        room_id: chat.room.id
+        room_id: chat.room.id,
+        emoji: reaction.emoji
       })
       if (error) {
         captureException(error, user)
@@ -156,7 +157,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
     }
   }
 
-  const onEmojiSelect = async (text: string) => {
+  const onEmojiSelect = async (text: string, emoji: string) => {
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
@@ -179,7 +180,8 @@ const ThreadChat: FC<Props> = ({ index }) => {
           user_id: user.id,
           chat_id: chat.id,
           text,
-          room_id: chat.room.id
+          room_id: chat.room.id,
+          emoji
         })
         .select()
         .single()
@@ -228,7 +230,8 @@ const ThreadChat: FC<Props> = ({ index }) => {
             user_id: user.id,
             chat_id: chat.id,
             text,
-            room_id: chat.room.id
+            room_id: chat.room.id,
+            emoji
           })
           .select()
           .single()
@@ -434,6 +437,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
                     key={key}
                     onClick={() => onReactionClick(key)}
                     text={item.text}
+                    emoji={item.emoji}
                     length={item?.userList.length}
                   />
                 ))}

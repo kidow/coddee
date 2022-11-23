@@ -9,10 +9,19 @@ export interface Props {
   onClick: () => void
   text: string
   length: number
+  emoji: string
+  position?: 'left' | 'top' | 'right' | 'bottom'
 }
 interface State {}
 
-const ReactionTooltip: FC<Props> = ({ userList, onClick, text, length }) => {
+const ReactionTooltip: FC<Props> = ({
+  userList,
+  onClick,
+  text,
+  length,
+  emoji,
+  position
+}) => {
   const [user] = useUser()
 
   const isMine: boolean = useMemo(
@@ -28,17 +37,18 @@ const ReactionTooltip: FC<Props> = ({ userList, onClick, text, length }) => {
             }명이 반응하였습니다.`
           : `${userList[0].nickname} 님이 반응하였습니다.`
       }
+      position={position}
     >
       <button
         className={classnames(
-          'inline-flex h-6 items-center gap-1 rounded-xl border px-1.5 active:scale-95 dark:border-transparent dark:bg-neutral-900',
+          'inline-flex items-center gap-1 rounded-xl border px-1.5 pt-1 pb-0.5 active:scale-95 dark:border-transparent dark:bg-neutral-900',
           isMine
             ? 'border-blue-700 bg-blue-100 dark:border-blue-400'
             : 'border-neutral-400'
         )}
         onClick={onClick}
       >
-        <span>{text}</span>
+        <span className={`bem bem-${text} ap ap-${text}`}>{emoji}</span>
         <span className="text-xs font-semibold text-blue-700 dark:text-neutral-400">
           {length}
         </span>

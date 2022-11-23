@@ -289,7 +289,10 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     if (!e.target) return
     const target = e.target as HTMLElement
 
-    if (target?.className !== 'ql-editor')
+    if (
+      target?.className !== 'ql-editor' &&
+      ['input', 'textarea'].indexOf(target.tagName?.toLowerCase()) === -1
+    )
       EventListener.emit(`quill:focus:${id}`)
   }
 

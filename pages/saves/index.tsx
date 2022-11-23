@@ -85,6 +85,7 @@ const SavedPage: NextPage = () => {
         reactions (
           id,
           text,
+          emoji,
           user_id,
           user:user_id (
             nickname
@@ -413,6 +414,7 @@ const SavedPage: NextPage = () => {
                           key={key}
                           onClick={() => {}}
                           text={reaction.text}
+                          emoji={reaction.emoji}
                           length={reaction?.userList.length}
                         />
                       ))}
@@ -425,6 +427,7 @@ const SavedPage: NextPage = () => {
                           userList={reaction.userList}
                           key={key}
                           onClick={() => {}}
+                          emoji={reaction.emoji}
                           text={reaction.text}
                           length={reaction?.userList.length}
                         />

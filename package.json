@@ -20,6 +20,7 @@
     "cheerio": "^1.0.0-rc.12",
     "classnames": "^2.3.2",
     "dayjs": "^1.11.5",
+    "fuse.js": "^6.6.2",
     "next": "12.3.1",
     "next-sitemap": "^3.1.29",
     "quill-emoji": "^0.2.0",
