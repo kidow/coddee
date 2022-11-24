@@ -1429,7 +1429,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
       padding={false}
     >
       <div>
-        <div id="tab-toolbar">
+        <div id="tab-toolbar" role="toolbar">
           <ul>
             {Object.keys(EMOJI_TOOLBAR).map((item, key) => (
               <li

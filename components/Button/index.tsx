@@ -30,6 +30,7 @@ const Button: FC<Props> = ({
   return (
     <button
       {...props}
+      role="button"
       className={classnames(
         'border font-medium leading-6 transition duration-150 ease-in-out disabled:cursor-not-allowed',
         size === 'xs' ? 'gap-1.5 rounded py-px px-2 text-xs' : 'rounded-md',
