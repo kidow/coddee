@@ -43,6 +43,7 @@ const Drawer: FC<Props> = ({
   }, [isClosed])
   return createPortal(
     <div
+      id="drawer"
       role="dialog"
       tabIndex={-1}
       aria-labelledby="drawer-title"

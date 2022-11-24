@@ -44,6 +44,7 @@ const Modal: FC<Props> = ({
   }, [])
   return createPortal(
     <div
+      id="modal"
       className="fixed inset-0 z-30 overflow-y-auto"
       aria-labelledby="modal-title"
       aria-modal="true"

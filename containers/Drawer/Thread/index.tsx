@@ -300,10 +300,14 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     if (!e.target) return
     const target = e.target as HTMLElement
 
-    if (
-      target?.className !== 'ql-editor' &&
+    const isNotFocusingEditor = target?.className !== 'ql-editor'
+    const isDrawerOpen =
+      Array.from(document.body.childNodes).findIndex(
+        (item: any) => item.id === 'drawer'
+      ) === -1
+    const isInputFocusing =
       ['input', 'textarea'].indexOf(target.tagName?.toLowerCase()) === -1
-    )
+    if (isNotFocusingEditor && isInputFocusing && isDrawerOpen)
       EventListener.emit(`quill:focus:${id}`)
   }
 
