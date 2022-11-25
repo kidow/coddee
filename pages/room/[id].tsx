@@ -337,7 +337,7 @@ const RoomIdPage: NextPage = () => {
   }
 
   const onFocus = (e: globalThis.KeyboardEvent) => {
-    if (!e.target) return
+    if (!e.target || !/^[A-Za-z\:\@]{1}$/.test(e.key)) return
     const target = e.target as HTMLElement
 
     const isNotFocusingEditor = target?.className !== 'ql-editor'

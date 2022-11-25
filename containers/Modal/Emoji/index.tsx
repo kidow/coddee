@@ -1401,7 +1401,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
     return (
       <button
         onClick={() => onEmojiClick(text, emoji)}
-        className="rounded p-1 hover:bg-blue-50 active:scale-95"
+        className="rounded p-1 hover:bg-blue-50 active:scale-95 dark:hover:bg-neutral-700"
         title={`:${text}:`}
         onMouseOver={() => setState({ text, emoji })}
         onMouseOut={() => setState({ text: '', emoji: '' })}
