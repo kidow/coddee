@@ -92,7 +92,10 @@ const Textarea: FC<Props> = ({ id, onEnter, ...props }) => {
           const range = selection.getRangeAt(0).cloneRange()
           range.collapse(true)
           const { y } = range.getClientRects()[0]
-          if (window.innerHeight < y + 150) {
+          if (
+            window.innerHeight < y + 150 ||
+            !!document.getElementById('modal')
+          ) {
             container.style.bottom = '20px'
           }
         }
