@@ -71,7 +71,7 @@ const ChatOpengraph: FC<Props> = ({
         <img
           src={image}
           alt=""
-          className={classnames('max-w-xs cursor-pointer rounded-lg', {
+          className={classnames('max-w-xs cursor-zoom-in rounded-lg', {
             'h-20 w-20': isStretched
           })}
           tabIndex={-1}

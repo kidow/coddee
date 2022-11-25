@@ -76,7 +76,27 @@ const Textarea: FC<Props> = ({ id, onEnter, ...props }) => {
       toolbar: false,
       'emoji-toolbar': false,
       'emoji-textarea': false,
-      'emoji-shortname': true,
+      'emoji-shortname': {
+        onOpen: () => {
+          if (
+            !ref.current ||
+            !ref.current.editor ||
+            !ref.current.editor.root.parentElement
+          )
+            return
+          const container =
+            ref.current.editor.root.parentElement.getElementsByTagName('ul')[0]
+          if (!container) return
+          const selection = window.getSelection()
+          if (!selection || selection.rangeCount === 0) return
+          const range = selection.getRangeAt(0).cloneRange()
+          range.collapse(true)
+          const { y } = range.getClientRects()[0]
+          if (window.innerHeight < y + 150) {
+            container.style.bottom = '20px'
+          }
+        }
+      },
       linkify: true,
       mention: {
         mentionDenotationChars: ['@'],

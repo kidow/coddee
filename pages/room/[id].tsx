@@ -337,13 +337,18 @@ const RoomIdPage: NextPage = () => {
   }
 
   const onFocus = (e: globalThis.KeyboardEvent) => {
-    if (!e.target) return
+    if (!e.target || !/^[A-Za-z\:\@]{1}$/.test(e.key)) return
     const target = e.target as HTMLElement
 
-    if (
-      target?.className !== 'ql-editor' &&
+    const isNotFocusingEditor = target?.className !== 'ql-editor'
+    const isModalOpen =
+      Array.from(document.body.childNodes).findIndex(
+        (item: any) => item.id === 'modal'
+      ) === -1
+    const isInputFocusing =
       ['input', 'textarea'].indexOf(target.tagName?.toLowerCase()) === -1
-    )
+
+    if (isNotFocusingEditor && isInputFocusing && isModalOpen)
       EventListener.emit(`quill:focus:${id}`)
   }
 

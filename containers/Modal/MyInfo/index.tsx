@@ -207,7 +207,10 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
         padding={false}
       >
         <div className="relative sm:flex">
-          <menu className="flex overflow-auto whitespace-nowrap bg-neutral-100 dark:bg-neutral-700 sm:w-48 sm:flex-col sm:overflow-visible sm:whitespace-normal">
+          <menu
+            role="menu"
+            className="flex overflow-auto whitespace-nowrap bg-neutral-100 dark:bg-neutral-700 sm:w-48 sm:flex-col sm:overflow-visible sm:whitespace-normal"
+          >
             <ul className="flex sm:block sm:flex-1">
               {PROFILE_TABS.map((item, key) => (
                 <li

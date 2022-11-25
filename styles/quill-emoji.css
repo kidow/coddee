@@ -1,5 +1,5 @@
 .emoji_completions {
-  @apply !left-0 !bottom-5 !top-auto max-h-56 overflow-auto overscroll-contain rounded border bg-white py-1 text-sm shadow-lg dark:border-neutral-700 dark:bg-neutral-900;
+  @apply !left-0 !top-auto max-h-56 overflow-auto overscroll-contain rounded border bg-white py-1 text-sm shadow-lg dark:border-neutral-700 dark:bg-neutral-900;
 }
 .emoji_completions > li > button {
   @apply h-8 w-full px-2 text-left dark:bg-neutral-800;

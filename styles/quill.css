@@ -7,7 +7,7 @@
 }
 .ql-editor {
   word-wrap: break-word;
-  @apply overflow-y-auto whitespace-pre-wrap focus:outline-none;
+  @apply overflow-hidden whitespace-pre-wrap focus:outline-none;
 }
 .ql-editor p {
   counter-reset: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;

@@ -297,13 +297,13 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
   }
 
   const onFocus = (e: globalThis.KeyboardEvent) => {
-    if (!e.target) return
+    if (!e.target || !/^[A-Za-z\:\@]{1}$/.test(e.key)) return
     const target = e.target as HTMLElement
 
-    if (
-      target?.className !== 'ql-editor' &&
+    const isNotFocusingEditor = target?.className !== 'ql-editor'
+    const isInputFocusing =
       ['input', 'textarea'].indexOf(target.tagName?.toLowerCase()) === -1
-    )
+    if (isNotFocusingEditor && isInputFocusing)
       EventListener.emit(`quill:focus:${id}`)
   }
 

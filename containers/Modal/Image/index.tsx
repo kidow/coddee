@@ -62,13 +62,13 @@ const ImageModal: FC<Props> = () => {
             isOpen ? 'opacity-30' : 'opacity-0'
           )}
           aria-hidden="true"
-        ></div>
+        />
         <div className="my-8 inline-block w-full overflow-hidden align-middle transition-all sm:px-8">
           <img
             src={url}
             alt=""
             className={classnames(
-              'mx-auto select-none shadow-xl transition-all duration-300',
+              'mx-auto cursor-zoom-out select-none shadow-xl transition-all duration-300',
               isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
             )}
           />

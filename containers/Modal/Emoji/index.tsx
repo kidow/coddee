@@ -41,20 +41,6 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
     else onSelect(text, emoji)
   }
 
-  const tabs: Array<keyof typeof EMOJI_TOOLBAR> = useMemo(
-    () => [
-      'people',
-      'nature',
-      'food',
-      'travel',
-      'activity',
-      'objects',
-      'symbols',
-      'flags'
-    ],
-    []
-  )
-
   const people: Emoji[] = useMemo(
     () => [
       { text: 'grinning', emoji: '😀' },
@@ -1411,6 +1397,20 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
     []
   )
 
+  const Button = ({ text, emoji }: { text: string; emoji: string }) => {
+    return (
+      <button
+        onClick={() => onEmojiClick(text, emoji)}
+        className="rounded p-1 hover:bg-blue-50 active:scale-95 dark:hover:bg-neutral-700"
+        title={`:${text}:`}
+        onMouseOver={() => setState({ text, emoji })}
+        onMouseOut={() => setState({ text: '', emoji: '' })}
+      >
+        <span className={`bem bem-${text} ap ap-${text}`}>{emoji}</span>
+      </button>
+    )
+  }
+
   useEffect(() => {
     EventListener.add('modal:emoji', onClose)
     return () => EventListener.remove('modal:emoji', onClose)
@@ -1429,11 +1429,13 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
       padding={false}
     >
       <div>
-        <div id="tab-toolbar">
+        <div id="tab-toolbar" role="toolbar">
           <ul>
-            {tabs.map((item, key) => (
+            {Object.keys(EMOJI_TOOLBAR).map((item, key) => (
               <li
-                onClick={() => setState({ tab: item })}
+                onClick={() =>
+                  setState({ tab: item as keyof typeof EMOJI_TOOLBAR })
+                }
                 key={key}
                 className={`emoji-tab filter-${item}${
                   item === tab ? ' active' : ''
@@ -1462,164 +1464,41 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
         <div className="grid max-h-72 grid-cols-10 gap-1 overflow-y-auto overscroll-contain bg-white px-2 dark:bg-neutral-800">
           {!!search ? (
             searchList.map((item, key) => (
-              <button
-                key={key}
-                onClick={() => onEmojiClick(item.text, item.emoji)}
-                className="rounded p-1 hover:bg-blue-50"
-                title={`:${item.text}:`}
-                onMouseOver={() =>
-                  setState({ text: item.text, emoji: item.emoji })
-                }
-                onMouseOut={() => setState({ text: '', emoji: '' })}
-              >
-                <span className={`bem bem-${item.text} ap ap-${item.text}`}>
-                  {item.emoji}
-                </span>
-              </button>
+              <Button key={key} text={item.text} emoji={item.emoji} />
             ))
           ) : (
             <>
               {tab === 'people' &&
                 people.map((item, key) => (
-                  <button
-                    onClick={() => onEmojiClick(item.text, item.emoji)}
-                    key={key}
-                    className="rounded p-1 hover:bg-blue-50"
-                    onMouseOver={() =>
-                      setState({ text: item.text, emoji: item.emoji })
-                    }
-                    onMouseOut={() => setState({ text: '', emoji: '' })}
-                  >
-                    <span
-                      className={`bem bem-${item.text} ap ap-${item.text}`}
-                      title={`:${item.text}:`}
-                    >
-                      {item.emoji}
-                    </span>
-                  </button>
+                  <Button key={key} text={item.text} emoji={item.emoji} />
                 ))}
               {tab === 'nature' &&
                 nature.map((item, key) => (
-                  <button
-                    onClick={() => onEmojiClick(item.text, item.emoji)}
-                    key={key}
-                    className="rounded p-1 hover:bg-blue-50"
-                    title={`:${item.text}:`}
-                    onMouseOver={() =>
-                      setState({ text: item.text, emoji: item.emoji })
-                    }
-                    onMouseOut={() => setState({ text: '', emoji: '' })}
-                  >
-                    <span className={`bem bem-${item.text} ap ap-${item.text}`}>
-                      {item.emoji}
-                    </span>
-                  </button>
+                  <Button key={key} text={item.text} emoji={item.emoji} />
                 ))}
               {tab === 'food' &&
                 food.map((item, key) => (
-                  <button
-                    onClick={() => onEmojiClick(item.text, item.emoji)}
-                    key={key}
-                    className="rounded p-1 hover:bg-blue-50"
-                    title={`:${item.text}:`}
-                    onMouseOver={() =>
-                      setState({ text: item.text, emoji: item.emoji })
-                    }
-                    onMouseOut={() => setState({ text: '', emoji: '' })}
-                  >
-                    <span className={`bem bem-${item.text} ap ap-${item.text}`}>
-                      {item.emoji}
-                    </span>
-                  </button>
+                  <Button key={key} text={item.text} emoji={item.emoji} />
                 ))}
               {tab === 'symbols' &&
                 symbols.map((item, key) => (
-                  <button
-                    onClick={() => onEmojiClick(item.text, item.emoji)}
-                    key={key}
-                    className="rounded p-1 hover:bg-blue-50"
-                    onMouseOver={() =>
-                      setState({ text: item.text, emoji: item.emoji })
-                    }
-                    onMouseOut={() => setState({ text: '', emoji: '' })}
-                  >
-                    <span
-                      className={`bem bem-${item.text} ap ap-${item.text}`}
-                      title={`:${item.text}:`}
-                    >
-                      {item.emoji}
-                    </span>
-                  </button>
+                  <Button key={key} text={item.text} emoji={item.emoji} />
                 ))}
               {tab === 'activity' &&
                 activity.map((item, key) => (
-                  <button
-                    onClick={() => onEmojiClick(item.text, item.emoji)}
-                    key={key}
-                    className="rounded p-1 hover:bg-blue-50"
-                    onMouseOver={() =>
-                      setState({ text: item.text, emoji: item.emoji })
-                    }
-                    onMouseOut={() => setState({ text: '', emoji: '' })}
-                  >
-                    <span
-                      className={`bem bem-${item.text} ap ap-${item.text}`}
-                      title={`:${item.text}:`}
-                    >
-                      {item.emoji}
-                    </span>
-                  </button>
+                  <Button key={key} text={item.text} emoji={item.emoji} />
                 ))}
               {tab === 'travel' &&
                 travel.map((item, key) => (
-                  <button
-                    onClick={() => onEmojiClick(item.text, item.emoji)}
-                    key={key}
-                    className="rounded p-1 hover:bg-blue-50"
-                    title={`:${item.text}:`}
-                    onMouseOver={() =>
-                      setState({ text: item.text, emoji: item.emoji })
-                    }
-                    onMouseOut={() => setState({ text: '', emoji: '' })}
-                  >
-                    <span className={`bem bem-${item.text} ap ap-${item.text}`}>
-                      {item.emoji}
-                    </span>
-                  </button>
+                  <Button key={key} text={item.text} emoji={item.emoji} />
                 ))}
               {tab === 'objects' &&
                 objects.map((item, key) => (
-                  <button
-                    onClick={() => onEmojiClick(item.text, item.emoji)}
-                    key={key}
-                    className="rounded p-1 hover:bg-blue-50"
-                    title={`:${item.text}:`}
-                    onMouseOver={() =>
-                      setState({ text: item.text, emoji: item.emoji })
-                    }
-                    onMouseOut={() => setState({ text: '', emoji: '' })}
-                  >
-                    <span className={`bem bem-${item.text} ap ap-${item.text}`}>
-                      {item.emoji}
-                    </span>
-                  </button>
+                  <Button key={key} text={item.text} emoji={item.emoji} />
                 ))}
               {tab === 'flags' &&
                 flags.map((item, key) => (
-                  <button
-                    onClick={() => onEmojiClick(item.text, item.emoji)}
-                    key={key}
-                    className="rounded p-1 hover:bg-blue-50"
-                    title={`:${item.text}:`}
-                    onMouseOver={() =>
-                      setState({ text: item.text, emoji: item.emoji })
-                    }
-                    onMouseOut={() => setState({ text: '', emoji: '' })}
-                  >
-                    <span className={`bem bem-${item.text} ap ap-${item.text}`}>
-                      {item.emoji}
-                    </span>
-                  </button>
+                  <Button key={key} text={item.text} emoji={item.emoji} />
                 ))}
             </>
           )}
@@ -1630,20 +1509,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
           </span>
           <div className="flex items-center gap-1">
             {handy.map((item, key) => (
-              <button
-                onClick={() => onEmojiClick(item.text, item.emoji)}
-                key={key}
-                className="rounded p-1 hover:bg-blue-50"
-                title={`:${item.text}:`}
-                onMouseOver={() =>
-                  setState({ text: item.text, emoji: item.emoji })
-                }
-                onMouseOut={() => setState({ text: '', emoji: '' })}
-              >
-                <span className={`bem bem-${item.text} ap ap-${item.text}`}>
-                  {item.emoji}
-                </span>
-              </button>
+              <Button key={key} text={item.text} emoji={item.emoji} />
             ))}
           </div>
         </div>

@@ -304,7 +304,7 @@ const Layout: FC<Props> = ({ children }) => {
                 </button>
               )}
             </header>
-            <menu className="flex-1 overflow-auto">
+            <menu role="menu" className="flex-1 overflow-auto">
               <ul>
                 {roomList.map((item, key) => (
                   <li key={item.id}>

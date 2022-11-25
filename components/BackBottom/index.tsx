@@ -11,6 +11,7 @@ interface State {}
 const BackBottom: FC<Props> = ({ isIntersecting }) => {
   return (
     <button
+      role="scrollbar"
       className={classnames(
         'fixed bottom-6 right-6 flex h-10 w-10 items-center justify-center rounded-full bg-blue-400 duration-150',
         isIntersecting ? 'scale-0' : 'scale-100'
