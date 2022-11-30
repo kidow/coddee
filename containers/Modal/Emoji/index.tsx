@@ -37,6 +37,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
   const [user] = useUser()
 
   const onEmojiClick = (text: string, emoji: string) => {
+    console.log(text, emoji)
     if (!user) toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
     else onSelect(text, emoji)
   }
@@ -1403,8 +1404,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
         onClick={() => onEmojiClick(text, emoji)}
         className="rounded p-1 hover:bg-blue-50 active:scale-95 dark:hover:bg-neutral-700"
         title={`:${text}:`}
-        onMouseOver={() => setState({ text, emoji })}
-        onMouseOut={() => setState({ text: '', emoji: '' })}
+        onMouseEnter={() => setState({ text, emoji })}
       >
         <span className={`bem bem-${text} ap ap-${text}`}>{emoji}</span>
       </button>
@@ -1461,7 +1461,10 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
         <div className="px-3 py-1 text-sm font-semibold">
           {!!search ? '검색 결과' : EMOJI_TOOLBAR[tab]}
         </div>
-        <div className="grid max-h-72 grid-cols-10 gap-1 overflow-y-auto overscroll-contain bg-white px-2 dark:bg-neutral-800">
+        <div
+          className="grid max-h-72 grid-cols-10 gap-1 overflow-y-auto overscroll-contain bg-white px-2 dark:bg-neutral-800"
+          onMouseOut={() => setState({ text: '', emoji: '' })}
+        >
           {!!search ? (
             searchList.map((item, key) => (
               <Button key={key} text={item.text} emoji={item.emoji} />
@@ -1507,7 +1510,10 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
           <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-400">
             간편한 반응
           </span>
-          <div className="flex items-center gap-1">
+          <div
+            className="flex items-center gap-1"
+            onMouseOut={() => setState({ text: '', emoji: '' })}
+          >
             {handy.map((item, key) => (
               <Button key={key} text={item.text} emoji={item.emoji} />
             ))}
