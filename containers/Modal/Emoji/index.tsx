@@ -10,6 +10,7 @@ import {
   useUser
 } from 'services'
 import Fuse from 'fuse.js'
+import EmojiButton from './Button'
 
 interface Emoji {
   emoji: string
@@ -1397,19 +1398,6 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
     []
   )
 
-  const Button = ({ text, emoji }: { text: string; emoji: string }) => {
-    return (
-      <button
-        onClick={() => onEmojiClick(text, emoji)}
-        className="rounded p-1 hover:bg-blue-50 active:scale-95 dark:hover:bg-neutral-700"
-        title={`:${text}:`}
-        onMouseEnter={() => setState({ text, emoji })}
-      >
-        <span className={`bem bem-${text} ap ap-${text}`}>{emoji}</span>
-      </button>
-    )
-  }
-
   useEffect(() => {
     EventListener.add('modal:emoji', onClose)
     return () => EventListener.remove('modal:emoji', onClose)
@@ -1466,41 +1454,95 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
         >
           {!!search ? (
             searchList.map((item, key) => (
-              <Button key={key} text={item.text} emoji={item.emoji} />
+              <EmojiButton
+                key={key}
+                text={item.text}
+                emoji={item.emoji}
+                onClick={onEmojiClick}
+                onMouseEnter={() => setState({ text, emoji })}
+              />
             ))
           ) : (
             <>
               {tab === 'people' &&
                 people.map((item, key) => (
-                  <Button key={key} text={item.text} emoji={item.emoji} />
+                  <EmojiButton
+                    key={key}
+                    text={item.text}
+                    emoji={item.emoji}
+                    onClick={onEmojiClick}
+                    onMouseEnter={() => setState({ text, emoji })}
+                  />
                 ))}
               {tab === 'nature' &&
                 nature.map((item, key) => (
-                  <Button key={key} text={item.text} emoji={item.emoji} />
+                  <EmojiButton
+                    key={key}
+                    text={item.text}
+                    emoji={item.emoji}
+                    onClick={onEmojiClick}
+                    onMouseEnter={() => setState({ text, emoji })}
+                  />
                 ))}
               {tab === 'food' &&
                 food.map((item, key) => (
-                  <Button key={key} text={item.text} emoji={item.emoji} />
+                  <EmojiButton
+                    key={key}
+                    text={item.text}
+                    emoji={item.emoji}
+                    onClick={onEmojiClick}
+                    onMouseEnter={() => setState({ text, emoji })}
+                  />
                 ))}
               {tab === 'symbols' &&
                 symbols.map((item, key) => (
-                  <Button key={key} text={item.text} emoji={item.emoji} />
+                  <EmojiButton
+                    key={key}
+                    text={item.text}
+                    emoji={item.emoji}
+                    onClick={onEmojiClick}
+                    onMouseEnter={() => setState({ text, emoji })}
+                  />
                 ))}
               {tab === 'activity' &&
                 activity.map((item, key) => (
-                  <Button key={key} text={item.text} emoji={item.emoji} />
+                  <EmojiButton
+                    key={key}
+                    text={item.text}
+                    emoji={item.emoji}
+                    onClick={onEmojiClick}
+                    onMouseEnter={() => setState({ text, emoji })}
+                  />
                 ))}
               {tab === 'travel' &&
                 travel.map((item, key) => (
-                  <Button key={key} text={item.text} emoji={item.emoji} />
+                  <EmojiButton
+                    key={key}
+                    text={item.text}
+                    emoji={item.emoji}
+                    onClick={onEmojiClick}
+                    onMouseEnter={() => setState({ text, emoji })}
+                  />
                 ))}
               {tab === 'objects' &&
                 objects.map((item, key) => (
-                  <Button key={key} text={item.text} emoji={item.emoji} />
+                  <EmojiButton
+                    key={key}
+                    text={item.text}
+                    emoji={item.emoji}
+                    onClick={onEmojiClick}
+                    onMouseEnter={() => setState({ text, emoji })}
+                  />
                 ))}
               {tab === 'flags' &&
                 flags.map((item, key) => (
-                  <Button key={key} text={item.text} emoji={item.emoji} />
+                  <EmojiButton
+                    key={key}
+                    text={item.text}
+                    emoji={item.emoji}
+                    onClick={onEmojiClick}
+                    onMouseEnter={() => setState({ text, emoji })}
+                  />
                 ))}
             </>
           )}
@@ -1514,7 +1556,13 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
             onMouseOut={() => setState({ text: '', emoji: '' })}
           >
             {handy.map((item, key) => (
-              <Button key={key} text={item.text} emoji={item.emoji} />
+              <EmojiButton
+                key={key}
+                text={item.text}
+                emoji={item.emoji}
+                onClick={onEmojiClick}
+                onMouseEnter={() => setState({ text, emoji })}
+              />
             ))}
           </div>
         </div>
