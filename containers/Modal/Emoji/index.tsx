@@ -37,7 +37,6 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
   const [user] = useUser()
 
   const onEmojiClick = (text: string, emoji: string) => {
-    console.log(text, emoji)
     if (!user) toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
     else onSelect(text, emoji)
   }
