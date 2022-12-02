@@ -14,6 +14,10 @@ const ReleasePage: NextPage = () => {
           <li>12월 2일</li>
           <ul>
             <li>Vue, Svelte 언어를 추가했습니다.</li>
+            <li>
+              채팅방은 최신 채팅순으로 나열하고, 새 채팅이 생긴 방을 최상단으로
+              올리도록 했습니다.
+            </li>
           </ul>
         </ul>
         <h3>2022년 11월</h3>

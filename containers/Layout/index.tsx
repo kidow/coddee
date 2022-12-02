@@ -92,14 +92,25 @@ const Layout: FC<Props> = ({ children }) => {
       return
     }
     setState({
-      roomList: (data as any[]).map((item) => ({
-        ...item,
-        newChat: !!item.chats?.at(0)?.code_block
-          ? '코드'
-          : cheerio.getText(item.chats?.at(0)?.content || ''),
-        newDate: item.chats?.at(0)?.created_at || '',
-        newCount: 0
-      }))
+      roomList: (data as any[])
+        .sort((a, b) => {
+          const AChat = a.chats[0]
+          const BChat = b.chats[0]
+          if (!AChat) return 1
+          if (!BChat) return -1
+          if (dayjs(AChat.created_at).isAfter(BChat.created_at)) return -1
+          if (dayjs(BChat.created_at).isAfter(AChat.created_at)) return 1
+
+          return 0
+        })
+        .map((item) => ({
+          ...item,
+          newChat: !!item.chats?.at(0)?.code_block
+            ? '코드'
+            : cheerio.getText(item.chats?.at(0)?.content || ''),
+          newDate: item.chats?.at(0)?.created_at || '',
+          newCount: 0
+        }))
     })
   }
 
@@ -134,7 +145,6 @@ const Layout: FC<Props> = ({ children }) => {
           if (index === -1) return
           setState({
             roomList: [
-              ...roomList.slice(0, index),
               {
                 ...roomList[index],
                 newChat: !!payload.new.code_block
@@ -145,6 +155,7 @@ const Layout: FC<Props> = ({ children }) => {
                   ? { newCount: roomList[index].newCount + 1 }
                   : {})
               },
+              ...roomList.slice(0, index),
               ...roomList.slice(index + 1)
             ]
           })
