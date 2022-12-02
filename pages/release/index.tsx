@@ -9,8 +9,19 @@ const ReleasePage: NextPage = () => {
       <SEO title="업데이트 내역" />
       <article className="prose prose-neutral p-4 dark:prose-invert">
         <h2>업데이트 내역</h2>
+        <h3>2022년 12월</h3>
+        <ul>
+          <li>12월 2일</li>
+          <ul>
+            <li>Vue, Svelte 언어를 추가했습니다.</li>
+          </ul>
+        </ul>
         <h3>2022년 11월</h3>
         <ul>
+          <li>11월 30일</li>
+          <ul>
+            <li>이모지가 클릭되지 않는 버그를 개선했습니다.</li>
+          </ul>
           <li>11월 24일</li>
           <ul>
             <li>이모지가 윈도우 환경에서 깨지는 현상을 개선했습니다.</li>

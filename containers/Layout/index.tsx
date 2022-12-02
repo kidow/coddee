@@ -96,7 +96,7 @@ const Layout: FC<Props> = ({ children }) => {
         ...item,
         newChat: !!item.chats?.at(0)?.code_block
           ? '코드'
-          : cheerio.getText(item.chats?.at(0)?.content),
+          : cheerio.getText(item.chats?.at(0)?.content || ''),
         newDate: item.chats?.at(0)?.created_at || '',
         newCount: 0
       }))
