@@ -1,12 +1,13 @@
 import { useEffect, useId } from 'react'
 import type { FC } from 'react'
-import Editor, { DiffEditor } from '@monaco-editor/react'
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
 import {
   backdrop,
   cheerio,
   EventListener,
   languageListState,
+  registerSvelte,
+  registerVue,
   toast,
   TOAST_MESSAGE,
   useObjectState,
@@ -15,7 +16,7 @@ import {
 } from 'services'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { Modal } from 'containers'
-import { Button, Textarea, Select } from 'components'
+import { Button, Textarea, Select, Editor, DiffEditor } from 'components'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useRecoilValue } from 'recoil'
 import { useRouter } from 'next/router'
@@ -113,6 +114,11 @@ const MessageCodeBlock: FC<Props> = ({
     editor.layout()
   }
 
+  const beforeMount = (monaco: typeof Monaco) => {
+    registerVue(monaco)
+    registerSvelte(monaco)
+  }
+
   const onTyping = async () => {
     if (!user) return
     if (typingSource === 'chat') {
@@ -178,42 +184,24 @@ const MessageCodeBlock: FC<Props> = ({
               modified={modifiedCode}
               originalLanguage={props.language}
               modifiedLanguage={modifiedLanguage}
-              theme={theme === 'dark' ? 'vs-dark' : 'light'}
               options={{
                 readOnly: true,
-                scrollbar: {
-                  vertical: 'hidden',
-                  alwaysConsumeMouseWheel: false
-                },
                 scrollBeyondLastLine: false,
-                minimap: { enabled: false },
-                fontSize: 14,
-                wordWrap: 'on',
                 lineNumbers: 'off'
               }}
               onMount={onDiffMount}
-              loading=""
             />
           ) : (
             <Editor
               language={props.language}
               onMount={onMount}
-              theme={theme === 'dark' ? 'vs-dark' : 'light'}
               options={{
                 readOnly: true,
-                scrollbar: {
-                  vertical: 'hidden',
-                  alwaysConsumeMouseWheel: false
-                },
-                scrollBeyondLastLine: false,
-                minimap: { enabled: false },
-                fontSize: 14,
-                wordWrap: 'on',
                 lineNumbers: 'off',
-                tabSize: 16
+                tabSize: 16,
+                scrollBeyondLastLine: false
               }}
               value={originalCode}
-              loading=""
             />
           )}
         </div>
@@ -330,17 +318,6 @@ const MessageCodeBlock: FC<Props> = ({
               originalLanguage={props.language}
               modifiedLanguage={language}
               height="300px"
-              theme={theme === 'dark' ? 'vs-dark' : 'light'}
-              options={{
-                fontSize: 14,
-                minimap: { enabled: false },
-                wordWrap: 'on',
-                scrollbar: {
-                  vertical: 'hidden',
-                  alwaysConsumeMouseWheel: false
-                }
-              }}
-              loading=""
               onMount={(editor, monaco) => {
                 editor.getModifiedEditor().onDidChangeModelContent(async () => {
                   setState({ codeBlock: editor.getModifiedEditor().getValue() })
