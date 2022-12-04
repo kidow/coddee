@@ -2,13 +2,14 @@ import { memo } from 'react'
 import type { FC } from 'react'
 import classnames from 'classnames'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
+import dynamic from 'next/dynamic'
 
 export interface Props {
   isIntersecting: boolean
 }
 interface State {}
 
-const BackBottom: FC<Props> = ({ isIntersecting }) => {
+const BackBottom: FC<Props> = memo(({ isIntersecting }) => {
   return (
     <button
       role="scrollbar"
@@ -22,6 +23,9 @@ const BackBottom: FC<Props> = ({ isIntersecting }) => {
       <ChevronDownIcon className="h-6 w-6 text-neutral-50" />
     </button>
   )
-}
+})
 
-export default memo(BackBottom)
+export default dynamic<Props>(
+  () => Promise.resolve((props) => <BackBottom {...props} />),
+  { ssr: false }
+)

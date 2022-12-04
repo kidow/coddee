@@ -200,7 +200,8 @@ const RoomIdPage: NextPage = () => {
     }
     setList((page === 1 ? data : [...list, ...(data as any[])]) || [])
     setState({ isLoading: false, page, total: total || 0 }, () => {
-      if (page === 1) window.scrollTo(0, document.body.scrollHeight)
+      if (page === 1)
+        setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 100)
     })
   }
 
@@ -269,10 +270,12 @@ const RoomIdPage: NextPage = () => {
       ...list
     ])
     onRegex(v, data.id)
-    setState({ content: '' }, () => {
-      window.scrollTo(0, document.body.scrollHeight)
-      EventListener.emit(`quill:focus:${id}`)
-    })
+    setState({ content: '' }, () =>
+      setTimeout(() => {
+        window.scrollTo(0, document.body.scrollHeight)
+        EventListener.emit(`quill:focus:${id}`)
+      }, 100)
+    )
   }
 
   const createCodeChat = async (payload: {
@@ -309,10 +312,12 @@ const RoomIdPage: NextPage = () => {
       },
       ...list
     ])
-    setState({ isCodeEditorOpen: false, content: '' }, () => {
-      window.scrollTo(0, document.body.scrollHeight)
-      EventListener.emit(`quill:focus:${id}`)
-    })
+    setState({ isCodeEditorOpen: false, content: '' }, () =>
+      setTimeout(() => {
+        window.scrollTo(0, document.body.scrollHeight)
+        EventListener.emit(`quill:focus:${id}`)
+      }, 100)
+    )
   }
 
   const onEnter = async (value: string) => {
