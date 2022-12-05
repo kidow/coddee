@@ -26,7 +26,7 @@ const MyInfoSetting: FC<Props> = () => {
         <Radio
           value={theme}
           onChange={(value) => {
-            EventListener.emit('theme', value)
+            window.localStorage.setItem('theme', value)
             if (value === 'dark') document.documentElement.classList.add('dark')
             else document.documentElement.classList.remove('dark')
             setState({ theme: value })

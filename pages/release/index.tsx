@@ -11,6 +11,10 @@ const ReleasePage: NextPage = () => {
         <h2>업데이트 내역</h2>
         <h3>2022년 12월</h3>
         <ul>
+          <li>12월 6일</li>
+          <ul>
+            <li>통합검색 기능을 추가했습니다.</li>
+          </ul>
           <li>12월 2일</li>
           <ul>
             <li>Vue, Svelte 언어를 추가했습니다.</li>

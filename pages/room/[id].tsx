@@ -4,7 +4,8 @@ import {
   Textarea,
   SEO,
   Spinner,
-  Typing
+  Typing,
+  ShortKey
 } from 'components'
 import type { NextPage } from 'next'
 import {
@@ -348,12 +349,18 @@ const RoomIdPage: NextPage = () => {
     const isNotFocusingEditor = target?.className !== 'ql-editor'
     const isModalOpen =
       Array.from(document.body.childNodes).findIndex(
-        (item: any) => item.id === 'modal'
+        (item: any) => item.id === 'modal' || item.id === 'searchbox'
       ) === -1
     const isInputFocusing =
       ['input', 'textarea'].indexOf(target.tagName?.toLowerCase()) === -1
+    const isSearchBoxOpen = e.metaKey && e.code === 'KeyK'
 
-    if (isNotFocusingEditor && isInputFocusing && isModalOpen)
+    if (
+      isNotFocusingEditor &&
+      isInputFocusing &&
+      isModalOpen &&
+      !isSearchBoxOpen
+    )
       EventListener.emit(`quill:focus:${id}`)
   }
 
@@ -715,15 +722,24 @@ const RoomIdPage: NextPage = () => {
             </button>
             <span className="font-semibold">{name}</span>
           </div>
-          {/* <Dropdown
+          <Dropdown
             label={
-              <EllipsisVerticalIcon className="h-5 w-5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200" />
+              <EllipsisVerticalIcon className="h-5 w-5 text-neutral-400" />
             }
           >
-            <ul className="text-sm">
-              <li>포스트 만들기</li>
-            </ul>
-          </Dropdown> */}
+            <li
+              className="flex items-center justify-between rounded-lg p-1 text-left hover:bg-neutral-100"
+              onClick={() => EventListener.emit('searchbox')}
+            >
+              <span className="text-slate-600">검색</span>
+              <div className="flex gap-1">
+                <ShortKey />
+                <kbd className="flex h-5 w-5 items-center justify-center rounded border border-slate-400 bg-slate-200 text-xs text-slate-600 shadow-2xl">
+                  K
+                </kbd>
+              </div>
+            </li>
+          </Dropdown>
         </header>
         <main className="flex flex-1 flex-col-reverse py-3">
           <div ref={backBottomRef} />

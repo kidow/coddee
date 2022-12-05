@@ -18,4 +18,20 @@ const AddReaction = memo(() => {
   )
 })
 
-export default { AddReaction }
+const NoSearch = memo(() => {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill="none"
+      fillRule="evenodd"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-10 w-10 stroke-neutral-600"
+    >
+      <path d="M15.5 4.8c2 3 1.7 7-1 9.7h0l4.3 4.3-4.3-4.3a7.8 7.8 0 01-9.8 1m-2.2-2.2A7.8 7.8 0 0113.2 2.4M2 18L18 2"></path>
+    </svg>
+  )
+})
+
+export default { AddReaction, NoSearch }
