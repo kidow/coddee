@@ -38,7 +38,7 @@ const SearchBox: FC<Props> = () => {
   const [
     { isOpen, search, roomList, chatList, replyList, isLoading },
     setState,
-    onChange,
+    _,
     resetState
   ] = useObjectState<State>({
     isOpen: false,
@@ -169,22 +169,22 @@ const SearchBox: FC<Props> = () => {
         >
           &#8203;
         </span>
-        <div className="my-[60px] inline-block w-full max-w-xl transform overflow-hidden rounded-md bg-slate-100 text-left align-top shadow-xl transition-all">
+        <div className="my-[60px] inline-block w-full max-w-xl transform overflow-hidden rounded-md bg-slate-100 text-left align-top shadow-xl transition-all dark:bg-neutral-800">
           <header className="flex items-center p-3">
             <form
               onSubmit={(e) => e.preventDefault()}
-              className="flex h-14 flex-1 items-center rounded-md border bg-white px-3 focus-within:ring-4"
+              className="flex h-14 flex-1 items-center rounded-md border bg-white px-3 focus-within:ring-4 dark:border-black dark:bg-black"
             >
               <label htmlFor="search-input">
                 {isLoading ? (
-                  <Spinner className="h-6 w-6 stroke-neutral-900" />
+                  <Spinner className="h-6 w-6 stroke-neutral-900 dark:stroke-neutral-400" />
                 ) : (
-                  <MagnifyingGlassIcon className="h-6 w-6 text-neutral-900" />
+                  <MagnifyingGlassIcon className="h-6 w-6 text-neutral-900 dark:text-neutral-400" />
                 )}
               </label>
               <input
                 value={search}
-                className="h-full w-full flex-1 pl-2"
+                className="h-full w-full flex-1 pl-2 dark:bg-black"
                 placeholder="검색..."
                 onChange={onSearch}
                 autoFocus
@@ -214,7 +214,7 @@ const SearchBox: FC<Props> = () => {
               <>
                 {!!roomList.length && (
                   <section>
-                    <div className="mb-1 text-sm font-semibold text-neutral-600">
+                    <div className="mb-1 text-sm font-semibold text-neutral-600 dark:text-neutral-400">
                       채팅방
                     </div>
                     <ul role="listbox" className="space-y-1">
@@ -222,7 +222,7 @@ const SearchBox: FC<Props> = () => {
                         <li
                           key={item.id}
                           role="option"
-                          className="group flex h-14 cursor-pointer items-center gap-3 rounded bg-white px-3 shadow hover:bg-blue-500 hover:text-neutral-50"
+                          className="group flex h-14 cursor-pointer items-center gap-3 rounded bg-white px-3 shadow hover:bg-blue-500 hover:text-neutral-50 dark:bg-black dark:hover:bg-blue-500"
                           onClick={() =>
                             push(`/room/${item.id}`).then(() => resetState())
                           }
@@ -248,7 +248,7 @@ const SearchBox: FC<Props> = () => {
                         <li
                           key={item.id}
                           role="option"
-                          className="group flex h-14 cursor-pointer items-center gap-3 rounded bg-white px-3 shadow hover:bg-blue-500 hover:text-neutral-50"
+                          className="group flex h-14 cursor-pointer items-center gap-3 rounded bg-white px-3 shadow hover:bg-blue-500 hover:text-neutral-50 dark:bg-black dark:hover:bg-blue-500"
                           onClick={() =>
                             push(`/room/${item.room_id}#${item.id}`).then(() =>
                               resetState()
@@ -287,6 +287,7 @@ const SearchBox: FC<Props> = () => {
                         <li
                           key={item.id}
                           role="option"
+                          className="group flex h-14 cursor-pointer items-center gap-3 rounded bg-white px-3 shadow hover:bg-blue-500 hover:text-neutral-50 dark:bg-black dark:hover:bg-blue-500"
                           onClick={() =>
                             push(`/room/${item.room_id}#${item.chat_id}`).then(
                               () => resetState()

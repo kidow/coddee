@@ -31,7 +31,7 @@ const Dropdown: FC<Props> = ({ label, children, className }) => {
       <ul
         tabIndex={0}
         ref={ref}
-        className="invisible absolute bottom-auto top-6 right-0 z-50 w-40 origin-top rounded-lg border bg-white p-1 text-sm opacity-0"
+        className="invisible absolute bottom-auto top-6 right-0 z-50 w-40 origin-top rounded-lg border bg-white p-1 text-sm opacity-0 dark:border-black dark:bg-black"
       >
         {children}
       </ul>

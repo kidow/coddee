@@ -728,15 +728,13 @@ const RoomIdPage: NextPage = () => {
             }
           >
             <li
-              className="flex items-center justify-between rounded-lg p-1 text-left hover:bg-neutral-100"
+              className="flex items-center justify-between rounded-lg p-1 text-left hover:bg-neutral-100 dark:hover:bg-neutral-900"
               onClick={() => EventListener.emit('searchbox')}
             >
-              <span className="text-slate-600">검색</span>
+              <span className="text-slate-600 dark:text-slate-400">검색</span>
               <div className="flex gap-1">
                 <ShortKey />
-                <kbd className="flex h-5 w-5 items-center justify-center rounded border border-slate-400 bg-slate-200 text-xs text-slate-600 shadow-2xl">
-                  K
-                </kbd>
+                <kbd>K</kbd>
               </div>
             </li>
           </Dropdown>
