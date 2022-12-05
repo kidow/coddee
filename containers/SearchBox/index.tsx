@@ -240,7 +240,7 @@ const SearchBox: FC<Props> = () => {
 
                 {!!chatList.length && (
                   <section>
-                    <div className="mb-1 text-sm font-semibold text-neutral-600">
+                    <div className="mb-1 text-sm font-semibold text-neutral-600 dark:text-neutral-400">
                       채팅
                     </div>
                     <ul role="listbox" className="space-y-1">
@@ -279,7 +279,7 @@ const SearchBox: FC<Props> = () => {
 
                 {!!replyList.length && (
                   <section>
-                    <div className="mb-1 text-sm font-semibold text-neutral-600">
+                    <div className="mb-1 text-sm font-semibold text-neutral-600 dark:text-neutral-400">
                       답글
                     </div>
                     <ul role="listbox" className="space-y-1">
