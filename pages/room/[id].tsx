@@ -4,7 +4,8 @@ import {
   Textarea,
   SEO,
   Spinner,
-  Typing
+  Typing,
+  ShortKey
 } from 'components'
 import type { NextPage } from 'next'
 import {
@@ -200,7 +201,8 @@ const RoomIdPage: NextPage = () => {
     }
     setList((page === 1 ? data : [...list, ...(data as any[])]) || [])
     setState({ isLoading: false, page, total: total || 0 }, () => {
-      if (page === 1) window.scrollTo(0, document.body.scrollHeight)
+      if (page === 1)
+        setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 100)
     })
   }
 
@@ -269,10 +271,12 @@ const RoomIdPage: NextPage = () => {
       ...list
     ])
     onRegex(v, data.id)
-    setState({ content: '' }, () => {
-      window.scrollTo(0, document.body.scrollHeight)
-      EventListener.emit(`quill:focus:${id}`)
-    })
+    setState({ content: '' }, () =>
+      setTimeout(() => {
+        window.scrollTo(0, document.body.scrollHeight)
+        EventListener.emit(`quill:focus:${id}`)
+      }, 100)
+    )
   }
 
   const createCodeChat = async (payload: {
@@ -309,10 +313,12 @@ const RoomIdPage: NextPage = () => {
       },
       ...list
     ])
-    setState({ isCodeEditorOpen: false, content: '' }, () => {
-      window.scrollTo(0, document.body.scrollHeight)
-      EventListener.emit(`quill:focus:${id}`)
-    })
+    setState({ isCodeEditorOpen: false, content: '' }, () =>
+      setTimeout(() => {
+        window.scrollTo(0, document.body.scrollHeight)
+        EventListener.emit(`quill:focus:${id}`)
+      }, 100)
+    )
   }
 
   const onEnter = async (value: string) => {
@@ -343,12 +349,18 @@ const RoomIdPage: NextPage = () => {
     const isNotFocusingEditor = target?.className !== 'ql-editor'
     const isModalOpen =
       Array.from(document.body.childNodes).findIndex(
-        (item: any) => item.id === 'modal'
+        (item: any) => item.id === 'modal' || item.id === 'searchbox'
       ) === -1
     const isInputFocusing =
       ['input', 'textarea'].indexOf(target.tagName?.toLowerCase()) === -1
+    const isSearchBoxOpen = e.metaKey && e.code === 'KeyK'
 
-    if (isNotFocusingEditor && isInputFocusing && isModalOpen)
+    if (
+      isNotFocusingEditor &&
+      isInputFocusing &&
+      isModalOpen &&
+      !isSearchBoxOpen
+    )
       EventListener.emit(`quill:focus:${id}`)
   }
 
@@ -710,15 +722,22 @@ const RoomIdPage: NextPage = () => {
             </button>
             <span className="font-semibold">{name}</span>
           </div>
-          {/* <Dropdown
+          <Dropdown
             label={
-              <EllipsisVerticalIcon className="h-5 w-5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200" />
+              <EllipsisVerticalIcon className="h-5 w-5 text-neutral-400" />
             }
           >
-            <ul className="text-sm">
-              <li>포스트 만들기</li>
-            </ul>
-          </Dropdown> */}
+            <li
+              className="flex items-center justify-between rounded-lg p-1 text-left hover:bg-neutral-100 dark:hover:bg-neutral-900"
+              onClick={() => EventListener.emit('searchbox')}
+            >
+              <span className="text-slate-600 dark:text-slate-400">검색</span>
+              <div className="flex gap-1">
+                <ShortKey />
+                <kbd>K</kbd>
+              </div>
+            </li>
+          </Dropdown>
         </header>
         <main className="flex flex-1 flex-col-reverse py-3">
           <div ref={backBottomRef} />

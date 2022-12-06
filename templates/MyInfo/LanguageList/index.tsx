@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
 import type { FC } from 'react'
-import Editor from '@monaco-editor/react'
-import { Button, Input } from 'components'
-import { backdrop, useObjectState, useTheme } from 'services'
+import { Button, Input, Editor } from 'components'
+import { backdrop, useObjectState } from 'services'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
@@ -25,7 +24,6 @@ const MyInfoLanguageList: FC<Props> = () => {
       langaugeList: []
     })
   const supabase = useSupabaseClient()
-  const theme = useTheme()
 
   const get = async () => {
     const { data } = await supabase
@@ -133,16 +131,9 @@ const MyInfoLanguageList: FC<Props> = () => {
         <Editor
           height="300px"
           value={template}
-          theme={theme === 'dark' ? 'vs-dark' : 'light'}
           language={language}
           className="text-lg"
           onChange={(template) => setState({ template })}
-          options={{
-            wordWrap: 'on',
-            minimap: { enabled: false },
-            fontSize: 14,
-            scrollbar: { vertical: 'hidden', alwaysConsumeMouseWheel: false }
-          }}
         />
       </div>
       <ul className="space-y-4">

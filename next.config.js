@@ -7,5 +7,5 @@ const nextConfig = {
 
 module.exports = withSentryConfig({
   ...nextConfig,
-  sentry: { hideSourceMaps: true }
+  sentry: { hideSourceMaps: false }
 })

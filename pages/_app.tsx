@@ -1,7 +1,16 @@
 import 'styles/globals.css'
 import type { AppProps } from 'next/app'
 import { useEffect, useState } from 'react'
-import { Layout, Backdrop, Toast, ErrorBoundary, Auth, Modal } from 'containers'
+import {
+  Layout,
+  Backdrop,
+  Toast,
+  ErrorBoundary,
+  Auth,
+  Modal,
+  SearchBox,
+  Offline
+} from 'containers'
 import { RecoilRoot } from 'recoil'
 import 'dayjs/locale/ko'
 import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
@@ -20,7 +29,7 @@ function MyApp({ Component, pageProps }: AppProps<Props>) {
     if (theme === 'dark') document.documentElement.classList.add('dark')
   }, [])
   return (
-    <>
+    <Offline>
       <RecoilRoot>
         <ErrorBoundary>
           <SessionContextProvider
@@ -32,13 +41,14 @@ function MyApp({ Component, pageProps }: AppProps<Props>) {
                 <Component {...pageProps} />
               </Layout>
             </Auth>
+            <SearchBox />
           </SessionContextProvider>
         </ErrorBoundary>
       </RecoilRoot>
       <Backdrop />
       <Toast />
       <Modal.Image />
-    </>
+    </Offline>
   )
 }
 
