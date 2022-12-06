@@ -11,7 +11,6 @@ import {
   toast,
   TOAST_MESSAGE,
   useObjectState,
-  useTheme,
   useUser
 } from 'services'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
@@ -65,7 +64,6 @@ const MessageCodeBlock: FC<Props> = ({
     content: '',
     language: ''
   })
-  const theme = useTheme()
   const [user] = useUser()
   const supabase = useSupabaseClient()
   const languageList = useRecoilValue(languageListState)
