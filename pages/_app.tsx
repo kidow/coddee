@@ -8,7 +8,8 @@ import {
   ErrorBoundary,
   Auth,
   Modal,
-  SearchBox
+  SearchBox,
+  Offline
 } from 'containers'
 import { RecoilRoot } from 'recoil'
 import 'dayjs/locale/ko'
@@ -28,7 +29,7 @@ function MyApp({ Component, pageProps }: AppProps<Props>) {
     if (theme === 'dark') document.documentElement.classList.add('dark')
   }, [])
   return (
-    <>
+    <Offline>
       <RecoilRoot>
         <ErrorBoundary>
           <SessionContextProvider
@@ -47,7 +48,7 @@ function MyApp({ Component, pageProps }: AppProps<Props>) {
       <Backdrop />
       <Toast />
       <Modal.Image />
-    </>
+    </Offline>
   )
 }
 

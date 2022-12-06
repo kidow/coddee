@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import type { FC } from 'react'
 import classnames from 'classnames'
 import Link from 'next/link'
@@ -69,7 +69,7 @@ const Layout: FC<Props> = ({ children }) => {
   const [languageList, setLanguageList] = useRecoilState(languageListState)
   const auth = useAuth()
 
-  const getRoomList = async () => {
+  const getRoomList = useCallback(async () => {
     const { data, error } = await supabase
       .from('rooms')
       .select(
@@ -112,9 +112,9 @@ const Layout: FC<Props> = ({ children }) => {
           newCount: 0
         }))
     })
-  }
+  }, [])
 
-  const getLanguageList = async () => {
+  const getLanguageList = useCallback(async () => {
     if (!!languageList.length) return
 
     const { data, error } = await supabase
@@ -125,12 +125,9 @@ const Layout: FC<Props> = ({ children }) => {
     if (error) {
       captureException(error, auth)
     } else setLanguageList(data)
-  }
+  }, [])
 
-  useEffect(() => {
-    getRoomList()
-    getLanguageList()
-
+  const onInstallFeedbank = useCallback(() => {
     let script = document.createElement('script')
     script.src = 'https://cdn.feedbank.app/plugin.js'
     script.defer = true
@@ -141,6 +138,12 @@ const Layout: FC<Props> = ({ children }) => {
       window.localStorage.getItem('theme') === 'dark' ? '#262626' : '#fafafa'
     )
     document.head.insertAdjacentElement('beforeend', script)
+  }, [])
+
+  useEffect(() => {
+    getRoomList()
+    getLanguageList()
+    onInstallFeedbank()
   }, [])
 
   useEffect(() => {
