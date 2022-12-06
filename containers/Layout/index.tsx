@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import type { FC } from 'react'
 import classnames from 'classnames'
 import Link from 'next/link'
@@ -69,7 +69,7 @@ const Layout: FC<Props> = ({ children }) => {
   const [languageList, setLanguageList] = useRecoilState(languageListState)
   const auth = useAuth()
 
-  const getRoomList = async () => {
+  const getRoomList = useCallback(async () => {
     const { data, error } = await supabase
       .from('rooms')
       .select(
@@ -92,18 +92,29 @@ const Layout: FC<Props> = ({ children }) => {
       return
     }
     setState({
-      roomList: (data as any[]).map((item) => ({
-        ...item,
-        newChat: !!item.chats?.at(0)?.code_block
-          ? '코드'
-          : cheerio.getText(item.chats?.at(0)?.content),
-        newDate: item.chats?.at(0)?.created_at || '',
-        newCount: 0
-      }))
-    })
-  }
+      roomList: (data as any[])
+        .sort((a, b) => {
+          const AChat = a.chats[0]
+          const BChat = b.chats[0]
+          if (!AChat) return 1
+          if (!BChat) return -1
+          if (dayjs(AChat.created_at).isAfter(BChat.created_at)) return -1
+          if (dayjs(BChat.created_at).isAfter(AChat.created_at)) return 1
 
-  const getLanguageList = async () => {
+          return 0
+        })
+        .map((item) => ({
+          ...item,
+          newChat: !!item.chats?.at(0)?.code_block
+            ? '코드'
+            : cheerio.getText(item.chats?.at(0)?.content || ''),
+          newDate: item.chats?.at(0)?.created_at || '',
+          newCount: 0
+        }))
+    })
+  }, [])
+
+  const getLanguageList = useCallback(async () => {
     if (!!languageList.length) return
 
     const { data, error } = await supabase
@@ -114,11 +125,25 @@ const Layout: FC<Props> = ({ children }) => {
     if (error) {
       captureException(error, auth)
     } else setLanguageList(data)
-  }
+  }, [])
+
+  const onInstallFeedbank = useCallback(() => {
+    let script = document.createElement('script')
+    script.src = 'https://cdn.feedbank.app/plugin.js'
+    script.defer = true
+    script.setAttribute('plugin-key', 'fa46598f-aa5e-46fc-be63-2d3e339383c5')
+    script.setAttribute('data-fb-position', 'middle-left')
+    script.setAttribute(
+      'data-fb-button-color',
+      window.localStorage.getItem('theme') === 'dark' ? '#262626' : '#fafafa'
+    )
+    document.head.insertAdjacentElement('beforeend', script)
+  }, [])
 
   useEffect(() => {
     getRoomList()
     getLanguageList()
+    onInstallFeedbank()
   }, [])
 
   useEffect(() => {
@@ -134,7 +159,6 @@ const Layout: FC<Props> = ({ children }) => {
           if (index === -1) return
           setState({
             roomList: [
-              ...roomList.slice(0, index),
               {
                 ...roomList[index],
                 newChat: !!payload.new.code_block
@@ -145,6 +169,7 @@ const Layout: FC<Props> = ({ children }) => {
                   ? { newCount: roomList[index].newCount + 1 }
                   : {})
               },
+              ...roomList.slice(0, index),
               ...roomList.slice(index + 1)
             ]
           })

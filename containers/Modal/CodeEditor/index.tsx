@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import type { FC } from 'react'
-import Editor from '@monaco-editor/react'
 import type { OnChange } from '@monaco-editor/react'
 import { Modal } from 'containers'
 import {
@@ -9,10 +8,9 @@ import {
   toast,
   TOAST_MESSAGE,
   useObjectState,
-  useTheme,
   useUser
 } from 'services'
-import { Button, Textarea, Select } from 'components'
+import { Button, Textarea, Select, Editor } from 'components'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useRouter } from 'next/router'
 
@@ -52,7 +50,6 @@ const CodeEditorModal: FC<Props> = ({
     })
   const [user] = useUser()
   const supabase = useSupabaseClient()
-  const theme = useTheme()
   const { query } = useRouter()
 
   const getLanguages = async () => {
@@ -193,17 +190,6 @@ const CodeEditorModal: FC<Props> = ({
             language={language}
             onChange={onEditorChange}
             value={codeBlock}
-            theme={theme === 'dark' ? 'vs-dark' : 'light'}
-            options={{
-              wordWrap: 'on',
-              fontSize: 14,
-              minimap: { enabled: false },
-              scrollbar: {
-                vertical: 'hidden',
-                alwaysConsumeMouseWheel: false
-              }
-            }}
-            loading=""
           />
         </div>
         <div className="border p-2 focus-within:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-900">

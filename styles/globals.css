@@ -29,6 +29,15 @@
   button {
     @apply disabled:cursor-not-allowed;
   }
+  input[type='search']::-webkit-search-decoration,
+  input[type='search']::-webkit-search-cancel-button,
+  input[type='search']::-webkit-search-results-button,
+  input[type='search']::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+  }
+  kbd {
+    @apply flex h-5 items-center justify-center rounded border border-slate-400 bg-gradient-to-br from-slate-300 to-slate-200 px-1 tracking-tighter text-slate-600 shadow-2xl dark:border-slate-800 dark:from-slate-800 dark:to-slate-600 dark:text-slate-400;
+  }
 }
 
 @layer components {
