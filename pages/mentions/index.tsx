@@ -365,7 +365,7 @@ const MentionsPage: NextPage = () => {
                           key={key}
                           emoji={reaction.emoji}
                           onClick={() => {}}
-                          text={reaction.text}
+                          text={reaction.text || ''}
                         />
                       ))}
                     </Message.Reactions>

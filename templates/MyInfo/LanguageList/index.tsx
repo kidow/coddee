@@ -146,7 +146,7 @@ const MyInfoLanguageList: FC<Props> = () => {
                     label: item.label || '',
                     id: item.id,
                     language: item.value,
-                    template: item.template
+                    template: item.template || ''
                   })
                 }
               >
@@ -159,7 +159,7 @@ const MyInfoLanguageList: FC<Props> = () => {
                     label: item.label || '',
                     id: item.id,
                     language: item.value,
-                    template: item.template
+                    template: item.template || ''
                   })
                 }
               >

@@ -216,7 +216,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           {
             id: data.id,
             created_at: data.created_at,
-            user: { avatar_url: user.avatar_url }
+            user: { avatar_url: user.avatar_url || '' }
           }
         ]
       },
@@ -266,7 +266,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
           {
             id: data.id,
             created_at: data.created_at,
-            user: { avatar_url: user!.avatar_url }
+            user: { avatar_url: user?.avatar_url || '' }
           }
         ]
       },

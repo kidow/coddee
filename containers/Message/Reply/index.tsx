@@ -506,7 +506,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
           {
             id: data.id,
             created_at: data.created_at,
-            user: { avatar_url: user!.avatar_url }
+            user: { avatar_url: user?.avatar_url || '' }
           }
         ]
       },
@@ -528,7 +528,10 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
             <BookmarkIcon className="h-4 w-4 text-red-500" />
           </span>
         )}
-        <Message.Avatar url={reply.user.avatar_url} userId={reply.user_id} />
+        <Message.Avatar
+          url={reply.user.avatar_url || ''}
+          userId={reply.user_id}
+        />
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="flex cursor-pointer items-center text-sm font-medium">
@@ -550,15 +553,18 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                 className="max-w-[330px]"
               />
             ) : (
-              <Message content={reply.content} updatedAt={reply.updated_at} />
+              <Message
+                content={reply.content}
+                updatedAt={reply.updated_at || ''}
+              />
             )}
           </div>
           <Message.CodeBlock
-            originalCode={reply.code_block}
-            language={reply.language}
+            originalCode={reply.code_block || ''}
+            language={reply.language || ''}
             onSubmit={createModifiedCodeReply}
-            modifiedCode={reply.modified_code}
-            modifiedLanguage={reply.modified_language}
+            modifiedCode={reply.modified_code || ''}
+            modifiedLanguage={reply.modified_language || ''}
             typingSource="reply"
             chatId={reply.chat_id}
             username={reply.user.nickname}
@@ -575,7 +581,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                   key={key}
                   onClick={() => updateReplyReaction(key)}
                   text={item.text}
-                  emoji={item.emoji}
+                  emoji={item.emoji || ''}
                   position={key === 0 ? 'right' : undefined}
                 />
               ))}
@@ -609,8 +615,8 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         onClose={() => setState({ isCodeEditorOpen: false })}
         onSubmit={updateCodeReply}
         content={reply.content}
-        codeBlock={reply.code_block}
-        language={reply.language}
+        codeBlock={reply.code_block || ''}
+        language={reply.language || ''}
         typingSource="reply"
         chatId={reply.chat_id}
       />

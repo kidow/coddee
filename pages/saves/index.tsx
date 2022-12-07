@@ -407,11 +407,14 @@ const SavedPage: NextPage = () => {
                       })
                     }
                     modifiedCode={
-                      item.chat?.modified_code || item.reply?.modified_code
+                      item.chat?.modified_code ||
+                      item.reply?.modified_code ||
+                      ''
                     }
                     modifiedLanguage={
                       item.chat?.modified_language ||
-                      item.reply?.modified_language
+                      item.reply?.modified_language ||
+                      ''
                     }
                     username={
                       item.chat?.user.nickname ||
@@ -433,7 +436,7 @@ const SavedPage: NextPage = () => {
                           userList={reaction.userList}
                           key={key}
                           onClick={() => {}}
-                          text={reaction.text}
+                          text={reaction.text || ''}
                           emoji={reaction.emoji}
                         />
                       ))}
@@ -446,7 +449,7 @@ const SavedPage: NextPage = () => {
                           userList={reaction.userList}
                           key={key}
                           onClick={() => {}}
-                          emoji={reaction.emoji}
+                          emoji={reaction.emoji || ''}
                           text={reaction.text}
                         />
                       ))}

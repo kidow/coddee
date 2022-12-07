@@ -36,113 +36,24 @@ interface DrawerProps {
   position?: 'left' | 'top' | 'right' | 'bottom'
 }
 
-namespace NTable {
-  interface Users {
-    id: string
-    email: string
-    nickname: string
-    avatar_url: string
-    job_category: string
-    created_at: string
-    updated_at: string
-  }
-  interface Rooms {
-    id: string
-    name: string
-    logo_url: string
-    created_at: string
-    updated_at: string
-    deleted_at: string
-  }
-  interface Chats {
-    id: number
-    user_id: string
-    room_id: string
-    content: string
-    code_block: string
-    modified_code: string
-    modified_language: string
-    language: string
-    created_at: string
-    updated_at: string
-    deleted_at: string
-  }
-  interface Languages {
-    id: number
-    label: string
-    value: string
-    template: string
-    created_at: string
-  }
-  interface Reactions {
-    id: number
-    user_id: string
-    chat_id: number
-    room_id: string
-    text: string
-    emoji: string
-    created_at: string
-    userList: Array<{ id: string; reactionId: number; nickname: string }>
-  }
-  interface Replies {
-    id: number
-    chat_id: number
-    user_id: string
-    room_id: string
-    content: string
-    language: string
-    code_block: string
-    created_at: string
-    updated_at: string
-    modified_code: string
-    modified_language: string
-  }
-  interface ReplyReactions {
-    id: number
-    user_id: string
-    reply_id: number
-    chat_id: number
-    text: string
-    emoji: string
-    created_at: string
-    userList: Array<{ id: string; reactionId: number; nickname: string }>
-  }
-  interface Mentions {
-    id: number
-    mention_to: string
-    mention_from: string
-    chat_id: number
-    reply_id: number
-    created_at: string
-  }
-  interface Opengraphs {
-    id: number
-    chat_id: number
-    reply_id: number
-    room_id: string
-    title: string
-    description: string
-    image: string
-    url: string
-    site_name: string
-    created_at: string
-  }
-  interface Saves {
-    id: number
-    user_id: string
-    chat_id: number
-    reply_id: number
-    created_at: string
-  }
+type R = Database['public']['Tables']['reactions']['Row']
+type RR = Database['public']['Tables']['reply_reactions']['Row']
 
-  interface Posts {
-    id: number
-    title: string
-    chat_ids: string
-    created_at: string
-    updated_at: string
-    chatList?: NTable.Chats[]
+namespace NTable {
+  type Users = Database['public']['Tables']['users']['Row']
+  type Rooms = Database['public']['Tables']['rooms']['Row']
+  type Chats = Database['public']['Tables']['chats']['Row']
+  type Languages = Database['public']['Tables']['languages']['Row']
+  interface Reactions extends R {
+    userList: Array<{ id: string; reactionId: number; nickname: string }>
   }
+  type Replies = Database['public']['Tables']['replies']['Row']
+  interface ReplyReactions extends RR {
+    userList: Array<{ id: string; reactionId: number; nickname: string }>
+  }
+  type Mentions = Database['public']['Tables']['mentions']['Row']
+  type Opengraphs = Database['public']['Tables']['opengraphs']['Row']
+  type Saves = Database['public']['Tables']['saves']['Row']
 }
 
 namespace NToast {
@@ -157,44 +68,320 @@ interface TooltipProps {
   position?: 'top' | 'right' | 'bottom' | 'left'
 }
 
-// interface Database {
-//   public: {
-//     Tables: {
-//       users: {
-//         Row: {
-//           id: string
-//           email: string
-//           nickname: string
-//           avatar_url: string
-//           job_category: string
-//           created_at: string
-//           updated_at: string
-//         }
-//         Insert: {
-//           id?: string
-//           email: string
-//           nickname: string
-//           avatar_url?: string
-//           job_category?: string
-//           created_at?: string
-//           updated_at?: string
-//         }
-//         Update: Partial<Database['public']['Tables']['users']['Row']>
-//       }
-//       rooms: {
-//         Row: {}
-//         Insert: {}
-//         Update: {}
-//       }
-//       chats: { Row: {}; Insert: {}; Update: {} }
-//       languages: { Row: {}; Insert: {}; Update: {} }
-//       reactions: { Row: {}; Insert: {}; Update: {} }
-//       replies: { Row: {}; Insert: {}; Update: {} }
-//       reply_reactions: { Row: {}; Insert: {}; Update: {} }
-//       mentions: { Row: {}; Insert: {}; Update: {} }
-//       opengraphs: { Row: {}; Insert: {}; Update: {} }
-//       saves: { Row: {}; Insert: {}; Update: {} }
-//       posts: { Row: {}; Insert: {}; Update: {} }
-//     }
-//   }
-// }
+interface Database {
+  public: {
+    Tables: {
+      mentions: {
+        Row: {
+          id: number
+          mention_to: string
+          mention_from: string
+          chat_id: number
+          reply_id: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          mention_to: string
+          mention_from: string
+          chat_id: number
+          reply_id?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          mention_to?: string
+          mention_from?: string
+          chat_id?: number
+          reply_id?: number | null
+          created_at?: string
+        }
+      }
+      opengraphs: {
+        Row: {
+          id: number
+          chat_id: number | null
+          reply_id: number | null
+          room_id: string
+          title: string | null
+          description: string | null
+          image: string | null
+          url: string | null
+          site_name: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          chat_id?: number | null
+          reply_id?: number | null
+          room_id: string
+          title?: string | null
+          description?: string | null
+          image?: string | null
+          url?: string | null
+          site_name?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          chat_id?: number | null
+          reply_id?: number | null
+          room_id?: string
+          title?: string | null
+          description?: string | null
+          image?: string | null
+          url?: string | null
+          site_name?: string | null
+          created_at?: string
+        }
+      }
+      saves: {
+        Row: {
+          id: number
+          user_id: string
+          chat_id: number | null
+          reply_id: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          user_id: string
+          chat_id?: number | null
+          reply_id?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          user_id?: string
+          chat_id?: number | null
+          reply_id?: number | null
+          created_at?: string
+        }
+      }
+      users: {
+        Row: {
+          id: string
+          email: string
+          nickname: string
+          avatar_url: string | null
+          job_category: string | null
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          id: string
+          email: string
+          nickname: string
+          avatar_url?: string | null
+          job_category?: string | null
+          created_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          email?: string
+          nickname?: string
+          avatar_url?: string | null
+          job_category?: string | null
+          created_at?: string
+          updated_at?: string | null
+        }
+      }
+      rooms: {
+        Row: {
+          id: string
+          name: string
+          logo_url: string
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          logo_url: string
+          created_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          logo_url?: string
+          created_at?: string
+          updated_at?: string | null
+        }
+      }
+      chats: {
+        Row: {
+          id: number
+          user_id: string
+          room_id: string
+          content: string
+          code_block: string | null
+          language: string | null
+          created_at: string
+          updated_at: string | null
+          deleted_at: string | null
+          modified_code: string | null
+          modified_language: string | null
+        }
+        Insert: {
+          id?: number
+          user_id: string
+          room_id: string
+          content: string
+          code_block?: string | null
+          language?: string | null
+          created_at?: string
+          updated_at?: string | null
+          deleted_at?: string | null
+          modified_code?: string | null
+          modified_language?: string | null
+        }
+        Update: {
+          id?: number
+          user_id?: string
+          room_id?: string
+          content?: string
+          code_block?: string | null
+          language?: string | null
+          created_at?: string
+          updated_at?: string | null
+          deleted_at?: string | null
+          modified_code?: string | null
+          modified_language?: string | null
+        }
+      }
+      languages: {
+        Row: {
+          id: number
+          label: string
+          value: string
+          template: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          label: string
+          value: string
+          template?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          label?: string
+          value?: string
+          template?: string | null
+          created_at?: string
+        }
+      }
+      replies: {
+        Row: {
+          id: number
+          user_id: string
+          chat_id: number
+          content: string
+          code_block: string | null
+          language: string | null
+          created_at: string
+          updated_at: string | null
+          modified_code: string | null
+          modified_language: string | null
+          room_id: string | null
+        }
+        Insert: {
+          id?: number
+          user_id: string
+          chat_id: number
+          content: string
+          code_block?: string | null
+          language?: string | null
+          created_at?: string
+          updated_at?: string | null
+          modified_code?: string | null
+          modified_language?: string | null
+          room_id?: string | null
+        }
+        Update: {
+          id?: number
+          user_id?: string
+          chat_id?: number
+          content?: string
+          code_block?: string | null
+          language?: string | null
+          created_at?: string
+          updated_at?: string | null
+          modified_code?: string | null
+          modified_language?: string | null
+          room_id?: string | null
+        }
+      }
+      reply_reactions: {
+        Row: {
+          id: number
+          user_id: string
+          chat_id: number
+          reply_id: number
+          text: string
+          created_at: string
+          emoji: string | null
+        }
+        Insert: {
+          id?: number
+          user_id: string
+          chat_id: number
+          reply_id: number
+          text: string
+          created_at?: string
+          emoji?: string | null
+        }
+        Update: {
+          id?: number
+          user_id?: string
+          chat_id?: number
+          reply_id?: number
+          text?: string
+          created_at?: string
+          emoji?: string | null
+        }
+      }
+      reactions: {
+        Row: {
+          id: number
+          user_id: string
+          chat_id: number
+          room_id: string
+          emoji: string
+          created_at: string
+          text: string | null
+        }
+        Insert: {
+          id?: number
+          user_id: string
+          chat_id: number
+          room_id: string
+          emoji: string
+          created_at?: string
+          text?: string | null
+        }
+        Update: {
+          id?: number
+          user_id?: string
+          chat_id?: number
+          room_id?: string
+          emoji?: string
+          created_at?: string
+          text?: string | null
+        }
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+  }
+}

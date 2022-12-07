@@ -256,7 +256,7 @@ const SearchBox: FC<Props> = () => {
                           }
                         >
                           <img
-                            src={item.user.avatar_url}
+                            src={item.user.avatar_url || ''}
                             alt=""
                             className="h-6 w-6 rounded-full"
                           />
@@ -295,7 +295,7 @@ const SearchBox: FC<Props> = () => {
                           }
                         >
                           <img
-                            src={item.user.avatar_url}
+                            src={item.user.avatar_url || ''}
                             alt=""
                             className="h-6 w-6 rounded-full"
                           />

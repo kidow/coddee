@@ -179,7 +179,7 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
         <Message.Avatar
           url={chat.user.avatar_url || ''}
           userId={chat.user_id || ''}
-          deletedAt={chat.deleted_at}
+          deletedAt={chat.deleted_at || ''}
         />
         {!!chat.deleted_at ? (
           <div className="mt-0.5 flex h-9 items-center text-sm text-neutral-400">
@@ -214,11 +214,11 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
               )}
             </div>
             <Message.CodeBlock
-              originalCode={chat.code_block}
-              language={chat.language}
+              originalCode={chat.code_block || ''}
+              language={chat.language || ''}
               onSubmit={createModifiedCodeChat}
-              modifiedCode={chat.modified_code}
-              modifiedLanguage={chat.modified_language}
+              modifiedCode={chat.modified_code || ''}
+              modifiedLanguage={chat.modified_language || ''}
               typingSource="reply"
               chatId={chat.id}
               username={chat.user.nickname}
@@ -282,8 +282,8 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}
         content={chat.content}
-        codeBlock={chat.code_block}
-        language={chat.language}
+        codeBlock={chat.code_block || ''}
+        language={chat.language || ''}
         onSubmit={updateCodeChat}
         typingSource="reply"
         chatId={chat.id}

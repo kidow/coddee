@@ -504,7 +504,10 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
   return (
     <>
       <div className="group relative flex gap-3 py-2 px-4 hover:bg-neutral-50 dark:hover:bg-neutral-700">
-        <Message.Avatar url={reply.user.avatar_url} userId={reply.user.id} />
+        <Message.Avatar
+          url={reply.user.avatar_url || ''}
+          userId={reply.user.id}
+        />
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <div className="flex items-center text-sm font-medium">
@@ -526,15 +529,18 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                 className="max-w-[684px]"
               />
             ) : (
-              <Message content={reply.content} updatedAt={reply.updated_at} />
+              <Message
+                content={reply.content}
+                updatedAt={reply.updated_at || ''}
+              />
             )}
           </div>
           <Message.CodeBlock
-            originalCode={reply.code_block}
-            language={reply.language}
+            originalCode={reply.code_block || ''}
+            language={reply.language || ''}
             onSubmit={createModifiedCodeReply}
-            modifiedCode={reply.modified_code}
-            modifiedLanguage={reply.modified_language}
+            modifiedCode={reply.modified_code || ''}
+            modifiedLanguage={reply.modified_language || ''}
             typingSource="reply"
             chatId={chat.id}
             username={reply.user.nickname}
@@ -551,7 +557,7 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                   key={key}
                   onClick={() => updateReplyReaction(key)}
                   text={item.text}
-                  emoji={item.emoji}
+                  emoji={item.emoji || ''}
                 />
               ))}
               <Tooltip.AddReaction onSelect={onEmojiSelect} />

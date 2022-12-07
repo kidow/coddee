@@ -308,15 +308,18 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
                 onSave={updateChat}
               />
             ) : (
-              <Message content={chat.content} updatedAt={chat.updated_at} />
+              <Message
+                content={chat.content}
+                updatedAt={chat.updated_at || ''}
+              />
             )}
           </div>
           <Message.CodeBlock
-            originalCode={chat.code_block}
-            language={chat.language}
+            originalCode={chat.code_block || ''}
+            language={chat.language || ''}
             onSubmit={createModifiedCodeChat}
-            modifiedCode={chat.modified_code}
-            modifiedLanguage={chat.modified_language}
+            modifiedCode={chat.modified_code || ''}
+            modifiedLanguage={chat.modified_language || ''}
             typingSource="chat"
             username={chat.user.nickname}
             userId={chat.user_id}
@@ -430,8 +433,8 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}
         content={chat.content}
-        codeBlock={chat.code_block}
-        language={chat.language}
+        codeBlock={chat.code_block || ''}
+        language={chat.language || ''}
         onSubmit={updateCodeChat}
         typingSource="reply"
         chatId={chat.id}

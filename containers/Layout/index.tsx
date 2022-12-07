@@ -315,7 +315,7 @@ const Layout: FC<Props> = ({ children }) => {
               {user ? (
                 <button onClick={() => setState({ isMyInfoOpen: true })}>
                   <img
-                    src={user.avatar_url}
+                    src={user.avatar_url || ''}
                     alt=""
                     className="h-8 w-8 rounded-full"
                   />

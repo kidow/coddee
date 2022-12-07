@@ -22,7 +22,9 @@ interface Props {
 interface State {}
 
 function MyApp({ Component, pageProps }: AppProps<Props>) {
-  const [supabaseClient] = useState(() => createBrowserSupabaseClient())
+  const [supabaseClient] = useState(() =>
+    createBrowserSupabaseClient<Database>()
+  )
 
   useEffect(() => {
     const theme = window.localStorage.getItem('theme')

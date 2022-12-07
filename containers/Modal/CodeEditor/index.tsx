@@ -135,7 +135,8 @@ const CodeEditorModal: FC<Props> = ({
               language: e.target.value,
               ...(e.target.selectedIndex !== 0
                 ? {
-                    codeBlock: languageList[e.target.selectedIndex - 1].template
+                    codeBlock:
+                      languageList[e.target.selectedIndex - 1].template || ''
                   }
                 : {})
             })
