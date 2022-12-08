@@ -39,7 +39,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
       isCodeEditorOpen: false
     })
   const [user] = useUser()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const [chatList, setChatList] = useRecoilState(chatListState)
   const [replyList, setReplyList] = useRecoilState(replyListState)
   const { onRegex } = useChatList()
@@ -134,7 +134,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
           chat_id: reply.chat_id,
           emoji: reply.reply_reactions[reactionIndex].emoji
         })
-        .select()
+        .select('id, text, emoji, user_id')
         .single()
       if (error) {
         captureException(error, user)
@@ -151,6 +151,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                   ...reply.reply_reactions,
                   {
                     ...data,
+                    user: { nickname: user.nickname },
                     userList: [
                       {
                         id: user.id,
@@ -257,6 +258,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                   ...reply.reply_reactions,
                   {
                     ...data,
+                    user: { nickname: user.id },
                     userList: [
                       {
                         id: user.id,
@@ -317,6 +319,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                     ...reply.reply_reactions,
                     {
                       ...data,
+                      user: { nickname: user.nickname },
                       userList: [
                         {
                           id: user.id,
@@ -474,7 +477,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         language: reply.modified_language || reply.language,
         modified_code: payload.codeBlock,
         modified_language: payload.language,
-        user_id: user?.id,
+        user_id: user?.id || '',
         chat_id: reply.chat_id
       })
       .select()
@@ -494,7 +497,11 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         reply_reactions: [],
         saves: [],
         opengraphs: [],
-        user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+        user: {
+          id: user?.id || '',
+          nickname: user?.nickname || '',
+          avatar_url: user?.avatar_url || ''
+        }
       }
     ])
     setChatList([
@@ -506,7 +513,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
           {
             id: data.id,
             created_at: data.created_at,
-            user: { avatar_url: user!.avatar_url }
+            user: { avatar_url: user?.avatar_url || '' }
           }
         ]
       },
@@ -528,7 +535,10 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
             <BookmarkIcon className="h-4 w-4 text-red-500" />
           </span>
         )}
-        <Message.Avatar url={reply.user.avatar_url} userId={reply.user_id} />
+        <Message.Avatar
+          url={reply.user.avatar_url || ''}
+          userId={reply.user_id}
+        />
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="flex cursor-pointer items-center text-sm font-medium">
@@ -550,15 +560,18 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                 className="max-w-[330px]"
               />
             ) : (
-              <Message content={reply.content} updatedAt={reply.updated_at} />
+              <Message
+                content={reply.content}
+                updatedAt={reply.updated_at || ''}
+              />
             )}
           </div>
           <Message.CodeBlock
-            originalCode={reply.code_block}
-            language={reply.language}
+            originalCode={reply.code_block || ''}
+            language={reply.language || ''}
             onSubmit={createModifiedCodeReply}
-            modifiedCode={reply.modified_code}
-            modifiedLanguage={reply.modified_language}
+            modifiedCode={reply.modified_code || ''}
+            modifiedLanguage={reply.modified_language || ''}
             typingSource="reply"
             chatId={reply.chat_id}
             username={reply.user.nickname}
@@ -575,7 +588,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                   key={key}
                   onClick={() => updateReplyReaction(key)}
                   text={item.text}
-                  emoji={item.emoji}
+                  emoji={item.emoji || ''}
                   position={key === 0 ? 'right' : undefined}
                 />
               ))}
@@ -609,8 +622,8 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         onClose={() => setState({ isCodeEditorOpen: false })}
         onSubmit={updateCodeReply}
         content={reply.content}
-        codeBlock={reply.code_block}
-        language={reply.language}
+        codeBlock={reply.code_block || ''}
+        language={reply.language || ''}
         typingSource="reply"
         chatId={reply.chat_id}
       />

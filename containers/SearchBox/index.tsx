@@ -48,7 +48,7 @@ const SearchBox: FC<Props> = () => {
     replyList: [],
     isLoading: false
   })
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const [user] = useUser()
   const { push } = useRouter()
 
@@ -66,6 +66,7 @@ const SearchBox: FC<Props> = () => {
       )
         setState({ isOpen: true })
     }
+    if (isOpen && e.key === 'Escape') resetState()
   }
 
   const onSearch = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -142,13 +143,18 @@ const SearchBox: FC<Props> = () => {
   )
 
   useEffect(() => {
-    window.addEventListener('keydown', onKeyDown)
     EventListener.add('searchbox', onListener)
     return () => {
       EventListener.remove('searchbox', onListener)
-      window.removeEventListener('keydown', onKeyDown)
     }
   }, [])
+
+  useEffect(() => {
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
   return createPortal(
@@ -256,7 +262,7 @@ const SearchBox: FC<Props> = () => {
                           }
                         >
                           <img
-                            src={item.user.avatar_url}
+                            src={item.user.avatar_url || ''}
                             alt=""
                             className="h-6 w-6 rounded-full"
                           />
@@ -295,7 +301,7 @@ const SearchBox: FC<Props> = () => {
                           }
                         >
                           <img
-                            src={item.user.avatar_url}
+                            src={item.user.avatar_url || ''}
                             alt=""
                             className="h-6 w-6 rounded-full"
                           />

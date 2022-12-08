@@ -59,7 +59,7 @@ const MentionsPage: NextPage = () => {
   const [user] = useUser()
   const { push } = useRouter()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
 
   const get = async (page: number = 1) => {
     const { data: auth } = await supabase.auth.getUser()
@@ -193,7 +193,7 @@ const MentionsPage: NextPage = () => {
       language: payload.modifiedLanguage || payload.originalLanguage,
       modified_code: payload.codeBlock,
       modified_language: payload.language,
-      user_id: user?.id,
+      user_id: user?.id || '',
       room_id: payload.roomId
     })
     backdrop(false)
@@ -325,7 +325,7 @@ const MentionsPage: NextPage = () => {
                   url={item.user.avatar_url}
                   userId={item.user.id}
                 />
-                <div className="text-sm">
+                <div className="flex-1 text-sm">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{item.user.nickname}</span>
                     <span className="text-xs text-neutral-400">
@@ -365,7 +365,7 @@ const MentionsPage: NextPage = () => {
                           key={key}
                           emoji={reaction.emoji}
                           onClick={() => {}}
-                          text={reaction.text}
+                          text={reaction.text || ''}
                         />
                       ))}
                     </Message.Reactions>

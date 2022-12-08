@@ -57,7 +57,7 @@ const SavedPage: NextPage = () => {
   const [user] = useUser()
   const { push } = useRouter()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
 
   const get = async (page: number = 1) => {
     const { data: auth } = await supabase.auth.getUser()
@@ -297,7 +297,7 @@ const SavedPage: NextPage = () => {
         language: payload.chat.modified_language || payload.chat.language,
         modified_code: payload.codeBlock,
         modified_language: payload.language,
-        user_id: user?.id,
+        user_id: user?.id || '',
         room_id: payload.chat.room_id
       })
       backdrop(false)
@@ -311,11 +311,11 @@ const SavedPage: NextPage = () => {
       const { error } = await supabase.from('replies').insert({
         content: payload.content,
         code_block: payload.reply.modified_code || payload.reply.code_block,
-        langauge: payload.reply.modified_language || payload.reply.language,
+        language: payload.reply.modified_language || payload.reply.language,
         modified_code: payload.codeBlock,
         modified_language: payload.language,
         chat_id: payload.reply.chat_id,
-        user_id: user?.id
+        user_id: user?.id || ''
       })
       backdrop(false)
       if (error) {
@@ -407,11 +407,14 @@ const SavedPage: NextPage = () => {
                       })
                     }
                     modifiedCode={
-                      item.chat?.modified_code || item.reply?.modified_code
+                      item.chat?.modified_code ||
+                      item.reply?.modified_code ||
+                      ''
                     }
                     modifiedLanguage={
                       item.chat?.modified_language ||
-                      item.reply?.modified_language
+                      item.reply?.modified_language ||
+                      ''
                     }
                     username={
                       item.chat?.user.nickname ||
@@ -433,7 +436,7 @@ const SavedPage: NextPage = () => {
                           userList={reaction.userList}
                           key={key}
                           onClick={() => {}}
-                          text={reaction.text}
+                          text={reaction.text || ''}
                           emoji={reaction.emoji}
                         />
                       ))}
@@ -446,7 +449,7 @@ const SavedPage: NextPage = () => {
                           userList={reaction.userList}
                           key={key}
                           onClick={() => {}}
-                          emoji={reaction.emoji}
+                          emoji={reaction.emoji || ''}
                           text={reaction.text}
                         />
                       ))}

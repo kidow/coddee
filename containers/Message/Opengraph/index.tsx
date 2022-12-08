@@ -8,14 +8,11 @@ import { EventListener, toast, useObjectState } from 'services'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import classnames from 'classnames'
 
-export interface Props {
-  id: number
-  title: string
-  description: string
-  site_name: string
-  url: string
-  image: string
-}
+export interface Props
+  extends Pick<
+    NTable.Opengraphs,
+    'title' | 'description' | 'url' | 'site_name' | 'image'
+  > {}
 interface State {
   isLoaded: boolean
   isStretched: boolean
@@ -41,7 +38,7 @@ const ChatOpengraph: FC<Props> = ({
         isLoaded: true
       })
     })
-    img.src = image
+    img.src = image || ''
   }, [])
 
   if (!isLoaded) return null
@@ -55,7 +52,7 @@ const ChatOpengraph: FC<Props> = ({
       <div className={classnames({ 'flex-1': isStretched })}>
         <div className="font-semibold text-blue-500">
           <a
-            href={url}
+            href={url || ''}
             target="_blank"
             rel="noreferrer noopener"
             className="hover:underline"
@@ -69,7 +66,7 @@ const ChatOpengraph: FC<Props> = ({
       </div>
       <div className="group/opengraph relative inline-block">
         <img
-          src={image}
+          src={image || ''}
           alt=""
           className={classnames('max-w-xs cursor-zoom-in rounded-lg', {
             'h-20 w-20': isStretched
@@ -81,7 +78,7 @@ const ChatOpengraph: FC<Props> = ({
           <ul className="absolute right-2 top-2 hidden rounded border bg-white p-0.5 group-hover/opengraph:flex dark:border-neutral-800 dark:bg-neutral-900">
             <li>
               <button
-                onClick={() => window.open(url)}
+                onClick={() => window.open(url || '')}
                 className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-300"
               >
                 <ArrowTopRightOnSquareIcon className="h-4 w-4" />
@@ -90,7 +87,7 @@ const ChatOpengraph: FC<Props> = ({
             <li>
               <CopyToClipboard
                 onCopy={() => toast.success('복사되었습니다.')}
-                text={url}
+                text={url || ''}
               >
                 <button className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-300">
                   <DocumentDuplicateIcon className="h-4 w-4" />

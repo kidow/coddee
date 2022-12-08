@@ -80,7 +80,7 @@ const RoomIdPage: NextPage = () => {
   const [list, setList] = useRecoilState(chatListState)
   const [morefetchRef, isMoreFetchIntersecting] =
     useIntersectionObserver<HTMLDivElement>()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const { onRegex } = useChatList()
   const [backBottomRef, isBackBottomIntersecting] =
     useIntersectionObserver<HTMLDivElement>()
@@ -222,6 +222,7 @@ const RoomIdPage: NextPage = () => {
   }
 
   const createChat = async (value?: string) => {
+    if (typeof query.id !== 'string') return
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
@@ -284,10 +285,11 @@ const RoomIdPage: NextPage = () => {
     codeBlock: string
     language: string
   }) => {
+    if (typeof query.id !== 'string') return
     const { data, error } = await supabase
       .from('chats')
       .insert({
-        user_id: user?.id,
+        user_id: user?.id || '',
         room_id: query.id,
         content: payload.content,
         code_block: payload.codeBlock,
@@ -309,7 +311,10 @@ const RoomIdPage: NextPage = () => {
         saves: [],
         replies: [],
         opengraphs: [],
-        user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+        user: {
+          nickname: user?.nickname || '',
+          avatar_url: user?.avatar_url || ''
+        }
       },
       ...list
     ])

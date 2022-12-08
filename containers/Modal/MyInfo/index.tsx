@@ -82,7 +82,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     company: '',
     isLoading: true
   })
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const [user] = useUser()
 
   const get = async () => {
@@ -110,7 +110,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
         bio: json.bio || '',
         avatarUrl: json.avatar_url,
         nickname: data.nickname,
-        jobCategory: data.job_category,
+        jobCategory: data.job_category || '',
         blogUrl: json.blog || '',
         email: data.email,
         location: json.location || '',

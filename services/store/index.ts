@@ -37,32 +37,25 @@ export const languageListState = atom<NTable.Languages[]>({
 export const chatListState = atom<
   Array<
     NTable.Chats & {
-      user: {
-        nickname: string
-        avatar_url: string
-      }
-      reactions: Array<{
-        id: number
-        text: string
-        emoji: string
-        user_id: string
-        user: { nickname: string }
-        userList: Array<{ id: string; reactionId: number; nickname: string }>
-      }>
-      replies: Array<{
-        id: string
-        created_at: string
-        user: { avatar_url: string }
-      }>
-      opengraphs: Array<{
-        id: number
-        title: string
-        description: string
-        site_name: string
-        url: string
-        image: string
-      }>
-      saves: Array<{ id: number }>
+      user: Pick<NTable.Users, 'nickname' | 'avatar_url'>
+      reactions: Array<
+        Pick<
+          NTable.Reactions,
+          'id' | 'text' | 'emoji' | 'user_id' | 'userList'
+        > & { user: Pick<NTable.Users, 'nickname'> }
+      >
+      replies: Array<
+        Pick<NTable.Replies, 'id' | 'created_at'> & {
+          user: Pick<NTable.Users, 'avatar_url'>
+        }
+      >
+      opengraphs: Array<
+        Pick<
+          NTable.Opengraphs,
+          'id' | 'title' | 'description' | 'site_name' | 'url' | 'image'
+        >
+      >
+      saves: Array<Pick<NTable.Saves, 'id'>>
     }
   >
 >({
@@ -76,10 +69,22 @@ export const chatListState = atom<
 export const replyListState = atom<
   Array<
     NTable.Replies & {
-      user: NTable.Users
-      reply_reactions: NTable.ReplyReactions[]
-      opengraphs: NTable.Opengraphs[]
-      saves: NTable.Saves[]
+      user: Pick<NTable.Users, 'id' | 'nickname' | 'avatar_url'>
+      reply_reactions: Array<
+        Pick<
+          NTable.ReplyReactions,
+          'id' | 'text' | 'emoji' | 'user_id' | 'userList'
+        > & {
+          user: Pick<NTable.Users, 'nickname'>
+        }
+      >
+      opengraphs: Array<
+        Pick<
+          NTable.Opengraphs,
+          'id' | 'title' | 'description' | 'site_name' | 'url' | 'image'
+        >
+      >
+      saves: Array<Pick<NTable.Saves, 'id'>>
     }
   >
 >({
@@ -93,19 +98,39 @@ export const replyListState = atom<
 export const threadListState = atom<
   Array<
     NTable.Chats & {
-      user: NTable.Users
+      user: Pick<NTable.Users, 'id' | 'nickname' | 'avatar_url'>
       replies: Array<
         NTable.Replies & {
-          user: NTable.Users
-          reply_reactions: NTable.ReplyReactions[]
-          opengraphs: NTable.Opengraphs[]
-          saves: NTable.Saves[]
+          user: Pick<NTable.Users, 'id' | 'avatar_url' | 'nickname'>
+          reply_reactions: Array<
+            Pick<
+              NTable.ReplyReactions,
+              'id' | 'text' | 'emoji' | 'user_id' | 'userList'
+            > & { user: Pick<NTable.Users, 'nickname'> }
+          >
+          opengraphs: Array<
+            Pick<
+              NTable.Opengraphs,
+              'id' | 'title' | 'description' | 'site_name' | 'url' | 'image'
+            >
+          >
+          saves: Array<Pick<NTable.Saves, 'id'>>
         }
       >
-      reactions: Array<NTable.Reactions & { user: NTable.Users }>
-      room: NTable.Rooms
-      opengraphs: NTable.Opengraphs[]
-      saves: NTable.Saves[]
+      reactions: Array<
+        Pick<
+          NTable.Reactions,
+          'id' | 'text' | 'emoji' | 'user_id' | 'userList'
+        > & { user: Pick<NTable.Users, 'nickname'> }
+      >
+      room: Pick<NTable.Rooms, 'id' | 'name'>
+      opengraphs: Array<
+        Pick<
+          NTable.Opengraphs,
+          'id' | 'title' | 'description' | 'site_name' | 'url' | 'image'
+        >
+      >
+      saves: Array<Pick<NTable.Saves, 'id'>>
     }
   >
 >({

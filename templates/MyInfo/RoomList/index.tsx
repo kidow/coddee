@@ -18,7 +18,7 @@ const MyInfoRoomList: FC<Props> = () => {
     name: '',
     list: []
   })
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
 
   const onUploadLogo = (index?: number) => {
     const input = document.createElement('input')

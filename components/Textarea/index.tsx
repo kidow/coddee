@@ -28,7 +28,7 @@ interface State {}
 
 const Textarea: FC<Props> = ({ id, onEnter, ...props }) => {
   const ref = useRef<ReactQuill>()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
 
   const onFocus = useCallback(() => {
     if (!props.value) {

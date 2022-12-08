@@ -49,7 +49,7 @@ const CodeEditorModal: FC<Props> = ({
       languageList: []
     })
   const [user] = useUser()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const { query } = useRouter()
 
   const getLanguages = async () => {
@@ -135,7 +135,8 @@ const CodeEditorModal: FC<Props> = ({
               language: e.target.value,
               ...(e.target.selectedIndex !== 0
                 ? {
-                    codeBlock: languageList[e.target.selectedIndex - 1].template
+                    codeBlock:
+                      languageList[e.target.selectedIndex - 1].template || ''
                   }
                 : {})
             })

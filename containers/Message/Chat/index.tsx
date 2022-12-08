@@ -44,7 +44,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
   })
   const [user] = useUser()
   const { query } = useRouter()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const { onEmojiSelect, onReactionClick, onRegex } = useChatList()
   const [chatList, setChatList] = useRecoilState(chatListState)
 
@@ -215,6 +215,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
     codeBlock: string
     language: string
   }) => {
+    if (typeof query.id !== 'string') return
     const { data, error } = await supabase
       .from('chats')
       .insert({
@@ -223,7 +224,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
         language: chat.modified_language || chat.language,
         modified_code: payload.codeBlock,
         modified_language: payload.language,
-        user_id: user?.id,
+        user_id: user?.id || '',
         room_id: query.id
       })
       .select()
@@ -243,7 +244,10 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
         saves: [],
         replies: [],
         opengraphs: [],
-        user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+        user: {
+          nickname: user?.nickname || '',
+          avatar_url: user?.avatar_url || ''
+        }
       },
       ...chatList
     ])
@@ -274,7 +278,10 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
               <TrashIcon className="h-5 w-5 text-neutral-400" />
             </span>
           ) : chat.user_id !== chatList[chatIndex + 1]?.user_id ? (
-            <Message.Avatar url={chat.user.avatar_url} userId={chat.user_id} />
+            <Message.Avatar
+              url={chat.user.avatar_url || ''}
+              userId={chat.user_id}
+            />
           ) : (
             <span className="invisible mt-[5px] text-2xs text-neutral-400 group-hover:visible">
               {dayjs(chat.created_at).locale('ko').format('H:mm')}
@@ -308,15 +315,18 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
                 onSave={updateChat}
               />
             ) : (
-              <Message content={chat.content} updatedAt={chat.updated_at} />
+              <Message
+                content={chat.content}
+                updatedAt={chat.updated_at || ''}
+              />
             )}
           </div>
           <Message.CodeBlock
-            originalCode={chat.code_block}
-            language={chat.language}
+            originalCode={chat.code_block || ''}
+            language={chat.language || ''}
             onSubmit={createModifiedCodeChat}
-            modifiedCode={chat.modified_code}
-            modifiedLanguage={chat.modified_language}
+            modifiedCode={chat.modified_code || ''}
+            modifiedLanguage={chat.modified_language || ''}
             typingSource="chat"
             username={chat.user.nickname}
             userId={chat.user_id}
@@ -331,7 +341,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
                   userList={item.userList}
                   key={key}
                   onClick={() => onReactionClick(chat, key)}
-                  text={item.text}
+                  text={item.text || ''}
                   emoji={item.emoji}
                 />
               ))}
@@ -359,7 +369,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
                   ].map((url, key) => (
                     <img
                       key={key}
-                      src={url}
+                      src={url || ''}
                       alt=""
                       className="h-6 w-6 rounded"
                     />
@@ -430,8 +440,8 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}
         content={chat.content}
-        codeBlock={chat.code_block}
-        language={chat.language}
+        codeBlock={chat.code_block || ''}
+        language={chat.language || ''}
         onSubmit={updateCodeChat}
         typingSource="reply"
         chatId={chat.id}

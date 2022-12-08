@@ -13,11 +13,13 @@ import * as cheerio from 'cheerio'
 
 export default () => {
   const { query } = useRouter()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const [user] = useUser()
   const [list, setList] = useRecoilState(chatListState)
 
   const onRegex = async (content: string, chatId: number, replyId?: number) => {
+    if (typeof query.id !== 'string') return
+
     const $ = cheerio.load(content)
     const mentions = $('.mention')
     if (mentions.length > 0) {
@@ -25,7 +27,7 @@ export default () => {
         Array.from({ length: mentions.length }, (v, i) =>
           supabase.from('mentions').insert({
             mention_to: mentions[i].attribs['data-id'],
-            mention_from: user?.id,
+            mention_from: user?.id || '',
             chat_id: chatId,
             ...(!!replyId ? { reply_id: replyId } : {})
           })
@@ -62,7 +64,7 @@ export default () => {
                 image: data.image || data['og:image'] || data['twitter:image'],
                 url: data.url || data['og:url'] || data['twitter:domain'],
                 site_name: data['og:site_name'] || '',
-                room_id: query.id,
+                room_id: query.id as string,
                 ...(!!replyId ? { reply_id: replyId } : { chat_id: chatId })
               })
           )
@@ -75,6 +77,8 @@ export default () => {
     emoji: string,
     chatIndex: number
   ) => {
+    if (typeof query.id !== 'string') return
+
     if (!user) {
       toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
       return
@@ -120,6 +124,7 @@ export default () => {
                   ...chat.reactions,
                   {
                     ...data,
+                    user: { nickname: user.nickname },
                     userList: [
                       {
                         id: user.id,
@@ -180,6 +185,7 @@ export default () => {
                     ...chat.reactions,
                     {
                       ...data,
+                      user: { nickname: user.nickname },
                       userList: [
                         {
                           id: user.id,

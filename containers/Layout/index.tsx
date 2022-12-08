@@ -65,7 +65,7 @@ const Layout: FC<Props> = ({ children }) => {
   })
   const [user] = useUser()
   const { query, pathname, replace, push } = useRouter()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const [languageList, setLanguageList] = useRecoilState(languageListState)
   const auth = useAuth()
 
@@ -275,9 +275,9 @@ const Layout: FC<Props> = ({ children }) => {
             return
           }
 
-          new Notification(userData?.nickname, {
-            body: cheerio.getText(chatData?.content),
-            icon: userData?.avatar_url
+          new Notification(userData?.nickname || '', {
+            body: cheerio.getText(chatData?.content || ''),
+            icon: userData?.avatar_url || ''
           })
 
           if (pathname !== '/mentions' && payload.new.mention_from !== user?.id)
@@ -315,7 +315,7 @@ const Layout: FC<Props> = ({ children }) => {
               {user ? (
                 <button onClick={() => setState({ isMyInfoOpen: true })}>
                   <img
-                    src={user.avatar_url}
+                    src={user.avatar_url || ''}
                     alt=""
                     className="h-8 w-8 rounded-full"
                   />

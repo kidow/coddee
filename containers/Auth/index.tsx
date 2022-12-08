@@ -19,7 +19,7 @@ interface State {}
 const Auth: FC<Props> = ({ children }) => {
   const [user, setUser] = useUser()
   const auth = useAuth()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const setPresenceList = useSetRecoilState(presenceListState)
 
   const get = async () => {
@@ -58,7 +58,7 @@ const Auth: FC<Props> = ({ children }) => {
           id: auth.id,
           avatar_url: auth.user_metadata.avatar_url,
           nickname: auth.user_metadata.user_name,
-          email: auth.email
+          email: auth.email || ''
         })
         .select()
         .single()

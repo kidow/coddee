@@ -35,7 +35,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
       isCodeEditorOpen: false
     })
   const [user] = useUser()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const [list, setList] = useRecoilState(threadListState)
   const { onRegex } = useChatList()
 
@@ -205,6 +205,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
                   ...chat.reactions,
                   {
                     ...data,
+                    user: { nickname: user.nickname },
                     userList: [
                       {
                         id: user.id,
@@ -264,6 +265,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
                     ...chat.reactions,
                     {
                       ...data,
+                      user: { nickname: user.nickname },
                       userList: [
                         {
                           id: user.id,
@@ -375,10 +377,18 @@ const ThreadChat: FC<Props> = ({ index }) => {
         language: chat.modified_language || chat.language,
         modified_code: payload.codeBlock,
         modified_language: payload.language,
-        user_id: user?.id,
+        user_id: user?.id || '',
         room_id: chat.room_id
       })
-      .select()
+      .select(
+        `
+        *,
+        room:room_id (
+          id,
+          name
+        )
+      `
+      )
       .single()
     backdrop(false)
     if (error) {
@@ -395,7 +405,17 @@ const ThreadChat: FC<Props> = ({ index }) => {
         saves: [],
         replies: [],
         opengraphs: [],
-        user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+        user: {
+          id: user?.id || '',
+          nickname: user?.nickname || '',
+          avatar_url: user?.avatar_url || ''
+        },
+        room: {
+          // @ts-ignore
+          id: data.room.id,
+          // @ts-ignore
+          name: data.room.name
+        }
       },
       ...list
     ])
@@ -406,9 +426,9 @@ const ThreadChat: FC<Props> = ({ index }) => {
     <>
       <div className="group relative flex gap-3 py-1 px-4 hover:bg-neutral-50 dark:hover:bg-neutral-700">
         <Message.Avatar
-          url={chat.user.avatar_url}
+          url={chat.user.avatar_url || ''}
           userId={chat.user.id}
-          deletedAt={chat.deleted_at}
+          deletedAt={chat.deleted_at || ''}
         />
         {!!chat.deleted_at ? (
           <div className="mt-0.5 flex h-9 items-center text-sm text-neutral-400">
@@ -436,15 +456,18 @@ const ThreadChat: FC<Props> = ({ index }) => {
                   className="max-w-[684px]"
                 />
               ) : (
-                <Message content={chat.content} updatedAt={chat.updated_at} />
+                <Message
+                  content={chat.content}
+                  updatedAt={chat.updated_at || ''}
+                />
               )}
             </div>
             <Message.CodeBlock
-              originalCode={chat.code_block}
-              language={chat.language}
+              originalCode={chat.code_block || ''}
+              language={chat.language || ''}
               onSubmit={createModifiedCodeChat}
-              modifiedCode={chat.modified_code}
-              modifiedLanguage={chat.modified_language}
+              modifiedCode={chat.modified_code || ''}
+              modifiedLanguage={chat.modified_language || ''}
               typingSource="reply"
               chatId={chat.id}
               username={chat.user.nickname}
@@ -460,7 +483,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
                     userList={item.userList}
                     key={key}
                     onClick={() => onReactionClick(key)}
-                    text={item.text}
+                    text={item.text || ''}
                     emoji={item.emoji}
                   />
                 ))}
@@ -493,8 +516,8 @@ const ThreadChat: FC<Props> = ({ index }) => {
         isOpen={isCodeEditorOpen}
         onClose={() => setState({ isCodeEditorOpen: false })}
         content={chat.content}
-        codeBlock={chat.code_block}
-        language={chat.language}
+        codeBlock={chat.code_block || ''}
+        language={chat.language || ''}
         onSubmit={updateCodeChat}
         typingSource="reply"
         chatId={chat.id}
