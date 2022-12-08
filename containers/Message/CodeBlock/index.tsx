@@ -65,7 +65,7 @@ const MessageCodeBlock: FC<Props> = ({
     language: ''
   })
   const [user] = useUser()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const languageList = useRecoilValue(languageListState)
   const { query } = useRouter()
   const id = useId()

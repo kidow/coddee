@@ -7,13 +7,13 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 export interface Props {}
 interface State {
-  list: Array<NTable.Chats & { room: { name: string } }>
+  list: Array<NTable.Chats & { room: Pick<NTable.Rooms, 'name'> }>
 }
 
 const MyInfoHistory: FC<Props> = () => {
   const [{ list }, setState] = useObjectState<State>({ list: [] })
   const [user] = useUser()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
 
   const get = async () => {
     const { data, error } = await supabase
@@ -31,6 +31,7 @@ const MyInfoHistory: FC<Props> = () => {
       captureException(error, user)
       return
     }
+    // @ts-ignore
     setState({ list: data || [] })
   }
 

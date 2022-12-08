@@ -41,7 +41,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       isSubmitting: false,
       spamCount: 0
     })
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const [user] = useUser()
   const { onRegex } = useChatList()
   const [chatList, setChatList] = useRecoilState(chatListState)
@@ -232,7 +232,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     const { data, error } = await supabase
       .from('replies')
       .insert({
-        user_id: user?.id,
+        user_id: user?.id || '',
         chat_id: chat.id,
         content: payload.content,
         code_block: payload.codeBlock,
@@ -254,7 +254,11 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
         reply_reactions: [],
         saves: [],
         opengraphs: [],
-        user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+        user: {
+          id: user?.id || '',
+          nickname: user?.nickname || '',
+          avatar_url: user?.avatar_url || ''
+        }
       }
     ])
     setChatList([

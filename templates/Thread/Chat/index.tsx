@@ -35,7 +35,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
       isCodeEditorOpen: false
     })
   const [user] = useUser()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const [list, setList] = useRecoilState(threadListState)
   const { onRegex } = useChatList()
 
@@ -205,6 +205,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
                   ...chat.reactions,
                   {
                     ...data,
+                    user: { nickname: user.nickname },
                     userList: [
                       {
                         id: user.id,
@@ -264,6 +265,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
                     ...chat.reactions,
                     {
                       ...data,
+                      user: { nickname: user.nickname },
                       userList: [
                         {
                           id: user.id,
@@ -375,10 +377,18 @@ const ThreadChat: FC<Props> = ({ index }) => {
         language: chat.modified_language || chat.language,
         modified_code: payload.codeBlock,
         modified_language: payload.language,
-        user_id: user?.id,
+        user_id: user?.id || '',
         room_id: chat.room_id
       })
-      .select()
+      .select(
+        `
+        *,
+        room:room_id (
+          id,
+          name
+        )
+      `
+      )
       .single()
     backdrop(false)
     if (error) {
@@ -395,7 +405,17 @@ const ThreadChat: FC<Props> = ({ index }) => {
         saves: [],
         replies: [],
         opengraphs: [],
-        user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+        user: {
+          id: user?.id || '',
+          nickname: user?.nickname || '',
+          avatar_url: user?.avatar_url || ''
+        },
+        room: {
+          // @ts-ignore
+          id: data.room.id,
+          // @ts-ignore
+          name: data.room.name
+        }
       },
       ...list
     ])

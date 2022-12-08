@@ -49,7 +49,7 @@ const CodeEditorModal: FC<Props> = ({
       languageList: []
     })
   const [user] = useUser()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const { query } = useRouter()
 
   const getLanguages = async () => {

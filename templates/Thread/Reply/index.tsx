@@ -36,7 +36,7 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
       isCodeEditorOpen: false
     })
   const [user] = useUser()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const [list, setList] = useRecoilState(threadListState)
   const { onRegex } = useChatList()
 
@@ -131,6 +131,7 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                       ...reply.reply_reactions,
                       {
                         ...data,
+                        user: { nickname: user.nickname },
                         userList: [
                           {
                             id: user.id,
@@ -251,6 +252,7 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                       ...reply.reply_reactions,
                       {
                         ...data,
+                        user: { nickname: user.nickname },
                         userList: [
                           {
                             id: user.id,
@@ -317,6 +319,7 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                         ...reply.reply_reactions,
                         {
                           ...data,
+                          user: { nickname: user.nickname },
                           userList: [
                             {
                               id: user.id,
@@ -467,7 +470,7 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         modified_code: payload.codeBlock,
         modified_language: payload.language,
         chat_id: reply.chat_id,
-        user_id: user?.id
+        user_id: user?.id || ''
       })
       .select()
       .single()
@@ -490,7 +493,11 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
             reply_reactions: [],
             saves: [],
             opengraphs: [],
-            user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+            user: {
+              id: user?.id || '',
+              nickname: user?.nickname || '',
+              avatar_url: user?.avatar_url || ''
+            }
           }
         ]
       },

@@ -39,7 +39,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
       isCodeEditorOpen: false
     })
   const [user] = useUser()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const [chatList, setChatList] = useRecoilState(chatListState)
   const [replyList, setReplyList] = useRecoilState(replyListState)
   const { onRegex } = useChatList()
@@ -134,7 +134,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
           chat_id: reply.chat_id,
           emoji: reply.reply_reactions[reactionIndex].emoji
         })
-        .select()
+        .select('id, text, emoji, user_id')
         .single()
       if (error) {
         captureException(error, user)
@@ -151,6 +151,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                   ...reply.reply_reactions,
                   {
                     ...data,
+                    user: { nickname: user.nickname },
                     userList: [
                       {
                         id: user.id,
@@ -257,6 +258,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                   ...reply.reply_reactions,
                   {
                     ...data,
+                    user: { nickname: user.id },
                     userList: [
                       {
                         id: user.id,
@@ -317,6 +319,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
                     ...reply.reply_reactions,
                     {
                       ...data,
+                      user: { nickname: user.nickname },
                       userList: [
                         {
                           id: user.id,
@@ -474,7 +477,7 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         language: reply.modified_language || reply.language,
         modified_code: payload.codeBlock,
         modified_language: payload.language,
-        user_id: user?.id,
+        user_id: user?.id || '',
         chat_id: reply.chat_id
       })
       .select()
@@ -494,7 +497,11 @@ const MessageReply: FC<Props> = ({ chatIndex, replyIndex }) => {
         reply_reactions: [],
         saves: [],
         opengraphs: [],
-        user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+        user: {
+          id: user?.id || '',
+          nickname: user?.nickname || '',
+          avatar_url: user?.avatar_url || ''
+        }
       }
     ])
     setChatList([

@@ -66,7 +66,7 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
     repository: 0,
     isLoading: true
   })
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
 
   const get = async () => {
     const { data: user, error } = await supabase
@@ -85,7 +85,7 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       avatarUrl: data.avatar_url || '',
       nickname: user.nickname || '',
       email: user.email,
-      jobCategory: user.job_category,
+      jobCategory: user.job_category || '',
       bio: data.bio || '',
       blogUrl: data.blog || '',
       location: data.location || '',

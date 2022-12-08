@@ -40,7 +40,7 @@ const Thread: FC<Props> = ({ index }) => {
       isMoreOpen: false
     })
   const [user] = useUser()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const { onRegex } = useChatList()
   const [list, setList] = useRecoilState(threadListState)
 
@@ -108,13 +108,21 @@ const Thread: FC<Props> = ({ index }) => {
     const { data, error } = await supabase
       .from('replies')
       .insert({
-        user_id: user?.id,
+        user_id: user?.id || '',
         chat_id: chat.id,
         content: payload.content,
         code_block: payload.codeBlock,
         language: payload.language
       })
-      .select()
+      .select(
+        `
+        *,
+        room:room_id (
+          id,
+          name
+        )
+      `
+      )
       .single()
     backdrop(false)
     if (error) {
@@ -135,7 +143,18 @@ const Thread: FC<Props> = ({ index }) => {
             reply_reactions: [],
             saves: [],
             opengraphs: [],
-            user: { nickname: user?.nickname, avatar_url: user?.avatar_url }
+            user: {
+              id: user?.id || '',
+              nickname: user?.nickname || '',
+              avatar_url: user?.avatar_url || ''
+            },
+            // @ts-ignore
+            room: {
+              // @ts-ignore
+              id: data.room.id,
+              // @ts-ignore
+              name: data.room.name
+            }
           }
         ]
       },

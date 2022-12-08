@@ -16,7 +16,7 @@ const LoginModal: FC<Props> = ({ isOpen, onClose }) => {
     mode: 'terms',
     isContentOpen: false
   })
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
 
   const onLogin = async () => {
     backdrop(true)

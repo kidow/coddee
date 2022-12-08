@@ -38,7 +38,7 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
       isCodeEditorOpen: false
     })
   const [user] = useUser()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const { query } = useRouter()
   const { onEmojiSelect, onReactionClick } = useChatList()
   const [chatList, setChatList] = useRecoilState(chatListState)
@@ -155,13 +155,14 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
     codeBlock: string
     language: string
   }) => {
+    if (typeof query.id !== 'string') return
     const { error } = await supabase.from('chats').insert({
       content: payload.content,
       code_block: chat.modified_code || chat.code_block,
       language: chat.modified_language || chat.language,
       modified_code: payload.codeBlock,
       modified_language: payload.language,
-      user_id: user?.id,
+      user_id: user?.id || '',
       room_id: query.id
     })
     backdrop(false)
@@ -234,7 +235,7 @@ const ThreadDrawerChat: FC<Props> = ({ replyLength, onClose, chatIndex }) => {
                     userList={item.userList}
                     key={item.id}
                     onClick={() => onReactionClick(chat, key)}
-                    text={item.text}
+                    text={item.text || ''}
                     emoji={item.emoji}
                     position={key === 0 ? 'right' : undefined}
                   />

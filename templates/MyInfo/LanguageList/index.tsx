@@ -23,7 +23,7 @@ const MyInfoLanguageList: FC<Props> = () => {
       template: '',
       langaugeList: []
     })
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
 
   const get = async () => {
     const { data } = await supabase

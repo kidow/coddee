@@ -29,7 +29,7 @@ const ThreadsPage: NextPage = () => {
   })
   const [user] = useUser()
   const [ref, isIntersecting] = useIntersectionObserver<HTMLDivElement>()
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const [list, setList] = useRecoilState(threadListState)
 
   const get = async (page: number = 1) => {

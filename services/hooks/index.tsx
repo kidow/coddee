@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { ChangeEvent, RefObject, ForwardedRef } from 'react'
+import type { ChangeEvent, RefObject } from 'react'
 import { EventListener, themeState, userState } from 'services'
 import { useRecoilState } from 'recoil'
 import type { SetterOrUpdater } from 'recoil'
