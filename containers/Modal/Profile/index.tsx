@@ -1,7 +1,7 @@
 import { Fragment, useEffect } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
-import { captureException, useObjectState } from 'services'
+import { captureException, toast, useObjectState } from 'services'
 import { Divider, Form } from 'components'
 import {
   ArrowTopRightOnSquareIcon,
@@ -12,6 +12,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 export interface Props extends ModalProps {
   userId: string
@@ -180,9 +181,12 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
             {isLoading ? (
               <div role="status" className="skeleton h-4 w-48 rounded-full" />
             ) : (
-              <a href={blogUrl} target="_blank" className="hover:underline">
-                {blogUrl}
-              </a>
+              <CopyToClipboard
+                text={blogUrl}
+                onCopy={() => toast.success('복사되었습니다.')}
+              >
+                <span className="cursor-pointer">{blogUrl}</span>
+              </CopyToClipboard>
             )}
           </Form.Item>
           <div className="pt-2">
