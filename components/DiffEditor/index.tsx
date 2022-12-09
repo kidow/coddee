@@ -26,7 +26,9 @@ const MonacoDiffEditor: FC<Props> = ({ ...props }) => {
         },
         fontSize: 14,
         minimap: { enabled: false },
-        wordWrap: 'on'
+        wordWrap: 'on',
+        overviewRulerLanes: 0,
+        renderOverviewRuler: false
       }}
       loading=""
       beforeMount={beforeMount}

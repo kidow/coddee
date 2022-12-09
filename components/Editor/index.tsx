@@ -29,7 +29,8 @@ const Editor: FC<Props> = ({ ...props }) => {
           vertical: 'hidden',
           alwaysConsumeMouseWheel: false
         },
-        tabSize: 4
+        tabSize: 4,
+        overviewRulerLanes: 0
       }}
     />
   )
