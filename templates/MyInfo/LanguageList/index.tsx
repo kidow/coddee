@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import type { FC } from 'react'
 import { Button, Input, Editor } from 'components'
 import { backdrop, useObjectState } from 'services'
@@ -74,6 +74,11 @@ const MyInfoLanguageList: FC<Props> = () => {
     }
   }
 
+  const onTemplateChange = useCallback(
+    (template?: string) => setState({ template }),
+    [template]
+  )
+
   useEffect(() => {
     get()
   }, [])
@@ -133,7 +138,7 @@ const MyInfoLanguageList: FC<Props> = () => {
           value={template}
           language={language}
           className="text-lg"
-          onChange={(template) => setState({ template })}
+          onChange={onTemplateChange}
         />
       </div>
       <ul className="space-y-4">

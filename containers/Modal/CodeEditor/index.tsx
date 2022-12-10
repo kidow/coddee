@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import type { FC } from 'react'
 import type { OnChange } from '@monaco-editor/react'
 import { Modal } from 'containers'
@@ -108,10 +108,13 @@ const CodeEditorModal: FC<Props> = ({
     }
   }
 
-  const onEditorChange: OnChange = async (codeBlock) => {
-    setState({ codeBlock })
-    onTyping()
-  }
+  const onEditorChange: OnChange = useCallback(
+    async (codeBlock) => {
+      setState({ codeBlock })
+      onTyping()
+    },
+    [codeBlock]
+  )
 
   useEffect(() => {
     getLanguages()

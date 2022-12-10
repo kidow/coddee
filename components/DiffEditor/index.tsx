@@ -1,19 +1,30 @@
+import { memo, useCallback } from 'react'
 import type { FC } from 'react'
 import { DiffEditor } from '@monaco-editor/react'
 import type { DiffEditorProps } from '@monaco-editor/react'
 import { registerSvelte, registerVue, useTheme } from 'services'
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
 
-export interface Props extends DiffEditorProps {}
+export interface Props
+  extends Pick<
+    DiffEditorProps,
+    | 'original'
+    | 'modified'
+    | 'originalLanguage'
+    | 'modifiedLanguage'
+    | 'options'
+    | 'onMount'
+    | 'height'
+  > {}
 interface State {}
 
 const MonacoDiffEditor: FC<Props> = ({ ...props }) => {
   const theme = useTheme()
 
-  const beforeMount = (monaco: typeof Monaco) => {
+  const beforeMount = useCallback((monaco: typeof Monaco) => {
     registerVue(monaco)
     registerSvelte(monaco)
-  }
+  }, [])
   return (
     <DiffEditor
       {...props}
@@ -36,4 +47,4 @@ const MonacoDiffEditor: FC<Props> = ({ ...props }) => {
   )
 }
 
-export default MonacoDiffEditor
+export default memo(MonacoDiffEditor)
