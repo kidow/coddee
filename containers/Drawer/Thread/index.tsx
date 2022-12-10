@@ -645,7 +645,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
                 onClick={() => createReply()}
               >
                 {isSubmitting ? (
-                  <Spinner className="h-5 w-5 text-neutral-500" />
+                  <Spinner className="h-5 w-5 stroke-neutral-500" />
                 ) : (
                   <ArrowSmallUpIcon
                     className={classnames(

@@ -398,7 +398,7 @@ const MentionsPage: NextPage = () => {
                 !!list.length ? 'h-12' : 'h-full'
               )}
             >
-              <Spinner className="h-8 w-8 text-neutral-300 dark:text-neutral-400" />
+              <Spinner className="h-8 w-8 stroke-neutral-300 dark:stroke-neutral-400" />
             </div>
           )}
           <div ref={ref} />

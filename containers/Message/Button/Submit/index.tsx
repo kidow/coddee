@@ -18,7 +18,7 @@ const MessageSubmitButton: FC<Props> = ({ onClick, disabled, loading }) => {
       disabled={disabled}
     >
       {loading ? (
-        <Spinner className="h-5 w-5 text-neutral-50" />
+        <Spinner className="h-5 w-5 stroke-neutral-50" />
       ) : (
         <ArrowSmallUpIcon className="h-5 w-5 text-neutral-50" />
       )}
