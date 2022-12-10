@@ -379,7 +379,7 @@ const SavedPage: NextPage = () => {
                   }
                   userId={item.user_id}
                 />
-                <div className="text-sm">
+                <div className="flex-1 text-sm">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">
                       {item.chat?.user.nickname || item.reply?.user.nickname}

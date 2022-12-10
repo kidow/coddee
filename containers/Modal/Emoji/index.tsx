@@ -1,14 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
-import {
-  EMOJI_TOOLBAR,
-  EventListener,
-  toast,
-  TOAST_MESSAGE,
-  useObjectState,
-  useUser
-} from 'services'
+import { EMOJI_TOOLBAR, EventListener, useObjectState } from 'services'
 import Fuse from 'fuse.js'
 import EmojiButton from './Button'
 
@@ -34,12 +27,6 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
       text: '',
       emoji: ''
     })
-  const [user] = useUser()
-
-  const onEmojiClick = (text: string, emoji: string) => {
-    if (!user) toast.info(TOAST_MESSAGE.LOGIN_REQUIRED)
-    else onSelect(text, emoji)
-  }
 
   const people: Emoji[] = useMemo(
     () => [
@@ -1398,15 +1385,16 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
   )
 
   useEffect(() => {
+    if (!isOpen) return
     EventListener.add('modal:emoji', onClose)
     return () => EventListener.remove('modal:emoji', onClose)
-  }, [])
+  }, [isOpen])
 
   useEffect(() => {
-    if (!search) return
+    if (!search || !isOpen) return
     if (!!searchList.length)
       setState({ text: searchList[0].text, emoji: searchList[0].emoji })
-  }, [search])
+  }, [search, isOpen])
   if (!isOpen) return null
   return (
     <Modal
@@ -1448,18 +1436,17 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
         <div className="px-3 py-1 text-sm font-semibold">
           {!!search ? '검색 결과' : EMOJI_TOOLBAR[tab]}
         </div>
-        <div
-          className="grid max-h-72 grid-cols-10 gap-1 overflow-y-auto overscroll-contain bg-white px-2 dark:bg-neutral-800"
-          onMouseOut={() => setState({ text: '', emoji: '' })}
-        >
+        <div className="z-[1] grid max-h-72 grid-cols-10 gap-1 overflow-y-auto overscroll-contain bg-white px-2 dark:bg-neutral-800">
           {!!search ? (
             searchList.map((item, key) => (
               <EmojiButton
                 key={key}
                 text={item.text}
                 emoji={item.emoji}
-                onClick={onEmojiClick}
-                onMouseEnter={() => setState({ text, emoji })}
+                onClick={() => onSelect(item.text, item.emoji)}
+                onMouseEnter={() =>
+                  setState({ text: item.text, emoji: item.emoji })
+                }
               />
             ))
           ) : (
@@ -1470,8 +1457,10 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     key={key}
                     text={item.text}
                     emoji={item.emoji}
-                    onClick={onEmojiClick}
-                    onMouseEnter={() => setState({ text, emoji })}
+                    onClick={() => onSelect(item.text, item.emoji)}
+                    onMouseEnter={() =>
+                      setState({ text: item.text, emoji: item.emoji })
+                    }
                   />
                 ))}
               {tab === 'nature' &&
@@ -1480,8 +1469,10 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     key={key}
                     text={item.text}
                     emoji={item.emoji}
-                    onClick={onEmojiClick}
-                    onMouseEnter={() => setState({ text, emoji })}
+                    onClick={() => onSelect(item.text, item.emoji)}
+                    onMouseEnter={() =>
+                      setState({ text: item.text, emoji: item.emoji })
+                    }
                   />
                 ))}
               {tab === 'food' &&
@@ -1490,8 +1481,10 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     key={key}
                     text={item.text}
                     emoji={item.emoji}
-                    onClick={onEmojiClick}
-                    onMouseEnter={() => setState({ text, emoji })}
+                    onClick={() => onSelect(item.text, item.emoji)}
+                    onMouseEnter={() =>
+                      setState({ text: item.text, emoji: item.emoji })
+                    }
                   />
                 ))}
               {tab === 'symbols' &&
@@ -1500,8 +1493,10 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     key={key}
                     text={item.text}
                     emoji={item.emoji}
-                    onClick={onEmojiClick}
-                    onMouseEnter={() => setState({ text, emoji })}
+                    onClick={() => onSelect(item.text, item.emoji)}
+                    onMouseEnter={() =>
+                      setState({ text: item.text, emoji: item.emoji })
+                    }
                   />
                 ))}
               {tab === 'activity' &&
@@ -1510,8 +1505,10 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     key={key}
                     text={item.text}
                     emoji={item.emoji}
-                    onClick={onEmojiClick}
-                    onMouseEnter={() => setState({ text, emoji })}
+                    onClick={() => onSelect(item.text, item.emoji)}
+                    onMouseEnter={() =>
+                      setState({ text: item.text, emoji: item.emoji })
+                    }
                   />
                 ))}
               {tab === 'travel' &&
@@ -1520,8 +1517,10 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     key={key}
                     text={item.text}
                     emoji={item.emoji}
-                    onClick={onEmojiClick}
-                    onMouseEnter={() => setState({ text, emoji })}
+                    onClick={() => onSelect(item.text, item.emoji)}
+                    onMouseEnter={() =>
+                      setState({ text: item.text, emoji: item.emoji })
+                    }
                   />
                 ))}
               {tab === 'objects' &&
@@ -1530,8 +1529,10 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     key={key}
                     text={item.text}
                     emoji={item.emoji}
-                    onClick={onEmojiClick}
-                    onMouseEnter={() => setState({ text, emoji })}
+                    onClick={() => onSelect(item.text, item.emoji)}
+                    onMouseEnter={() =>
+                      setState({ text: item.text, emoji: item.emoji })
+                    }
                   />
                 ))}
               {tab === 'flags' &&
@@ -1540,8 +1541,10 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
                     key={key}
                     text={item.text}
                     emoji={item.emoji}
-                    onClick={onEmojiClick}
-                    onMouseEnter={() => setState({ text, emoji })}
+                    onClick={() => onSelect(item.text, item.emoji)}
+                    onMouseEnter={() =>
+                      setState({ text: item.text, emoji: item.emoji })
+                    }
                   />
                 ))}
             </>
@@ -1551,17 +1554,16 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
           <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-400">
             간편한 반응
           </span>
-          <div
-            className="flex items-center gap-1"
-            onMouseOut={() => setState({ text: '', emoji: '' })}
-          >
+          <div className="flex items-center gap-1">
             {handy.map((item, key) => (
               <EmojiButton
                 key={key}
                 text={item.text}
                 emoji={item.emoji}
-                onClick={onEmojiClick}
-                onMouseEnter={() => setState({ text, emoji })}
+                onClick={() => onSelect(item.text, item.emoji)}
+                onMouseEnter={() =>
+                  setState({ text: item.text, emoji: item.emoji })
+                }
               />
             ))}
           </div>

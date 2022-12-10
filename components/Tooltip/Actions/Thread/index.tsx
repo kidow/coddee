@@ -1,5 +1,6 @@
 import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/solid'
 import { Tooltip } from 'components'
+import { memo } from 'react'
 import type { FC } from 'react'
 
 export interface Props {
@@ -20,4 +21,4 @@ const ThreadTooltipAction: FC<Props> = ({ onClick }) => {
   )
 }
 
-export default ThreadTooltipAction
+export default memo(ThreadTooltipAction)

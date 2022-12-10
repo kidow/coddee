@@ -4,14 +4,13 @@ import classnames from 'classnames'
 export interface Props extends ReactProps {
   label?: string
   required?: boolean
-  icon?: any
+  Icon?: any
 }
 interface State {}
 
-const FormItem: FC<Props> = ({ label, children, required, icon }) => {
-  const Icon = icon || null
+const FormItem: FC<Props> = ({ label, children, required, Icon }) => {
   return (
-    <div className={classnames({ 'flex items-center gap-2': !!icon })}>
+    <div className={classnames({ 'flex items-center gap-2': !!Icon })}>
       {!!Icon && <Icon className="h-5 w-5 text-neutral-500" />}
       {!!label && (
         <span
@@ -23,7 +22,7 @@ const FormItem: FC<Props> = ({ label, children, required, icon }) => {
           {label}
         </span>
       )}
-      <div className={classnames({ 'mt-1': !icon })}>{children}</div>
+      <div className={classnames({ 'mt-1': !Icon })}>{children}</div>
     </div>
   )
 }

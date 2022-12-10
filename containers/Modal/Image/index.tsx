@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { memo, useCallback, useEffect } from 'react'
 import type { FC } from 'react'
 import dynamic from 'next/dynamic'
 import { createPortal } from 'react-dom'
@@ -11,7 +11,7 @@ interface State {
   url: string
 }
 
-const ImageModal: FC<Props> = () => {
+const ImageModal: FC<Props> = memo(() => {
   const [{ isOpen, url }, setState] = useObjectState<State>({
     isOpen: false,
     url: ''
@@ -23,12 +23,12 @@ const ImageModal: FC<Props> = () => {
     [isOpen]
   )
 
-  const onEscape = (e: KeyboardEvent) => {
+  const onEscape = useCallback((e: KeyboardEvent) => {
     if (e.code === 'Escape') {
       setState({ isOpen: false })
       window.removeEventListener('keydown', onEscape)
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (!isOpen) return
@@ -77,7 +77,7 @@ const ImageModal: FC<Props> = () => {
     </div>,
     document.body
   )
-}
+})
 
 export default dynamic(() => Promise.resolve(() => <ImageModal />), {
   ssr: false

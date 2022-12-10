@@ -274,7 +274,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
                   </div>
                 </div>
                 <section className="space-y-1.5 p-6 pt-20">
-                  <Form.Item icon={BuildingOffice2Icon}>
+                  <Form.Item Icon={BuildingOffice2Icon}>
                     {isLoading ? (
                       <div
                         role="status"
@@ -284,7 +284,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
                       <span>{company}</span>
                     )}
                   </Form.Item>
-                  <Form.Item icon={MapPinIcon}>
+                  <Form.Item Icon={MapPinIcon}>
                     {isLoading ? (
                       <div
                         role="status"
@@ -294,7 +294,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
                       <span>{location}</span>
                     )}
                   </Form.Item>
-                  <Form.Item icon={EnvelopeIcon}>
+                  <Form.Item Icon={EnvelopeIcon}>
                     {isLoading ? (
                       <div
                         role="status"
@@ -304,7 +304,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
                       <span>{email}</span>
                     )}
                   </Form.Item>
-                  <Form.Item icon={LinkIcon}>
+                  <Form.Item Icon={LinkIcon}>
                     {isLoading ? (
                       <div
                         role="status"

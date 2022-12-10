@@ -1,8 +1,8 @@
 import { BookmarkIcon } from '@heroicons/react/24/solid'
 import { Tooltip } from 'components'
+import { memo } from 'react'
 import type { FC } from 'react'
 import classnames from 'classnames'
-import { useTheme } from 'services'
 
 export interface Props {
   onClick: () => void
@@ -11,7 +11,6 @@ export interface Props {
 interface State {}
 
 const SaveTooltipAction: FC<Props> = ({ onClick, isSaved }) => {
-  const theme = useTheme()
   return (
     <Tooltip content={isSaved ? '저장 취소' : '저장'}>
       <button
@@ -29,4 +28,4 @@ const SaveTooltipAction: FC<Props> = ({ onClick, isSaved }) => {
   )
 }
 
-export default SaveTooltipAction
+export default memo(SaveTooltipAction)

@@ -1,5 +1,5 @@
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import type { FC, ReactNode } from 'react'
 import { useObjectState } from 'services'
 import classnames from 'classnames'
@@ -57,4 +57,7 @@ const Form: FC<Props> = ({ title, description, children }) => {
   )
 }
 
-export default Object.assign(Form, { Item: FormItem })
+export default Object.assign(
+  memo(Form, (prev, next) => prev.title === next.title),
+  { Item: FormItem }
+)

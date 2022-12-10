@@ -2,7 +2,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import { TrashIcon } from '@heroicons/react/24/solid'
 import { Tooltip, Button, Spinner } from 'components'
 import { Modal } from 'containers'
-import { useEffect } from 'react'
+import { memo, useEffect } from 'react'
 import type { FC } from 'react'
 import { EventListener, useObjectState } from 'services'
 
@@ -89,4 +89,4 @@ const DeleteTooltipAction: FC<Props> = ({ onClick, position }) => {
   )
 }
 
-export default DeleteTooltipAction
+export default memo(DeleteTooltipAction)

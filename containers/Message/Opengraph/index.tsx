@@ -59,6 +59,7 @@ const ChatOpengraph: FC<Props> = ({ title, description, url, image }) => {
         <img
           src={image || ''}
           alt=""
+          draggable={false}
           className={classnames('max-w-xs cursor-zoom-in rounded-lg', {
             'h-20 w-20': isStretched
           })}

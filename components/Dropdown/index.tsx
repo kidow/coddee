@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import type { FC, ReactNode } from 'react'
 import classnames from 'classnames'
 import type { Argument } from 'classnames'
@@ -15,7 +15,7 @@ const Dropdown: FC<Props> = ({ label, children, className }) => {
   return (
     <button
       className={classnames(
-        'relative bottom-0 top-auto right-0 origin-top duration-200 ease-in-out [&>ul]:focus-within:visible [&>ul]:focus-within:opacity-100',
+        'relative bottom-0 top-auto right-0 origin-top duration-200 ease-in-out [&>ul]:focus-within:block [&>ul]:focus-within:opacity-100',
         className
       )}
       onClick={(e) => {
@@ -31,7 +31,7 @@ const Dropdown: FC<Props> = ({ label, children, className }) => {
       <ul
         tabIndex={0}
         ref={ref}
-        className="invisible absolute bottom-auto top-6 right-0 z-50 w-40 origin-top rounded-lg border bg-white p-1 text-sm opacity-0 dark:border-black dark:bg-black"
+        className="absolute bottom-auto top-6 right-0 z-50 hidden w-40 origin-top rounded-lg border bg-white p-1 text-sm opacity-0 dark:border-black dark:bg-black"
       >
         {children}
       </ul>
@@ -39,4 +39,7 @@ const Dropdown: FC<Props> = ({ label, children, className }) => {
   )
 }
 
-export default Dropdown
+export default memo(
+  Dropdown,
+  (prev, next) => prev.label === next.label && prev.className === next.className
+)

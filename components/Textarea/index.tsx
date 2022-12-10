@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import type { FC } from 'react'
 import dynamic from 'next/dynamic'
 import type { ReactQuillProps } from 'react-quill'
@@ -46,13 +46,16 @@ const Textarea: FC<Props> = ({ id, onEnter, ...props }) => {
     selection.addRange(range)
   }, [ref])
 
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (!e.shiftKey && e.keyCode === 13) {
-      if (typeof props.value === 'string' && onEnter) onEnter(props.value)
-    } else if (props.onKeyDown) props.onKeyDown()
-  }
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!e.shiftKey && e.keyCode === 13) {
+        if (typeof props.value === 'string' && onEnter) onEnter(props.value)
+      } else if (props.onKeyDown) props.onKeyDown()
+    },
+    [props.value, props.onKeyDown]
+  )
 
-  const onInsertItem = ({ detail }: any) => {
+  const onInsertItem = useCallback(({ detail }: any) => {
     if (!ref.current) return
     ref.current.editor
       ?.getModule('mention')
@@ -60,7 +63,7 @@ const Textarea: FC<Props> = ({ id, onEnter, ...props }) => {
         { denotationChar: '@', id: detail?.userId, value: detail?.username },
         true
       )
-  }
+  }, [])
 
   const modules: StringMap = useMemo(
     () => ({
@@ -191,4 +194,4 @@ Textarea.defaultProps = {
   placeholder: '서로 존중하는 매너를 보여주세요.'
 }
 
-export default Textarea
+export default memo(Textarea)
