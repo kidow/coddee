@@ -34,7 +34,6 @@ interface State {
 }
 
 const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
-  if (!isOpen) return null
   const [
     {
       avatarUrl,
@@ -100,8 +99,10 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
   }
 
   useEffect(() => {
+    if (!isOpen) return
     get()
-  }, [])
+  }, [isOpen])
+  if (!isOpen) return null
   return (
     <Modal isOpen={isOpen} onClose={onClose} padding={false}>
       <div className="relative h-16 bg-neutral-800 dark:bg-black">

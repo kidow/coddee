@@ -272,12 +272,11 @@ const RoomIdPage: NextPage = () => {
       ...list
     ])
     onRegex(v, data.id)
-    setState({ content: '' }, () =>
-      setTimeout(() => {
-        window.scrollTo(0, document.body.scrollHeight)
-        EventListener.emit(`quill:focus:${id}`)
-      }, 100)
-    )
+    setState({ content: '' })
+    setTimeout(() => {
+      window.scrollTo(0, document.body.scrollHeight)
+      EventListener.emit(`quill:focus:${id}`)
+    }, 200)
   }
 
   const createCodeChat = async (payload: {
@@ -318,12 +317,11 @@ const RoomIdPage: NextPage = () => {
       },
       ...list
     ])
-    setState({ isCodeEditorOpen: false, content: '' }, () =>
-      setTimeout(() => {
-        window.scrollTo(0, document.body.scrollHeight)
-        EventListener.emit(`quill:focus:${id}`)
-      }, 100)
-    )
+    setState({ isCodeEditorOpen: false, content: '' })
+    setTimeout(() => {
+      window.scrollTo(0, document.body.scrollHeight)
+      EventListener.emit(`quill:focus:${id}`)
+    }, 200)
   }
 
   const onEnter = async (value: string) => {

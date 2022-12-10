@@ -27,7 +27,6 @@ interface State {
 }
 
 const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
-  if (!isOpen) return null
   const [{ tab, search, text, emoji }, setState, onChange] =
     useObjectState<State>({
       tab: 'people',
@@ -1408,6 +1407,7 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
     if (!!searchList.length)
       setState({ text: searchList[0].text, emoji: searchList[0].emoji })
   }, [search])
+  if (!isOpen) return null
   return (
     <Modal
       maxWidth="max-w-xs"

@@ -27,6 +27,7 @@ const Typing: FC<Props> = ({ source, chatId }) => {
       )
     } else return typingChatList.filter(({ userId }) => userId !== user?.id)
   }, [typingChatList, typingReplyList, source, query.id, user])
+
   if (!list.length) return null
   return (
     <div className="text-xs text-neutral-600 dark:text-neutral-400">

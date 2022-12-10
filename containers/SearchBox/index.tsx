@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo } from 'react'
+import { memo, useCallback, useEffect, useMemo } from 'react'
 import type { FC, ChangeEvent } from 'react'
 import {
   captureException,
@@ -52,41 +52,45 @@ const SearchBox: FC<Props> = () => {
   const [user] = useUser()
   const { push } = useRouter()
 
-  const onListener = () => {
+  const onListener = useCallback(() => {
     if (isOpen) return
     setState({ isOpen: true })
-  }
+  }, [isOpen])
 
-  const onKeyDown = (e: globalThis.KeyboardEvent) => {
-    if (e.metaKey && e.code === 'KeyK') {
-      e.preventDefault()
-      if (
-        !document.getElementById('modal') &&
-        !document.getElementById('drawer')
-      )
-        setState({ isOpen: true })
-    }
-    if (isOpen && e.key === 'Escape') resetState()
-  }
+  const onKeyDown = useCallback(
+    (e: globalThis.KeyboardEvent) => {
+      if (e.metaKey && e.code === 'KeyK') {
+        e.preventDefault()
+        if (
+          !document.getElementById('modal') &&
+          !document.getElementById('drawer')
+        )
+          setState({ isOpen: true })
+      }
+      if (isOpen && e.key === 'Escape') resetState()
+    },
+    [isOpen]
+  )
 
-  const onSearch = async (e: ChangeEvent<HTMLInputElement>) => {
-    setState({ search: e.target.value })
-    if (!e.target.value) {
-      setState({ roomList: [], chatList: [], replyList: [] })
-      return
-    }
-    setState({ isLoading: true })
-    const [rooms, chats, replies] = await Promise.all([
-      supabase
-        .from('rooms')
-        .select('id, name, logo_url')
-        .like('name', `%${e.target.value}%`)
-        .order('name', { ascending: true })
-        .limit(3),
-      supabase
-        .from('chats')
-        .select(
-          `
+  const onSearch = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>) => {
+      setState({ search: e.target.value })
+      if (!e.target.value) {
+        setState({ roomList: [], chatList: [], replyList: [] })
+        return
+      }
+      setState({ isLoading: true })
+      const [rooms, chats, replies] = await Promise.all([
+        supabase
+          .from('rooms')
+          .select('id, name, logo_url')
+          .like('name', `%${e.target.value}%`)
+          .order('name', { ascending: true })
+          .limit(3),
+        supabase
+          .from('chats')
+          .select(
+            `
         id,
         content,
         room_id,
@@ -99,13 +103,13 @@ const SearchBox: FC<Props> = () => {
           logo_url
         )
       `
-        )
-        .like('content', `%${e.target.value}%`)
-        .limit(3),
-      supabase
-        .from('replies')
-        .select(
-          `
+          )
+          .like('content', `%${e.target.value}%`)
+          .limit(3),
+        supabase
+          .from('replies')
+          .select(
+            `
           id,
           content,
           room_id,
@@ -119,21 +123,23 @@ const SearchBox: FC<Props> = () => {
             logo_url
           )
       `
-        )
-        .like('content', `%${e.target.value}%`)
-        .not('room_id', 'is', null)
-        .limit(3)
-    ])
+          )
+          .like('content', `%${e.target.value}%`)
+          .not('room_id', 'is', null)
+          .limit(3)
+      ])
 
-    let state: Partial<State> = { isLoading: false }
-    if (rooms.error) captureException(rooms.error, user)
-    else state.roomList = rooms.data as any[]
-    if (chats.error) captureException(chats.error, user)
-    else state.chatList = chats.data as any[]
-    if (replies.error) captureException(replies.error, user)
-    else state.replyList = replies.data as any[]
-    setState(state)
-  }
+      let state: Partial<State> = { isLoading: false }
+      if (rooms.error) captureException(rooms.error, user)
+      else state.roomList = rooms.data as any[]
+      if (chats.error) captureException(chats.error, user)
+      else state.chatList = chats.data as any[]
+      if (replies.error) captureException(replies.error, user)
+      else state.replyList = replies.data as any[]
+      setState(state)
+    },
+    [search]
+  )
 
   const isExisted: boolean = useMemo(
     () =>

@@ -40,7 +40,6 @@ const CodeEditorModal: FC<Props> = ({
   chatId,
   ...props
 }) => {
-  if (!isOpen) return null
   const [{ content, language, codeBlock, languageList }, setState] =
     useObjectState<State>({
       content: props.content || '',
@@ -119,6 +118,7 @@ const CodeEditorModal: FC<Props> = ({
   useEffect(() => {
     getLanguages()
   }, [])
+  if (!isOpen) return null
   return (
     <Modal
       isOpen={isOpen}

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo } from 'react'
+import { Fragment, useCallback, useEffect, useMemo } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
 import classnames from 'classnames'
@@ -42,7 +42,6 @@ interface State {
 }
 
 const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null
   const [
     {
       tab,
@@ -85,7 +84,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
   const supabase = useSupabaseClient<Database>()
   const [user] = useUser()
 
-  const get = async () => {
+  const get = useCallback(async () => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
@@ -124,7 +123,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       captureException(err)
       setState({ isLoading: false })
     }
-  }
+  }, [user])
 
   const update = async () => {
     const { data: auth } = await supabase.auth.getUser()
@@ -196,8 +195,10 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
   }
 
   useEffect(() => {
+    if (!isOpen) return
     get()
-  }, [])
+  }, [isOpen])
+  if (!isOpen) return null
   return (
     <>
       <Modal

@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo } from 'react'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import type { FC } from 'react'
 import { Drawer, Modal, Message } from 'containers'
 import {
@@ -33,7 +33,6 @@ interface State {
 }
 
 const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
-  if (!isOpen) return null
   const [{ content, isCodeEditorOpen, isSubmitting, spamCount }, setState] =
     useObjectState<State>({
       content: '',
@@ -49,7 +48,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
   const setTypingReplyList = useSetRecoilState(typingReplyListState)
   const id = useId()
 
-  const get = async () => {
+  const get = useCallback(async () => {
     const { data, error } = await supabase
       .from('replies')
       .select(
@@ -151,7 +150,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       reply.reply_reactions = reply_reactions
     }
     setReplyList(data as any[])
-  }
+  }, [chatIndex, user])
 
   const createReply = async (value?: string) => {
     if (!user) {
@@ -287,7 +286,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     if (channel) await channel.untrack()
   }
 
-  const onKeyDown = async () => {
+  const onKeyDown = useCallback(async () => {
     if (!user) return
     const channel = supabase
       .getChannels()
@@ -298,7 +297,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
         nickname: user.nickname,
         chatId: chat.id
       })
-  }
+  }, [chatIndex, user])
 
   const onFocus = (e: globalThis.KeyboardEvent) => {
     if (!e.target || !/^[A-Za-z\:\@]{1}$/.test(e.key)) return
@@ -319,6 +318,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
   }, [])
 
   useEffect(() => {
+    if (!isOpen) return
     let timer: NodeJS.Timeout | undefined
 
     const channel = supabase
@@ -334,18 +334,20 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
   }, [chatIndex, isOpen])
 
   useEffect(() => {
+    if (!isOpen) return
     get()
-  }, [chatIndex])
+  }, [chatIndex, isOpen])
 
   useEffect(() => {
+    if (!isOpen) return
     const timer = setInterval(() => {
       if (spamCount > 0) setState({ spamCount: 0 })
     }, 3000)
     return () => clearInterval(timer)
-  }, [spamCount])
+  }, [spamCount, isOpen])
 
   useEffect(() => {
-    if (!chat) return
+    if (!chat || !isOpen) return
 
     const channel = supabase
       .channel('containers/drawer/thread')
@@ -579,7 +581,8 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     return () => {
       supabase.removeChannel(channel).then()
     }
-  }, [replyList, chat])
+  }, [replyList, chat, isOpen])
+  if (!isOpen) return null
   return (
     <>
       <Drawer

@@ -11,7 +11,6 @@ interface State {
 }
 
 const LoginModal: FC<Props> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null
   const [{ mode, isContentOpen }, setState] = useObjectState<State>({
     mode: 'terms',
     isContentOpen: false
@@ -27,6 +26,7 @@ const LoginModal: FC<Props> = ({ isOpen, onClose }) => {
       }
     })
   }
+  if (!isOpen) return null
   return (
     <>
       <Modal

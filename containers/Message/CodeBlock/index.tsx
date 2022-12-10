@@ -50,7 +50,6 @@ const MessageCodeBlock: FC<Props> = ({
   username,
   ...props
 }) => {
-  if (!originalCode) return null
   const [
     { isDiffEditorOpen, codeBlock, content, language },
     setState,
@@ -160,11 +159,13 @@ const MessageCodeBlock: FC<Props> = ({
   const listener = useCallback(() => resetState(), [])
 
   useEffect(() => {
-    if (!isDiffEditorOpen) return
+    if (!isDiffEditorOpen || !originalCode) return
     EventListener.add('message:codeblock', listener)
     EventListener.emit(`quill:insert:${id}`, { username, userId })
     return () => EventListener.remove('message:codeblock', listener)
-  }, [isDiffEditorOpen])
+  }, [isDiffEditorOpen, originalCode])
+
+  if (!originalCode) return null
   return (
     <>
       <div className="text-xs text-neutral-600 dark:text-neutral-400">
