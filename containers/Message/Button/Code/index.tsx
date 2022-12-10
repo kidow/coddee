@@ -18,4 +18,4 @@ const MessageCodeButton: FC<Props> = ({ onClick }) => {
   )
 }
 
-export default memo(MessageCodeButton, () => true)
+export default memo(MessageCodeButton)

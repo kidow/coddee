@@ -52,7 +52,7 @@ export const chatListState = atom<
       opengraphs: Array<
         Pick<
           NTable.Opengraphs,
-          'id' | 'title' | 'description' | 'site_name' | 'url' | 'image'
+          'id' | 'title' | 'description' | 'url' | 'image'
         >
       >
       saves: Array<Pick<NTable.Saves, 'id'>>
@@ -81,7 +81,7 @@ export const replyListState = atom<
       opengraphs: Array<
         Pick<
           NTable.Opengraphs,
-          'id' | 'title' | 'description' | 'site_name' | 'url' | 'image'
+          'id' | 'title' | 'description' | 'url' | 'image'
         >
       >
       saves: Array<Pick<NTable.Saves, 'id'>>
@@ -111,7 +111,7 @@ export const threadListState = atom<
           opengraphs: Array<
             Pick<
               NTable.Opengraphs,
-              'id' | 'title' | 'description' | 'site_name' | 'url' | 'image'
+              'id' | 'title' | 'description' | 'url' | 'image'
             >
           >
           saves: Array<Pick<NTable.Saves, 'id'>>
@@ -127,7 +127,7 @@ export const threadListState = atom<
       opengraphs: Array<
         Pick<
           NTable.Opengraphs,
-          'id' | 'title' | 'description' | 'site_name' | 'url' | 'image'
+          'id' | 'title' | 'description' | 'url' | 'image'
         >
       >
       saves: Array<Pick<NTable.Saves, 'id'>>

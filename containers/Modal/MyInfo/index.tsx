@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo } from 'react'
+import { Fragment, memo, useCallback, useEffect, useMemo } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
 import classnames from 'classnames'
@@ -42,7 +42,6 @@ interface State {
 }
 
 const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null
   const [
     {
       tab,
@@ -85,7 +84,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
   const supabase = useSupabaseClient<Database>()
   const [user] = useUser()
 
-  const get = async () => {
+  const get = useCallback(async () => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
@@ -124,9 +123,9 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       captureException(err)
       setState({ isLoading: false })
     }
-  }
+  }, [user])
 
-  const update = async () => {
+  const update = useCallback(async () => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
@@ -143,9 +142,9 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       captureException(error, user)
       toast.error(TOAST_MESSAGE.API_ERROR)
     } else toast.success('변경되었습니다.')
-  }
+  }, [user, jobCategory])
 
-  const onLogout = async () => {
+  const onLogout = useCallback(async () => {
     const { error } = await supabase.auth.signOut()
     if (error) {
       captureException(error, user)
@@ -154,7 +153,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     }
     onClose()
     toast.success('로그아웃되었습니다.')
-  }
+  }, [user])
 
   const PROFILE_TABS: string[] = useMemo(
     () => [
@@ -196,8 +195,10 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
   }
 
   useEffect(() => {
+    if (!isOpen) return
     get()
-  }, [])
+  }, [isOpen])
+  if (!isOpen) return null
   return (
     <>
       <Modal
@@ -273,7 +274,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
                   </div>
                 </div>
                 <section className="space-y-1.5 p-6 pt-20">
-                  <Form.Item icon={BuildingOffice2Icon}>
+                  <Form.Item Icon={BuildingOffice2Icon}>
                     {isLoading ? (
                       <div
                         role="status"
@@ -283,7 +284,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
                       <span>{company}</span>
                     )}
                   </Form.Item>
-                  <Form.Item icon={MapPinIcon}>
+                  <Form.Item Icon={MapPinIcon}>
                     {isLoading ? (
                       <div
                         role="status"
@@ -293,7 +294,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
                       <span>{location}</span>
                     )}
                   </Form.Item>
-                  <Form.Item icon={EnvelopeIcon}>
+                  <Form.Item Icon={EnvelopeIcon}>
                     {isLoading ? (
                       <div
                         role="status"
@@ -303,7 +304,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
                       <span>{email}</span>
                     )}
                   </Form.Item>
-                  <Form.Item icon={LinkIcon}>
+                  <Form.Item Icon={LinkIcon}>
                     {isLoading ? (
                       <div
                         role="status"
@@ -417,4 +418,4 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
   )
 }
 
-export default MyInfoModal
+export default memo(MyInfoModal)

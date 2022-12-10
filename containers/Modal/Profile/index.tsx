@@ -1,4 +1,4 @@
-import { Fragment, useEffect } from 'react'
+import { Fragment, memo, useCallback, useEffect } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
 import { captureException, toast, useObjectState } from 'services'
@@ -34,7 +34,6 @@ interface State {
 }
 
 const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
-  if (!isOpen) return null
   const [
     {
       avatarUrl,
@@ -69,7 +68,7 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
   })
   const supabase = useSupabaseClient<Database>()
 
-  const get = async () => {
+  const get = useCallback(async () => {
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
@@ -97,11 +96,13 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       repository: data.public_repos || 0,
       isLoading: false
     })
-  }
+  }, [userId])
 
   useEffect(() => {
+    if (!isOpen) return
     get()
-  }, [])
+  }, [isOpen])
+  if (!isOpen) return null
   return (
     <Modal isOpen={isOpen} onClose={onClose} padding={false}>
       <div className="relative h-16 bg-neutral-800 dark:bg-black">
@@ -154,21 +155,21 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
         </div>
         <Divider />
         <div className="space-y-1.5">
-          <Form.Item icon={BuildingOffice2Icon}>
+          <Form.Item Icon={BuildingOffice2Icon}>
             {isLoading ? (
               <div role="status" className="skeleton h-4 w-20 rounded-full" />
             ) : (
               <span>{company}</span>
             )}
           </Form.Item>
-          <Form.Item icon={MapPinIcon}>
+          <Form.Item Icon={MapPinIcon}>
             {isLoading ? (
               <div role="status" className="skeleton h-4 w-28 rounded-full" />
             ) : (
               <span>{location}</span>
             )}
           </Form.Item>
-          <Form.Item icon={EnvelopeIcon}>
+          <Form.Item Icon={EnvelopeIcon}>
             {isLoading ? (
               <div role="status" className="skeleton h-4 w-36 rounded-full" />
             ) : (
@@ -177,7 +178,7 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
               </a>
             )}
           </Form.Item>
-          <Form.Item icon={LinkIcon}>
+          <Form.Item Icon={LinkIcon}>
             {isLoading ? (
               <div role="status" className="skeleton h-4 w-48 rounded-full" />
             ) : (
@@ -213,4 +214,4 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
   )
 }
 
-export default ProfileModal
+export default memo(ProfileModal)

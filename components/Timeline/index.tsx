@@ -1,4 +1,5 @@
 import classNames from 'classnames'
+import { memo } from 'react'
 import type { FC, ReactNode } from 'react'
 
 interface Props {
@@ -44,4 +45,7 @@ const Timeline: FC<Props> = ({ list }) => {
   )
 }
 
-export default Timeline
+export default memo(
+  Timeline,
+  (prev, next) => prev.list.length === next.list.length
+)

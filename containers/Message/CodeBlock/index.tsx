@@ -1,4 +1,4 @@
-import { useEffect, useId } from 'react'
+import { useCallback, useEffect, useId } from 'react'
 import type { FC } from 'react'
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
 import {
@@ -6,8 +6,6 @@ import {
   cheerio,
   EventListener,
   languageListState,
-  registerSvelte,
-  registerVue,
   toast,
   TOAST_MESSAGE,
   useObjectState,
@@ -52,7 +50,6 @@ const MessageCodeBlock: FC<Props> = ({
   username,
   ...props
 }) => {
-  if (!originalCode) return null
   const [
     { isDiffEditorOpen, codeBlock, content, language },
     setState,
@@ -70,54 +67,49 @@ const MessageCodeBlock: FC<Props> = ({
   const { query } = useRouter()
   const id = useId()
 
-  const onMount = (
-    editor: Monaco.editor.IStandaloneCodeEditor,
-    monaco: typeof Monaco
-  ) => {
-    const element = editor.getDomNode()
-    if (!element) return
-    const model = editor.getModel()
-    if (!model) return
-    const lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight)
-    const lineCount = model.getLineCount() || 1
-    element.style.height = `${lineHeight * lineCount}px`
-    element.style.maxHeight = `${lineHeight * lineCount}px`
-    editor.layout()
-  }
+  const onMount = useCallback(
+    (editor: Monaco.editor.IStandaloneCodeEditor, monaco: typeof Monaco) => {
+      const element = editor.getDomNode()
+      if (!element) return
+      const model = editor.getModel()
+      if (!model) return
+      const lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight)
+      const lineCount = model.getLineCount() || 1
+      element.style.height = `${lineHeight * lineCount}px`
+      element.style.maxHeight = `${lineHeight * lineCount}px`
+      editor.layout()
+    },
+    []
+  )
 
-  const onDiffMount = (
-    editor: Monaco.editor.IStandaloneDiffEditor,
-    monaco: typeof Monaco
-  ) => {
-    const element = editor.getContainerDomNode()
-    if (!element) return
-    const model = editor.getModel()
-    if (!model) return
-    const lineHeight = Math.max(
-      editor
-        .getOriginalEditor()
-        .getOption(monaco.editor.EditorOption.lineHeight),
-      editor
-        .getModifiedEditor()
-        .getOption(monaco.editor.EditorOption.lineHeight),
-      1
-    )
-    const lineCount = Math.max(
-      model.original.getLineCount(),
-      model.modified.getLineCount(),
-      1
-    )
-    element.style.height = `${lineHeight * lineCount}px`
-    element.style.maxHeight = `${lineHeight * lineCount}px`
-    editor.layout()
-  }
+  const onDiffMount = useCallback(
+    (editor: Monaco.editor.IStandaloneDiffEditor, monaco: typeof Monaco) => {
+      const element = editor.getContainerDomNode()
+      if (!element) return
+      const model = editor.getModel()
+      if (!model) return
+      const lineHeight = Math.max(
+        editor
+          .getOriginalEditor()
+          .getOption(monaco.editor.EditorOption.lineHeight),
+        editor
+          .getModifiedEditor()
+          .getOption(monaco.editor.EditorOption.lineHeight),
+        1
+      )
+      const lineCount = Math.max(
+        model.original.getLineCount(),
+        model.modified.getLineCount(),
+        1
+      )
+      element.style.height = `${lineHeight * lineCount}px`
+      element.style.maxHeight = `${lineHeight * lineCount}px`
+      editor.layout()
+    },
+    []
+  )
 
-  const beforeMount = (monaco: typeof Monaco) => {
-    registerVue(monaco)
-    registerSvelte(monaco)
-  }
-
-  const onTyping = async () => {
+  const onTyping = useCallback(async () => {
     if (!user) return
     if (typingSource === 'chat') {
       const channel = supabase
@@ -141,7 +133,7 @@ const MessageCodeBlock: FC<Props> = ({
           chatId
         })
     }
-  }
+  }, [user])
 
   const onSubmit = async () => {
     if (!user) {
@@ -164,14 +156,16 @@ const MessageCodeBlock: FC<Props> = ({
     props.onSubmit({ content, codeBlock, language })
   }
 
-  const listener = () => resetState()
+  const listener = useCallback(() => resetState(), [])
 
   useEffect(() => {
-    if (!isDiffEditorOpen) return
+    if (!isDiffEditorOpen || !originalCode) return
     EventListener.add('message:codeblock', listener)
     EventListener.emit(`quill:insert:${id}`, { username, userId })
     return () => EventListener.remove('message:codeblock', listener)
-  }, [isDiffEditorOpen])
+  }, [isDiffEditorOpen, originalCode])
+
+  if (!originalCode) return null
   return (
     <>
       <div className="text-xs text-neutral-600 dark:text-neutral-400">

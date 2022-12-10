@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import type { FC } from 'react'
 import { XMarkIcon } from '@heroicons/react/24/solid'
 import classnames from 'classnames'
@@ -8,9 +8,7 @@ import CodeEditorModal from './CodeEditor'
 import MyInfoModal from './MyInfo'
 import ProfileModal from './Profile'
 import LoginModal from './Login'
-import SearchModal from './Search'
 import EmojiModal from './Emoji'
-import MentionModal from './Mention'
 import ImageModal from './Image'
 
 interface Props extends ReactProps, ModalProps {}
@@ -27,21 +25,21 @@ const Modal: FC<Props> = ({
   footer,
   error = false
 }) => {
-  if (!isOpen) return null
-
-  const onEscape = (e: KeyboardEvent) => {
+  const onEscape = useCallback((e: KeyboardEvent) => {
     if (e.code === 'Escape') {
       onClose()
       window.removeEventListener('keydown', onEscape)
     }
-  }
+  }, [])
 
   useEffect(() => {
+    if (!isOpen) return
     window.addEventListener('keydown', onEscape)
     return () => {
       window.removeEventListener('keydown', onEscape)
     }
-  }, [])
+  }, [isOpen])
+  if (!isOpen) return null
   return createPortal(
     <div
       id="modal"
@@ -117,8 +115,6 @@ export default Object.assign(Modal, {
   CodeEditor: CodeEditorModal,
   Profile: ProfileModal,
   Login: LoginModal,
-  Search: SearchModal,
   Emoji: EmojiModal,
-  Mention: MentionModal,
   Image: ImageModal
 })

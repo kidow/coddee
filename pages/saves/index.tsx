@@ -379,7 +379,7 @@ const SavedPage: NextPage = () => {
                   }
                   userId={item.user_id}
                 />
-                <div className="text-sm">
+                <div className="flex-1 text-sm">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">
                       {item.chat?.user.nickname || item.reply?.user.nickname}
@@ -430,7 +430,7 @@ const SavedPage: NextPage = () => {
                     <Message.Opengraph {...item} key={item.id} />
                   ))}
                   {!!item.chat?.reactions?.length && (
-                    <Message.Reactions>
+                    <div className="message-reactions">
                       {item.chat.reactions.map((reaction, key) => (
                         <Tooltip.Reaction
                           userList={reaction.userList}
@@ -440,10 +440,10 @@ const SavedPage: NextPage = () => {
                           emoji={reaction.emoji}
                         />
                       ))}
-                    </Message.Reactions>
+                    </div>
                   )}
                   {!!item.reply?.reply_reactions?.length && (
-                    <Message.Reactions>
+                    <div className="message-reactions">
                       {item.reply.reply_reactions.map((reaction, key) => (
                         <Tooltip.Reaction
                           userList={reaction.userList}
@@ -453,7 +453,7 @@ const SavedPage: NextPage = () => {
                           text={reaction.text}
                         />
                       ))}
-                    </Message.Reactions>
+                    </div>
                   )}
                 </div>
               </div>
@@ -489,7 +489,7 @@ const SavedPage: NextPage = () => {
                 !!list.length ? 'h-12' : 'h-full'
               )}
             >
-              <Spinner className="h-8 w-8 text-neutral-300 dark:text-neutral-400" />
+              <Spinner className="h-8 w-8 stroke-neutral-300 dark:stroke-neutral-400" />
             </div>
           )}
           <div ref={ref} />

@@ -1,5 +1,4 @@
 import { Tooltip } from 'components'
-import {} from 'react'
 import type { FC } from 'react'
 import { FaceSmileIcon } from '@heroicons/react/24/solid'
 import { useObjectState } from 'services'

@@ -1,4 +1,4 @@
-import { memo, useEffect } from 'react'
+import { memo, useCallback, useEffect } from 'react'
 import type { FC } from 'react'
 import classnames from 'classnames'
 import type { Argument } from 'classnames'
@@ -23,12 +23,12 @@ const Drawer: FC<Props> = ({
 }) => {
   const [{ isClosed }, setState] = useObjectState<State>({ isClosed: false })
 
-  const onEscape = (e: KeyboardEvent) => {
+  const onEscape = useCallback((e: KeyboardEvent) => {
     if (e.code === 'Escape') {
       setState({ isClosed: true })
       window.removeEventListener('keydown', onEscape)
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (!isOpen) return

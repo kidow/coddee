@@ -25,6 +25,7 @@ const MessageAvatar: FC<Props> = ({ url, userId, deletedAt }) => {
         <img
           src={url}
           alt=""
+          draggable={false}
           className="mt-1 h-8 w-8 cursor-pointer rounded-full"
           onClick={() => setState({ isOpen: true })}
         />

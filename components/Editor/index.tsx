@@ -1,19 +1,30 @@
+import { memo, useCallback } from 'react'
 import type { FC } from 'react'
 import MonacoEditor from '@monaco-editor/react'
 import type { EditorProps } from '@monaco-editor/react'
 import { registerSvelte, registerVue, useTheme } from 'services'
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
 
-export interface Props extends EditorProps {}
+export interface Props
+  extends Pick<
+    EditorProps,
+    | 'height'
+    | 'language'
+    | 'onMount'
+    | 'options'
+    | 'value'
+    | 'onChange'
+    | 'className'
+  > {}
 interface State {}
 
 const Editor: FC<Props> = ({ ...props }) => {
   const theme = useTheme()
 
-  const beforeMount = (monaco: typeof Monaco) => {
+  const beforeMount = useCallback((monaco: typeof Monaco) => {
     registerVue(monaco)
     registerSvelte(monaco)
-  }
+  }, [])
   return (
     <MonacoEditor
       {...props}
@@ -29,10 +40,11 @@ const Editor: FC<Props> = ({ ...props }) => {
           vertical: 'hidden',
           alwaysConsumeMouseWheel: false
         },
-        tabSize: 4
+        tabSize: 4,
+        overviewRulerLanes: 0
       }}
     />
   )
 }
 
-export default Editor
+export default memo(Editor)

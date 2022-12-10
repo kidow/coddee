@@ -2,7 +2,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import { TrashIcon } from '@heroicons/react/24/solid'
 import { Tooltip, Button, Spinner } from 'components'
 import { Modal } from 'containers'
-import { useEffect } from 'react'
+import { memo, useEffect } from 'react'
 import type { FC } from 'react'
 import { EventListener, useObjectState } from 'services'
 
@@ -20,19 +20,15 @@ const DeleteTooltipAction: FC<Props> = ({ onClick, position }) => {
     isLoading: false
   })
 
-  const onComplete = () => setState({ isOpen: false })
-
-  const onError = () => setState({ isLoading: false })
-
   useEffect(() => {
     if (!isOpen) return
-    EventListener.add('tooltip:delete', onComplete)
-    EventListener.add('tooltip:delete:error', onError)
-    return () => {
-      EventListener.remove('tooltip:delete', onComplete)
-      EventListener.remove('tooltip:delete:error', onError)
-    }
-  }, [isOpen])
+    EventListener.once('tooltip:delete', () =>
+      setState({ isOpen: false, isLoading: false })
+    )
+    EventListener.once('tooltip:delete:error', () =>
+      setState({ isLoading: false })
+    )
+  }, [isOpen, isLoading])
   return (
     <>
       <Tooltip content="삭제" position={position}>
@@ -93,4 +89,4 @@ const DeleteTooltipAction: FC<Props> = ({ onClick, position }) => {
   )
 }
 
-export default DeleteTooltipAction
+export default memo(DeleteTooltipAction)

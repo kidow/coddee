@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { FC } from 'react'
 
 export interface Props {}
@@ -19,4 +20,4 @@ const Error: FC<Props> = () => {
   )
 }
 
-export default Error
+export default memo(Error)

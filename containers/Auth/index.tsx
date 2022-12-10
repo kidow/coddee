@@ -1,4 +1,4 @@
-import { memo, useEffect } from 'react'
+import { memo, useCallback, useEffect } from 'react'
 import type { FC } from 'react'
 import {
   captureException,
@@ -22,7 +22,7 @@ const Auth: FC<Props> = ({ children }) => {
   const supabase = useSupabaseClient<Database>()
   const setPresenceList = useSetRecoilState(presenceListState)
 
-  const get = async () => {
+  const get = useCallback(async () => {
     if (!auth || !!user) return
     const { data } = await supabase
       .from('users')
@@ -74,9 +74,9 @@ const Auth: FC<Props> = ({ children }) => {
         body: JSON.stringify({ email: data.email })
       })
     }
-  }
+  }, [auth])
 
-  const onVisibilityChange = async (e: Event) => {
+  const onVisibilityChange = useCallback(async () => {
     const online = supabase
       .getChannels()
       .find((item) => item.topic === 'realtime:online-users')
@@ -92,7 +92,7 @@ const Auth: FC<Props> = ({ children }) => {
         avatarUrl: auth.user.user_metadata?.avatar_url
       })
     }
-  }
+  }, [])
 
   useEffect(() => {
     get()

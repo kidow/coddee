@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import type { FC } from 'react'
 import { Tooltip } from 'components'
 import classnames from 'classnames'
@@ -55,4 +55,4 @@ const ReactionTooltip: FC<Props> = ({
   )
 }
 
-export default ReactionTooltip
+export default memo(ReactionTooltip)

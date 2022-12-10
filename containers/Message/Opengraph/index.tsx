@@ -9,22 +9,13 @@ import { CopyToClipboard } from 'react-copy-to-clipboard'
 import classnames from 'classnames'
 
 export interface Props
-  extends Pick<
-    NTable.Opengraphs,
-    'title' | 'description' | 'url' | 'site_name' | 'image'
-  > {}
+  extends Pick<NTable.Opengraphs, 'title' | 'description' | 'url' | 'image'> {}
 interface State {
   isLoaded: boolean
   isStretched: boolean
 }
 
-const ChatOpengraph: FC<Props> = ({
-  title,
-  description,
-  url,
-  site_name,
-  image
-}) => {
+const ChatOpengraph: FC<Props> = ({ title, description, url, image }) => {
   const [{ isLoaded, isStretched }, setState] = useObjectState<State>({
     isLoaded: false,
     isStretched: false
@@ -68,6 +59,7 @@ const ChatOpengraph: FC<Props> = ({
         <img
           src={image || ''}
           alt=""
+          draggable={false}
           className={classnames('max-w-xs cursor-zoom-in rounded-lg', {
             'h-20 w-20': isStretched
           })}

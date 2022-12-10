@@ -358,7 +358,7 @@ const MentionsPage: NextPage = () => {
                     <Message.Opengraph {...item} key={item.id} />
                   ))}
                   {!!item.chat.reactions?.length && (
-                    <Message.Reactions>
+                    <div className="message-reactions">
                       {item.chat.reactions.map((reaction, key) => (
                         <Tooltip.Reaction
                           userList={reaction.userList}
@@ -368,7 +368,7 @@ const MentionsPage: NextPage = () => {
                           text={reaction.text || ''}
                         />
                       ))}
-                    </Message.Reactions>
+                    </div>
                   )}
                 </div>
               </div>
@@ -398,7 +398,7 @@ const MentionsPage: NextPage = () => {
                 !!list.length ? 'h-12' : 'h-full'
               )}
             >
-              <Spinner className="h-8 w-8 text-neutral-300 dark:text-neutral-400" />
+              <Spinner className="h-8 w-8 stroke-neutral-300 dark:stroke-neutral-400" />
             </div>
           )}
           <div ref={ref} />

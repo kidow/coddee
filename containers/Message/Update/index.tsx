@@ -1,5 +1,5 @@
 import { Textarea } from 'components'
-import { useEffect, useId } from 'react'
+import { memo, useEffect, useId } from 'react'
 import type { FC } from 'react'
 import { EventListener, useObjectState } from 'services'
 
@@ -45,4 +45,4 @@ const MessageUpdate: FC<Props> = ({
   )
 }
 
-export default MessageUpdate
+export default memo(MessageUpdate)

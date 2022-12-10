@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { FC } from 'react'
 import { Tooltip, Icon } from 'components'
 import { useObjectState } from 'services'
@@ -34,4 +35,4 @@ const AddReactionTooltip: FC<Props> = ({ onSelect }) => {
   )
 }
 
-export default AddReactionTooltip
+export default memo(AddReactionTooltip)
