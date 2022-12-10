@@ -8,7 +8,6 @@ import CodeEditorModal from './CodeEditor'
 import MyInfoModal from './MyInfo'
 import ProfileModal from './Profile'
 import LoginModal from './Login'
-import SearchModal from './Search'
 import EmojiModal from './Emoji'
 import ImageModal from './Image'
 
@@ -116,7 +115,6 @@ export default Object.assign(Modal, {
   CodeEditor: CodeEditorModal,
   Profile: ProfileModal,
   Login: LoginModal,
-  Search: SearchModal,
   Emoji: EmojiModal,
   Image: ImageModal
 })

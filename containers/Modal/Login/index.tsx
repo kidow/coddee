@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
 import { backdrop, useObjectState } from 'services'
@@ -17,7 +18,7 @@ const LoginModal: FC<Props> = ({ isOpen, onClose }) => {
   })
   const supabase = useSupabaseClient<Database>()
 
-  const onLogin = async () => {
+  const onLogin = useCallback(async () => {
     backdrop(true)
     await supabase.auth.signInWithOAuth({
       provider: 'github',
@@ -25,7 +26,8 @@ const LoginModal: FC<Props> = ({ isOpen, onClose }) => {
         redirectTo: process.env.NEXT_PUBLIC_REDIRECT_TO
       }
     })
-  }
+  }, [])
+
   if (!isOpen) return null
   return (
     <>
@@ -84,4 +86,4 @@ const LoginModal: FC<Props> = ({ isOpen, onClose }) => {
   )
 }
 
-export default LoginModal
+export default memo(LoginModal)

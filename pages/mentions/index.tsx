@@ -358,7 +358,7 @@ const MentionsPage: NextPage = () => {
                     <Message.Opengraph {...item} key={item.id} />
                   ))}
                   {!!item.chat.reactions?.length && (
-                    <Message.Reactions>
+                    <div className="message-reactions">
                       {item.chat.reactions.map((reaction, key) => (
                         <Tooltip.Reaction
                           userList={reaction.userList}
@@ -368,7 +368,7 @@ const MentionsPage: NextPage = () => {
                           text={reaction.text || ''}
                         />
                       ))}
-                    </Message.Reactions>
+                    </div>
                   )}
                 </div>
               </div>

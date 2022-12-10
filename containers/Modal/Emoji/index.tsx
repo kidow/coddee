@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { memo, useEffect, useMemo } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
 import { EMOJI_TOOLBAR, EventListener, useObjectState } from 'services'
@@ -1581,4 +1581,4 @@ const EmojiModal: FC<Props> = ({ isOpen, onClose, onSelect }) => {
   )
 }
 
-export default EmojiModal
+export default memo(EmojiModal)

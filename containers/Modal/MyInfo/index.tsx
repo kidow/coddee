@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo } from 'react'
+import { Fragment, memo, useCallback, useEffect, useMemo } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
 import classnames from 'classnames'
@@ -125,7 +125,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     }
   }, [user])
 
-  const update = async () => {
+  const update = useCallback(async () => {
     const { data: auth } = await supabase.auth.getUser()
     if (!!user && !auth.user) {
       await supabase.auth.signOut()
@@ -142,9 +142,9 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
       captureException(error, user)
       toast.error(TOAST_MESSAGE.API_ERROR)
     } else toast.success('변경되었습니다.')
-  }
+  }, [user, jobCategory])
 
-  const onLogout = async () => {
+  const onLogout = useCallback(async () => {
     const { error } = await supabase.auth.signOut()
     if (error) {
       captureException(error, user)
@@ -153,7 +153,7 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
     }
     onClose()
     toast.success('로그아웃되었습니다.')
-  }
+  }, [user])
 
   const PROFILE_TABS: string[] = useMemo(
     () => [
@@ -418,4 +418,4 @@ const MyInfoModal: FC<Props> = ({ isOpen, onClose }) => {
   )
 }
 
-export default MyInfoModal
+export default memo(MyInfoModal)

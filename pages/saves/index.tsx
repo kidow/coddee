@@ -430,7 +430,7 @@ const SavedPage: NextPage = () => {
                     <Message.Opengraph {...item} key={item.id} />
                   ))}
                   {!!item.chat?.reactions?.length && (
-                    <Message.Reactions>
+                    <div className="message-reactions">
                       {item.chat.reactions.map((reaction, key) => (
                         <Tooltip.Reaction
                           userList={reaction.userList}
@@ -440,10 +440,10 @@ const SavedPage: NextPage = () => {
                           emoji={reaction.emoji}
                         />
                       ))}
-                    </Message.Reactions>
+                    </div>
                   )}
                   {!!item.reply?.reply_reactions?.length && (
-                    <Message.Reactions>
+                    <div className="message-reactions">
                       {item.reply.reply_reactions.map((reaction, key) => (
                         <Tooltip.Reaction
                           userList={reaction.userList}
@@ -453,7 +453,7 @@ const SavedPage: NextPage = () => {
                           text={reaction.text}
                         />
                       ))}
-                    </Message.Reactions>
+                    </div>
                   )}
                 </div>
               </div>

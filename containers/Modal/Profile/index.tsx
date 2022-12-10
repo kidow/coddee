@@ -1,4 +1,4 @@
-import { Fragment, useEffect } from 'react'
+import { Fragment, memo, useCallback, useEffect } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
 import { captureException, toast, useObjectState } from 'services'
@@ -68,7 +68,7 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
   })
   const supabase = useSupabaseClient<Database>()
 
-  const get = async () => {
+  const get = useCallback(async () => {
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
@@ -96,7 +96,7 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       repository: data.public_repos || 0,
       isLoading: false
     })
-  }
+  }, [userId])
 
   useEffect(() => {
     if (!isOpen) return
@@ -214,4 +214,4 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
   )
 }
 
-export default ProfileModal
+export default memo(ProfileModal)

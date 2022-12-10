@@ -477,7 +477,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
               <Message.Opengraph {...item} key={item.id} />
             ))}
             {!!chat.reactions?.length && (
-              <Message.Reactions>
+              <div className="message-reactions">
                 {chat.reactions.map((item, key) => (
                   <Tooltip.Reaction
                     userList={item.userList}
@@ -488,7 +488,7 @@ const ThreadChat: FC<Props> = ({ index }) => {
                   />
                 ))}
                 <Tooltip.AddReaction onSelect={onEmojiSelect} />
-              </Message.Reactions>
+              </div>
             )}
           </div>
         )}

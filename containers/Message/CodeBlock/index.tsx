@@ -109,7 +109,7 @@ const MessageCodeBlock: FC<Props> = ({
     []
   )
 
-  const onTyping = async () => {
+  const onTyping = useCallback(async () => {
     if (!user) return
     if (typingSource === 'chat') {
       const channel = supabase
@@ -133,7 +133,7 @@ const MessageCodeBlock: FC<Props> = ({
           chatId
         })
     }
-  }
+  }, [user])
 
   const onSubmit = async () => {
     if (!user) {

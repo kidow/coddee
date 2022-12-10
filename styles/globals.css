@@ -44,4 +44,10 @@
   .skeleton {
     @apply animate-pulse bg-neutral-200 dark:bg-neutral-700;
   }
+  .message-reactions {
+    @apply mt-1 flex flex-wrap gap-1 pr-10;
+  }
+  .message-submit-button {
+    @apply flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 p-1.5 duration-150 hover:bg-blue-400 active:bg-blue-600 disabled:bg-neutral-400 dark:disabled:bg-neutral-600;
+  }
 }

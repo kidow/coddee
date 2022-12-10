@@ -335,7 +335,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
             <Message.Opengraph {...item} key={item.id} />
           ))}
           {!!chat.reactions?.length && (
-            <Message.Reactions>
+            <div className="message-reactions">
               {chat.reactions.map((item, key) => (
                 <Tooltip.Reaction
                   userList={item.userList}
@@ -350,7 +350,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
                   onEmojiSelect(text, emoji, chatIndex)
                 }
               />
-            </Message.Reactions>
+            </div>
           )}
           {!!chat.replies?.length && (
             <div
