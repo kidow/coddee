@@ -45,9 +45,9 @@ const Presence: FC<Props> = () => {
         onClose={() => setState({ isPresenceOpen: false })}
         title={`현재 온라인 유저: ${presenceList.length}`}
         padding={false}
-        maxWidth="max-w-xs"
+        maxWidth="max-w-xl"
       >
-        <div className="space-y-1 p-2">
+        <div className="grid grid-cols-3 gap-2 p-2">
           {presenceList.map((item) => (
             <div
               key={item.presence_ref}

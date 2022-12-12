@@ -262,7 +262,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
         className={classnames(
           'group relative flex gap-3 py-1 px-5 hover:bg-neutral-50 dark:hover:bg-neutral-700',
           {
-            'bg-red-50': !!chat.saves?.length,
+            'bg-red-50 dark:bg-red-500/10': !!chat.saves?.length,
             'z-10 animate-bounce bg-blue-50':
               window.location.hash === `#${chat.id}` && !chat.deleted_at
           }
@@ -300,7 +300,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
                   )}
                 </div>
                 <span className="text-xs text-neutral-400">
-                  {dayjs(chat.created_at).locale('ko').format('A H:mm')}
+                  {dayjs(chat.created_at).locale('ko').format('A h:mm')}
                 </span>
               </div>
             )}

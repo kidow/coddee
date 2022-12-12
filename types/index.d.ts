@@ -2,6 +2,8 @@ interface ReactProps {
   children?: ReactNode
 }
 
+type TPosition = 'left' | 'top' | 'right' | 'bottom'
+
 interface ModalProps {
   isOpen: boolean
   onClose: () => void
@@ -33,7 +35,7 @@ interface ModalProps {
 interface DrawerProps {
   isOpen: boolean
   onClose: () => void
-  position?: 'left' | 'top' | 'right' | 'bottom'
+  position?: TPosition
 }
 
 type R = Database['public']['Tables']['reactions']['Row']
@@ -65,7 +67,7 @@ namespace NToast {
 }
 
 interface TooltipProps {
-  position?: 'top' | 'right' | 'bottom' | 'left'
+  position?: TPosition
 }
 
 interface Database {

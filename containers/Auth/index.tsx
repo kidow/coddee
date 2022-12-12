@@ -73,6 +73,7 @@ const Auth: FC<Props> = ({ children }) => {
         headers: new Headers({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ email: data.email })
       })
+      toast.success('가입을 환영합니다! 🎉')
     }
   }, [auth])
 

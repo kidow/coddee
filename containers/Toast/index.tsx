@@ -8,6 +8,7 @@ import {
   ExclamationTriangleIcon,
   InformationCircleIcon
 } from '@heroicons/react/24/outline'
+import { XMarkIcon } from '@heroicons/react/20/solid'
 
 export interface Props {}
 interface State {
@@ -73,7 +74,12 @@ const Toast: FC<Props> = () => {
                   <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
                 )}
               </span>
-              <span className="select-none text-sm">{item?.message}</span>
+              <span className="flex-1 select-none text-sm">
+                {item?.message}
+              </span>
+              <span>
+                <XMarkIcon className="h-5 w-5 text-neutral-500" />
+              </span>
             </div>
           </div>
         ))}
