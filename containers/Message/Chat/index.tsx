@@ -300,7 +300,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
                   )}
                 </div>
                 <span className="text-xs text-neutral-400">
-                  {dayjs(chat.created_at).locale('ko').format('A H:mm')}
+                  {dayjs(chat.created_at).locale('ko').format('A h:mm')}
                 </span>
               </div>
             )}
