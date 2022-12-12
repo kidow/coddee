@@ -285,7 +285,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
             />
           ) : (
             <span className="invisible mt-[5px] text-2xs text-neutral-400 group-hover:visible">
-              {dayjs(chat.created_at).locale('ko').format('A h:mm')}
+              {dayjs(chat.created_at).locale('ko').format('H:mm')}
             </span>
           )}
         </div>
@@ -300,7 +300,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
                   )}
                 </div>
                 <span className="text-xs text-neutral-400">
-                  {dayjs(chat.created_at).locale('ko').format('A H:mm')}
+                  {dayjs(chat.created_at).locale('ko').format('A h:mm')}
                 </span>
               </div>
             )}
