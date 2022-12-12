@@ -170,10 +170,9 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
       return
     }
 
-    const v = value || content
-
-    if (!v.trim() || v === '<p><br></p>') return
-    if (cheerio.getText(v).length > 300) {
+    const text = cheerio.getText(value || content).trim()
+    if (!text) return
+    if (text.length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -181,7 +180,7 @@ const ThreadDrawer: FC<Props> = ({ isOpen, onClose, chatIndex }) => {
     setState({ isSubmitting: true })
     const { data, error } = await supabase
       .from('replies')
-      .insert({ user_id: user.id, chat_id: chat.id, content: v })
+      .insert({ user_id: user.id, chat_id: chat.id, content: value || content })
       .select()
       .single()
     setState({ isSubmitting: false, spamCount: spamCount + 1 })

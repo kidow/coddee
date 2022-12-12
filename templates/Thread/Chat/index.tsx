@@ -55,8 +55,9 @@ const ThreadChat: FC<Props> = ({ index }) => {
       return
     }
 
-    if (!content.trim() || content === '<p><br></p>') return
-    if (cheerio.getText(content).length > 300) {
+    const text = cheerio.getText(content).trim()
+    if (!text) return
+    if (text.length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }

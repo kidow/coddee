@@ -56,8 +56,9 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
       return
     }
 
-    if (!content?.trim() || content === '<p><br></p>') return
-    if (cheerio.getText(content).length > 300) {
+    const text = content ? cheerio.getText(content).trim() : ''
+    if (!text) return
+    if (text.length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -77,7 +78,7 @@ const ThreadReply: FC<Props> = ({ chatIndex, replyIndex }) => {
     }
     setList([
       ...list.slice(0, chatIndex),
-      { ...chat, content, updated_at: data.updated_at },
+      { ...chat, content: content || '', updated_at: data.updated_at },
       ...list.slice(chatIndex + 1)
     ])
   }

@@ -17,3 +17,7 @@ Link: [https://coddee.dev](https://coddee.dev)
 - recoil
 - heroicons
 - cheerio
+
+### References
+
+- Chatting room icons: [svgrepo.com](https://svgrepo.com)

@@ -1,4 +1,4 @@
-import { Button, Form, Radio } from 'components'
+import { Button, Form, Radio, Switch } from 'components'
 import type { FC } from 'react'
 import { useSetRecoilState } from 'recoil'
 import { themeState, useObjectState } from 'services'
@@ -7,13 +7,16 @@ export interface Props {}
 interface State {
   theme: string
   permission: NotificationPermission
+  isEmailMasked: boolean
 }
 
 const MyInfoSetting: FC<Props> = () => {
-  const [{ theme, permission }, setState] = useObjectState<State>({
-    theme: window.localStorage.getItem('theme') || 'light',
-    permission: window.Notification.permission || 'default'
-  })
+  const [{ theme, permission, isEmailMasked }, setState] =
+    useObjectState<State>({
+      theme: window.localStorage.getItem('theme') || 'light',
+      permission: window.Notification.permission || 'default',
+      isEmailMasked: false
+    })
   const setTheme = useSetRecoilState(themeState)
 
   const onAlarmChange = async () => {
@@ -60,6 +63,12 @@ const MyInfoSetting: FC<Props> = () => {
           ]}
         />
       </Form.Item>
+      {/* <Form.Item label="이메일 가리기">
+        <Switch
+          checked={isEmailMasked}
+          onChange={(isEmailMasked) => setState({ isEmailMasked })}
+        />
+      </Form.Item> */}
       <Form.Item label="알림 여부">
         <Button
           size="sm"

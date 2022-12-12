@@ -51,10 +51,11 @@ const CodeEditorModal: FC<Props> = ({
   const supabase = useSupabaseClient<Database>()
   const { query } = useRouter()
 
-  const getLanguages = async () => {
+  const getLanguages = useCallback(async () => {
+    if (!!languageList.length) return
     const { data } = await supabase.from('languages').select('*')
     setState({ languageList: data || [] })
-  }
+  }, [])
 
   const onSubmit = async () => {
     if (!user) {
@@ -68,8 +69,9 @@ const CodeEditorModal: FC<Props> = ({
       onClose()
       return
     }
-    if (!content.trim() || content === '<p><br></p>') return
-    if (cheerio.getText(content).length > 300) {
+    const text = cheerio.getText(content).trim()
+    if (!text) return
+    if (text.length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -116,8 +118,9 @@ const CodeEditorModal: FC<Props> = ({
   )
 
   useEffect(() => {
+    if (!isOpen) return
     getLanguages()
-  }, [])
+  }, [isOpen])
   if (!isOpen) return null
   return (
     <Modal
