@@ -240,10 +240,9 @@ const RoomIdPage: NextPage = () => {
       return
     }
 
-    const v = value || content
-
-    if (!v.trim() || v === '<p><br></p>') return
-    if (cheerio.getText(v).length > 300) {
+    const text = cheerio.getText(value || content).trim()
+    if (!text) return
+    if (text.length > 300) {
       toast.info('300자 이상은 너무 길어요 :(')
       return
     }
@@ -251,7 +250,11 @@ const RoomIdPage: NextPage = () => {
     setState({ isSubmitting: true })
     const { data, error } = await supabase
       .from('chats')
-      .insert({ user_id: user.id, room_id: query.id, content: v })
+      .insert({
+        user_id: user.id,
+        room_id: query.id,
+        content: value || content
+      })
       .select()
       .single()
     setState({ isSubmitting: false, spamCount: spamCount + 1 })
@@ -271,7 +274,7 @@ const RoomIdPage: NextPage = () => {
       },
       ...list
     ])
-    onRegex(v, data.id)
+    onRegex(value || content, data.id)
     setState({ content: '' })
     setTimeout(() => {
       window.scrollTo(0, document.body.scrollHeight)
