@@ -47,6 +47,7 @@ const HomePage: NextPage = () => {
           문의 혹은 개선사항이 있다면 서비스 내 채팅이나 "의견 보내기" 버튼을
           통해 보내주세요.
         </p>
+        <p>채팅방의 경우 요청하시면 만들어 드립니다.</p>
         <p>커디에 오신 여러분을 환영합니다.</p>
         <p className="text-xs italic text-neutral-400">
           (Coddee는 Coffee와 Code의 합성어입니다.)

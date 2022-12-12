@@ -69,6 +69,7 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
   const supabase = useSupabaseClient<Database>()
 
   const get = useCallback(async () => {
+    setState({ isLoading: true })
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
