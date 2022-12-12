@@ -461,6 +461,7 @@ const SavedPage: NextPage = () => {
                 <Tooltip.Actions.Save
                   onClick={() => onCancelSave(key)}
                   isSaved
+                  position="bottom"
                 />
               </Message.Actions>
             </div>

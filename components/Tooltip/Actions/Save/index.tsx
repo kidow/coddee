@@ -7,12 +7,13 @@ import classnames from 'classnames'
 export interface Props {
   onClick: () => void
   isSaved: boolean
+  position?: TPosition
 }
 interface State {}
 
-const SaveTooltipAction: FC<Props> = ({ onClick, isSaved }) => {
+const SaveTooltipAction: FC<Props> = ({ onClick, isSaved, position }) => {
   return (
-    <Tooltip content={isSaved ? '저장 취소' : '저장'}>
+    <Tooltip content={isSaved ? '저장 취소' : '저장'} position={position}>
       <button
         className="flex h-7 w-7 items-center justify-center rounded hover:bg-neutral-100 dark:hover:bg-neutral-600"
         onClick={onClick}

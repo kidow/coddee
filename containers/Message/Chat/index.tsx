@@ -262,7 +262,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
         className={classnames(
           'group relative flex gap-3 py-1 px-5 hover:bg-neutral-50 dark:hover:bg-neutral-700',
           {
-            'bg-red-50': !!chat.saves?.length,
+            'bg-red-50 dark:bg-red-500/10': !!chat.saves?.length,
             'z-10 animate-bounce bg-blue-50':
               window.location.hash === `#${chat.id}` && !chat.deleted_at
           }
