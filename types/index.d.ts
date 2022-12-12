@@ -385,3 +385,37 @@ interface Database {
     }
   }
 }
+
+type TChat = NTable.Chats & {
+  user: Pick<NTable.Users, 'nickname' | 'avatar_url'>
+  reactions: Array<
+    Pick<NTable.Reactions, 'id' | 'text' | 'emoji' | 'user_id' | 'userList'> & {
+      user: Pick<NTable.Users, 'nickname'>
+    }
+  >
+  replies: Array<
+    Pick<NTable.Replies, 'id' | 'created_at'> & {
+      user: Pick<NTable.Users, 'avatar_url'>
+    }
+  >
+  opengraphs: Array<
+    Pick<NTable.Opengraphs, 'id' | 'title' | 'description' | 'url' | 'image'>
+  >
+  saves: Array<Pick<NTable.Saves, 'id'>>
+}
+
+type TReply = NTable.Replies & {
+  user: Pick<NTable.Users, 'id' | 'nickname' | 'avatar_url'>
+  reply_reactions: Array<
+    Pick<
+      NTable.ReplyReactions,
+      'id' | 'text' | 'emoji' | 'user_id' | 'userList'
+    > & {
+      user: Pick<NTable.Users, 'nickname'>
+    }
+  >
+  opengraphs: Array<
+    Pick<NTable.Opengraphs, 'id' | 'title' | 'description' | 'url' | 'image'>
+  >
+  saves: Array<Pick<NTable.Saves, 'id'>>
+}

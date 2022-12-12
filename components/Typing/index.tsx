@@ -28,9 +28,8 @@ const Typing: FC<Props> = ({ source, chatId }) => {
     } else return typingChatList.filter(({ userId }) => userId !== user?.id)
   }, [typingChatList, typingReplyList, source, query.id, user])
 
-  if (!list.length) return null
   return (
-    <div className="text-xs text-neutral-600 dark:text-neutral-400">
+    <div className="h-4 text-xs text-neutral-600 dark:text-neutral-400">
       <span>
         {list.length > 1 ? (
           <span className="font-bold">
@@ -44,7 +43,7 @@ const Typing: FC<Props> = ({ source, chatId }) => {
           )
         )}
       </span>
-      <span className="ml-1">입력 중입니다...</span>
+      {!!list.length && <span className="ml-1">입력 중입니다...</span>}
     </div>
   )
 }
