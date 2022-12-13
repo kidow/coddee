@@ -239,6 +239,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
     onRegex(payload.content, chat.id)
     EventListener.emit('message:codeblock')
     setChatList([
+      ...chatList,
       {
         ...data,
         reactions: [],
@@ -249,14 +250,14 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
           nickname: user?.nickname || '',
           avatar_url: user?.avatar_url || ''
         }
-      },
-      ...chatList
+      }
     ])
   }
 
   const chat = useMemo(() => chatList[chatIndex], [chatList, chatIndex])
   return (
     <>
+      <Message.Divider chatIndex={chatIndex} />
       <div
         id={String(chat.id)}
         className={classnames(
@@ -278,7 +279,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 dark:group-hover:bg-neutral-600">
               <TrashIcon className="h-5 w-5 text-neutral-400" />
             </span>
-          ) : chat.user_id !== chatList[chatIndex + 1]?.user_id ? (
+          ) : chat.user_id !== chatList[chatIndex - 1]?.user_id ? (
             <Message.Avatar
               url={chat.user.avatar_url || ''}
               userId={chat.user_id}
@@ -291,7 +292,7 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
         </div>
         <div className="flex-1">
           {!chat.deleted_at &&
-            chat.user_id !== chatList[chatIndex + 1]?.user_id && (
+            chat.user_id !== chatList[chatIndex - 1]?.user_id && (
               <div className="flex items-center gap-2">
                 <div className="flex items-center text-sm font-medium">
                   <span>{chat.user?.nickname}</span>
@@ -428,7 +429,6 @@ const MessageChat: FC<Props> = ({ chatIndex }) => {
           </div>
         )}
       </div>
-      <Message.Divider chatIndex={chatIndex} />
       <Drawer.Thread
         isOpen={isThreadOpen}
         onClose={() => {
