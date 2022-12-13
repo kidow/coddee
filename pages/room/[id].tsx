@@ -199,7 +199,10 @@ const RoomIdPage: NextPage = () => {
       // @ts-ignore
       chat.reactions = reactions
     }
-    setList((page === 1 ? data : [...list, ...(data as any[])]) || [])
+    setList(
+      (page === 1 ? data.reverse() : [...(data as any[]).reverse(), ...list]) ||
+        []
+    )
     setState({ isLoading: false, page, total: total || 0 }, () => {
       if (page === 1)
         setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 100)
@@ -257,13 +260,18 @@ const RoomIdPage: NextPage = () => {
       })
       .select()
       .single()
-    setState({ isSubmitting: false, spamCount: spamCount + 1 })
+    setState({
+      isSubmitting: false,
+      spamCount: spamCount + 1,
+      count: count + 1
+    })
     if (error) {
       captureException(error, user)
       toast.error(TOAST_MESSAGE.API_ERROR)
       return
     }
     setList([
+      ...list,
       {
         ...data,
         reactions: [],
@@ -271,8 +279,7 @@ const RoomIdPage: NextPage = () => {
         replies: [],
         opengraphs: [],
         user: { nickname: user.nickname, avatar_url: user.avatar_url }
-      },
-      ...list
+      }
     ])
     onRegex(value || content, data.id)
     setState({ content: '' })
@@ -307,6 +314,7 @@ const RoomIdPage: NextPage = () => {
     }
     onRegex(payload.content, data.id)
     setList([
+      ...list,
       {
         ...data,
         reactions: [],
@@ -317,10 +325,9 @@ const RoomIdPage: NextPage = () => {
           nickname: user?.nickname || '',
           avatar_url: user?.avatar_url || ''
         }
-      },
-      ...list
+      }
     ])
-    setState({ isCodeEditorOpen: false, content: '' })
+    setState({ isCodeEditorOpen: false, content: '', count: count + 1 })
     setTimeout(() => {
       window.scrollTo(0, document.body.scrollHeight)
       EventListener.emit(`quill:focus:${id}`)
@@ -436,8 +443,8 @@ const RoomIdPage: NextPage = () => {
             return
           }
           setList([
-            { ...payload.new, user: data, reactions: [], saves: [] },
-            ...list
+            ...list,
+            { ...payload.new, user: data, reactions: [], saves: [] }
           ])
           setState({ count: count + 1 })
         }
@@ -745,8 +752,13 @@ const RoomIdPage: NextPage = () => {
             </li>
           </Dropdown>
         </header>
-        <main className="flex flex-1 flex-col-reverse py-3">
-          <div ref={backBottomRef} />
+        <main className="flex-1 py-3">
+          <div ref={morefetchRef} />
+          {isLoading && (
+            <div className="mb-4 flex items-center justify-center">
+              <Spinner className="h-8 w-8 stroke-neutral-200 dark:stroke-neutral-400" />
+            </div>
+          )}
           {list.map((_, key) => (
             <Message.Chat key={key} chatIndex={key} />
           ))}
@@ -755,12 +767,7 @@ const RoomIdPage: NextPage = () => {
               아직 채팅이 없습니다. 첫 채팅의 주인공이 되어 보시겠어요? :)
             </div>
           )}
-          {isLoading && (
-            <div className="mb-4 flex items-center justify-center">
-              <Spinner className="h-8 w-8 stroke-neutral-200 dark:stroke-neutral-400" />
-            </div>
-          )}
-          <div ref={morefetchRef} />
+          <div ref={backBottomRef} />
         </main>
         <footer className="sticky bottom-16 z-20 min-h-[59px] w-full border-t bg-white py-3 px-5 dark:border-neutral-700 dark:bg-neutral-800 sm:bottom-0">
           <div className="flex items-center gap-3">
