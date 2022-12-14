@@ -7,6 +7,7 @@ import type { FC } from 'react'
 import { EventListener, toast, useObjectState } from 'services'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import classnames from 'classnames'
+import { Tooltip } from 'components'
 
 export interface Props
   extends Pick<NTable.Opengraphs, 'title' | 'description' | 'url' | 'image'> {}
@@ -69,22 +70,26 @@ const ChatOpengraph: FC<Props> = ({ title, description, url, image }) => {
         {!isStretched && (
           <ul className="absolute right-2 top-2 hidden rounded border bg-white p-0.5 group-hover/opengraph:flex dark:border-neutral-800 dark:bg-neutral-900">
             <li>
-              <button
-                onClick={() => window.open(url || '')}
-                className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-300"
-              >
-                <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-              </button>
+              <Tooltip content="방문">
+                <button
+                  onClick={() => window.open(url || '')}
+                  className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-300"
+                >
+                  <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                </button>
+              </Tooltip>
             </li>
             <li>
-              <CopyToClipboard
-                onCopy={() => toast.success('복사되었습니다.')}
-                text={url || ''}
-              >
-                <button className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-300">
-                  <DocumentDuplicateIcon className="h-4 w-4" />
-                </button>
-              </CopyToClipboard>
+              <Tooltip content="복사">
+                <CopyToClipboard
+                  onCopy={() => toast.success('복사되었습니다.')}
+                  text={url || ''}
+                >
+                  <button className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-300">
+                    <DocumentDuplicateIcon className="h-4 w-4" />
+                  </button>
+                </CopyToClipboard>
+              </Tooltip>
             </li>
           </ul>
         )}

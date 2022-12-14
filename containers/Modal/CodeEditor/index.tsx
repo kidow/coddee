@@ -4,6 +4,7 @@ import type { OnChange } from '@monaco-editor/react'
 import { Modal } from 'containers'
 import {
   backdrop,
+  captureException,
   cheerio,
   toast,
   TOAST_MESSAGE,
@@ -55,6 +56,17 @@ const CodeEditorModal: FC<Props> = ({
     if (!!languageList.length) return
     const { data } = await supabase.from('languages').select('*')
     setState({ languageList: data || [] })
+    const { data: room, error } = await supabase
+      .from('rooms')
+      .select('name')
+      .eq('id', query.id)
+      .single()
+    if (error) {
+      captureException(error)
+      return
+    }
+    const item = languageList.find((item) => item.label === room.name)
+    if (item) setState({ language: item.value, codeBlock: item.template || '' })
   }, [])
 
   const onSubmit = async () => {
@@ -83,8 +95,8 @@ const CodeEditorModal: FC<Props> = ({
     props.onSubmit({ content, codeBlock, language })
   }
 
-  const onTyping = async () => {
-    if (!user) return
+  const onTyping = useCallback(async () => {
+    if (!user || !isOpen) return
     if (typingSource === 'chat') {
       const channel = supabase
         .getChannels()
@@ -107,7 +119,7 @@ const CodeEditorModal: FC<Props> = ({
           chatId
         })
     }
-  }
+  }, [isOpen, user])
 
   const onEditorChange: OnChange = useCallback(
     async (codeBlock) => {
@@ -117,10 +129,31 @@ const CodeEditorModal: FC<Props> = ({
     [codeBlock]
   )
 
+  const setDefaultLanguage = useCallback(async () => {
+    if (!languageList.length) return
+    const { data, error } = await supabase
+      .from('rooms')
+      .select('name')
+      .eq('id', query.id)
+      .single()
+    if (error) {
+      captureException(error)
+      return
+    }
+    const item = languageList.find((item) => item.label === data.name)
+    if (item) setState({ language: item.value, codeBlock: item.template || '' })
+  }, [query.id, languageList.length])
+
   useEffect(() => {
     if (!isOpen) return
     getLanguages()
   }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
+    setDefaultLanguage()
+    return () => setState({ codeBlock: '', content: '', language: '' })
+  }, [isOpen, query.id])
   if (!isOpen) return null
   return (
     <Modal
