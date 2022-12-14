@@ -65,36 +65,32 @@ const CodeEditorModal: FC<Props> = ({
       captureException(error)
       return
     }
-    const item = languageList.find((item) => item.label === room.name)
+    const item = data?.find((item) => item.label === room.name)
     if (item) setState({ language: item.value, codeBlock: item.template || '' })
     else if (['Node.js', 'React', 'React Native'].indexOf(room.name) !== -1) {
       setState({
         language: 'javascript',
         codeBlock:
-          languageList.find((item) => item.value === 'javascript')?.template ||
-          ''
+          data?.find((item) => item.value === 'javascript')?.template || ''
       })
     } else if (room.name === 'Flutter') {
       setState({
         language: 'dart',
-        codeBlock:
-          languageList.find((item) => item.value === 'dart')?.template || ''
+        codeBlock: data?.find((item) => item.value === 'dart')?.template || ''
       })
     } else if (room.name === 'Unity') {
       setState({
         language: 'c#',
-        codeBlock:
-          languageList.find((item) => item.value === 'c#')?.template || ''
+        codeBlock: data?.find((item) => item.value === 'c#')?.template || ''
       })
     } else if (room.name === 'Docker') {
       setState({
         language: 'dockerfile',
         codeBlock:
-          languageList.find((item) => item.value === 'dockerfile')?.template ||
-          ''
+          data?.find((item) => item.value === 'dockerfile')?.template || ''
       })
     }
-  }, [])
+  }, [query.id])
 
   const onSubmit = async () => {
     if (!user) {
