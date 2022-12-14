@@ -67,6 +67,33 @@ const CodeEditorModal: FC<Props> = ({
     }
     const item = languageList.find((item) => item.label === room.name)
     if (item) setState({ language: item.value, codeBlock: item.template || '' })
+    else if (['Node.js', 'React', 'React Native'].indexOf(room.name) !== -1) {
+      setState({
+        language: 'javascript',
+        codeBlock:
+          languageList.find((item) => item.value === 'javascript')?.template ||
+          ''
+      })
+    } else if (room.name === 'Flutter') {
+      setState({
+        language: 'dart',
+        codeBlock:
+          languageList.find((item) => item.value === 'dart')?.template || ''
+      })
+    } else if (room.name === 'Unity') {
+      setState({
+        language: 'c#',
+        codeBlock:
+          languageList.find((item) => item.value === 'c#')?.template || ''
+      })
+    } else if (room.name === 'Docker') {
+      setState({
+        language: 'dockerfile',
+        codeBlock:
+          languageList.find((item) => item.value === 'dockerfile')?.template ||
+          ''
+      })
+    }
   }, [])
 
   const onSubmit = async () => {
@@ -142,6 +169,33 @@ const CodeEditorModal: FC<Props> = ({
     }
     const item = languageList.find((item) => item.label === data.name)
     if (item) setState({ language: item.value, codeBlock: item.template || '' })
+    else if (['Node.js', 'React', 'React Native'].indexOf(data.name) !== -1) {
+      setState({
+        language: 'javascript',
+        codeBlock:
+          languageList.find((item) => item.value === 'javascript')?.template ||
+          ''
+      })
+    } else if (data.name === 'Flutter') {
+      setState({
+        language: 'dart',
+        codeBlock:
+          languageList.find((item) => item.value === 'dart')?.template || ''
+      })
+    } else if (data.name === 'Unity') {
+      setState({
+        language: 'c#',
+        codeBlock:
+          languageList.find((item) => item.value === 'c#')?.template || ''
+      })
+    } else if (data.name === 'Docker') {
+      setState({
+        language: 'dockerfile',
+        codeBlock:
+          languageList.find((item) => item.value === 'dockerfile')?.template ||
+          ''
+      })
+    }
   }, [query.id, languageList.length])
 
   useEffect(() => {
