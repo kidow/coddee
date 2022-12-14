@@ -4,6 +4,7 @@ import type { OnChange } from '@monaco-editor/react'
 import { Modal } from 'containers'
 import {
   backdrop,
+  captureException,
   cheerio,
   toast,
   TOAST_MESSAGE,
@@ -55,7 +56,41 @@ const CodeEditorModal: FC<Props> = ({
     if (!!languageList.length) return
     const { data } = await supabase.from('languages').select('*')
     setState({ languageList: data || [] })
-  }, [])
+    const { data: room, error } = await supabase
+      .from('rooms')
+      .select('name')
+      .eq('id', query.id)
+      .single()
+    if (error) {
+      captureException(error)
+      return
+    }
+    const item = data?.find((item) => item.label === room.name)
+    if (item) setState({ language: item.value, codeBlock: item.template || '' })
+    else if (['Node.js', 'React', 'React Native'].indexOf(room.name) !== -1) {
+      setState({
+        language: 'javascript',
+        codeBlock:
+          data?.find((item) => item.value === 'javascript')?.template || ''
+      })
+    } else if (room.name === 'Flutter') {
+      setState({
+        language: 'dart',
+        codeBlock: data?.find((item) => item.value === 'dart')?.template || ''
+      })
+    } else if (room.name === 'Unity') {
+      setState({
+        language: 'c#',
+        codeBlock: data?.find((item) => item.value === 'c#')?.template || ''
+      })
+    } else if (room.name === 'Docker') {
+      setState({
+        language: 'dockerfile',
+        codeBlock:
+          data?.find((item) => item.value === 'dockerfile')?.template || ''
+      })
+    }
+  }, [query.id])
 
   const onSubmit = async () => {
     if (!user) {
@@ -83,8 +118,8 @@ const CodeEditorModal: FC<Props> = ({
     props.onSubmit({ content, codeBlock, language })
   }
 
-  const onTyping = async () => {
-    if (!user) return
+  const onTyping = useCallback(async () => {
+    if (!user || !isOpen) return
     if (typingSource === 'chat') {
       const channel = supabase
         .getChannels()
@@ -107,7 +142,7 @@ const CodeEditorModal: FC<Props> = ({
           chatId
         })
     }
-  }
+  }, [isOpen, user])
 
   const onEditorChange: OnChange = useCallback(
     async (codeBlock) => {
@@ -117,10 +152,58 @@ const CodeEditorModal: FC<Props> = ({
     [codeBlock]
   )
 
+  const setDefaultLanguage = useCallback(async () => {
+    if (!languageList.length) return
+    const { data, error } = await supabase
+      .from('rooms')
+      .select('name')
+      .eq('id', query.id)
+      .single()
+    if (error) {
+      captureException(error)
+      return
+    }
+    const item = languageList.find((item) => item.label === data.name)
+    if (item) setState({ language: item.value, codeBlock: item.template || '' })
+    else if (['Node.js', 'React', 'React Native'].indexOf(data.name) !== -1) {
+      setState({
+        language: 'javascript',
+        codeBlock:
+          languageList.find((item) => item.value === 'javascript')?.template ||
+          ''
+      })
+    } else if (data.name === 'Flutter') {
+      setState({
+        language: 'dart',
+        codeBlock:
+          languageList.find((item) => item.value === 'dart')?.template || ''
+      })
+    } else if (data.name === 'Unity') {
+      setState({
+        language: 'c#',
+        codeBlock:
+          languageList.find((item) => item.value === 'c#')?.template || ''
+      })
+    } else if (data.name === 'Docker') {
+      setState({
+        language: 'dockerfile',
+        codeBlock:
+          languageList.find((item) => item.value === 'dockerfile')?.template ||
+          ''
+      })
+    }
+  }, [query.id, languageList.length])
+
   useEffect(() => {
     if (!isOpen) return
     getLanguages()
   }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
+    setDefaultLanguage()
+    return () => setState({ codeBlock: '', content: '', language: '' })
+  }, [isOpen, query.id])
   if (!isOpen) return null
   return (
     <Modal

@@ -20,16 +20,25 @@ export const base64ToFile = (base64: string) => {
   return new File([u8arr], new Date().getTime().toString(), { type: mime })
 }
 
-export const toast = {
-  success: (message: string) =>
-    EventListener.emit<NToast.Emit>('toast', { message, type: 'success' }),
-  info: (message: string) =>
-    EventListener.emit<NToast.Emit>('toast', { message, type: 'info' }),
-  warn: (message: string) =>
-    EventListener.emit<NToast.Emit>('toast', { message, type: 'warn' }),
-  error: (message: string) =>
-    EventListener.emit<NToast.Emit>('toast', { message, type: 'error' })
+class Toast {
+  private emit(message: string, type: NToast.Type) {
+    EventListener.emit<NToast.Emit>('toast', { message, type })
+  }
+  success(message: string) {
+    this.emit(message, 'success')
+  }
+  info(message: string) {
+    this.emit(message, 'info')
+  }
+  warn(message: string) {
+    this.emit(message, 'warn')
+  }
+  error(message: string) {
+    this.emit(message, 'error')
+  }
 }
+
+export const toast = new Toast()
 
 export function throttle(func: Function, wait: number) {
   let waiting = false
