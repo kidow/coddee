@@ -60,7 +60,7 @@ const MyInfoSetting: FC<Props> = () => {
           ]}
         />
       </Form.Item>
-      <Form.Item label="알림 여부">
+      <Form.Item label="알림 여부 (맨션이 올 경우 웹 알림을 보내줍니다.)">
         <Button
           size="sm"
           onClick={onAlarmChange}
