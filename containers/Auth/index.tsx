@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect } from 'react'
 import type { FC } from 'react'
 import {
   captureException,
-  presenceListState,
+  onlineState,
   toast,
   TOAST_MESSAGE,
   useUser
@@ -20,7 +20,7 @@ const Auth: FC<Props> = ({ children }) => {
   const [user, setUser] = useUser()
   const auth = useAuth()
   const supabase = useSupabaseClient<Database>()
-  const setPresenceList = useSetRecoilState(presenceListState)
+  const setOnline = useSetRecoilState(onlineState)
 
   const get = useCallback(async () => {
     if (!auth || !!user) return
@@ -100,18 +100,16 @@ const Auth: FC<Props> = ({ children }) => {
   }, [auth])
 
   useEffect(() => {
-    if (!user) return
-
     const online = supabase
-      .channel('online-users', { config: { presence: { key: user.id } } })
+      .channel('online-users')
       .on('presence', { event: 'sync' }, () => {
-        setPresenceList(Object.values(online.presenceState()).map(([v]) => v))
+        setOnline(Object.values(online.presenceState()).map(([v]) => v))
       })
       .on('presence', { event: 'join' }, ({ currentPresences }) => {
-        setPresenceList(currentPresences)
+        setOnline(currentPresences)
       })
       .on('presence', { event: 'leave' }, ({ currentPresences }) => {
-        setPresenceList(currentPresences)
+        setOnline(currentPresences)
       })
 
     const {
@@ -151,7 +149,7 @@ const Auth: FC<Props> = ({ children }) => {
       document.removeEventListener('visibilitychange', onVisibilityChange)
       online.unsubscribe().then().catch()
     }
-  }, [user])
+  }, [])
 
   return <>{children}</>
 }
