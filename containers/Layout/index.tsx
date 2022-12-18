@@ -10,7 +10,7 @@ import {
   useObjectState,
   useUser
 } from 'services'
-import { Modal, Drawer, Presence } from 'containers'
+import { Modal, Drawer, Online } from 'containers'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -632,7 +632,7 @@ const Layout: FC<Props> = ({ children }) => {
         </Drawer>
       )}
 
-      <Presence />
+      <Online />
     </>
   )
 }

@@ -96,7 +96,7 @@ export const threadListState = atom<
   default: []
 })
 
-export const presenceListState = atom<
+export const onlineState = atom<
   Array<{
     presence_ref: string
     [key: string]: string
@@ -104,8 +104,8 @@ export const presenceListState = atom<
 >({
   key:
     process.env.NODE_ENV === 'development'
-      ? `presenceListState:${Math.random().toString(36)}`
-      : 'presenceListState',
+      ? `onlineState:${Math.random().toString(36)}`
+      : 'onlineState',
   default: []
 })
 

@@ -1,54 +1,54 @@
 import { memo } from 'react'
 import type { FC } from 'react'
 import { useRecoilValue } from 'recoil'
-import { presenceListState, useObjectState } from 'services'
+import { onlineState, useObjectState } from 'services'
 import { Modal } from 'containers'
 
 export interface Props {}
 interface State {
-  isPresenceOpen: boolean
+  isOnlineOpen: boolean
   isProfileOpen: boolean
   userId: string
 }
 
-const Presence: FC<Props> = () => {
-  const [{ isPresenceOpen, isProfileOpen, userId }, setState] =
+const Online: FC<Props> = () => {
+  const [{ isOnlineOpen, isProfileOpen, userId }, setState] =
     useObjectState<State>({
-      isPresenceOpen: false,
+      isOnlineOpen: false,
       isProfileOpen: false,
       userId: ''
     })
-  const presenceList = useRecoilValue(presenceListState)
+  const onlineList = useRecoilValue(onlineState)
   return (
     <>
       <div className="fixed top-3 right-6 hidden sm:block">
         <div className="relative flex flex-row-reverse">
-          {presenceList.length > 3 && (
+          {onlineList.length > 3 && (
             <span className="-mr-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-neutral-400 text-sm text-neutral-50">
-              {`+${presenceList.length - 3}`}
+              {`+${onlineList.length - 3}`}
             </span>
           )}
-          {presenceList.slice(0, 3).map((item, key) => (
+          {onlineList.slice(0, 3).map((item, key) => (
             <img
               key={key}
               src={item.avatarUrl}
               alt=""
               draggable={false}
               className="-mr-2 h-8 w-8 cursor-pointer rounded-full border first:ml-0 only:mr-0 dark:border-neutral-600"
-              onClick={() => setState({ isPresenceOpen: true })}
+              onClick={() => setState({ isOnlineOpen: true })}
             />
           ))}
         </div>
       </div>
       <Modal
-        isOpen={isPresenceOpen}
-        onClose={() => setState({ isPresenceOpen: false })}
-        title={`현재 온라인 유저: ${presenceList.length}`}
+        isOpen={isOnlineOpen}
+        onClose={() => setState({ isOnlineOpen: false })}
+        title={`현재 온라인 유저: ${onlineList.length}`}
         padding={false}
         maxWidth="max-w-xl"
       >
         <div className="grid grid-cols-3 gap-2 p-2">
-          {presenceList.map((item) => (
+          {onlineList.map((item) => (
             <div
               key={item.presence_ref}
               className="flex cursor-pointer items-center gap-2 rounded p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
@@ -73,4 +73,4 @@ const Presence: FC<Props> = () => {
   )
 }
 
-export default memo(Presence)
+export default memo(Online)
