@@ -5,6 +5,7 @@
 @import './quill.css';
 @import './quill-emoji.css';
 @import './quill-mention.css';
+@import './snowfall.css';
 
 * {
   font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
@@ -16,7 +17,7 @@
     @apply max-h-screen overflow-auto;
   }
   body {
-    @apply bg-neutral-100 duration-150 dark:bg-neutral-900 dark:text-neutral-300;
+    @apply bg-neutral-300 duration-150 dark:bg-neutral-900 dark:text-neutral-300;
   }
   input,
   select,

@@ -9,7 +9,8 @@ import {
   Auth,
   Modal,
   SearchBox,
-  Offline
+  Offline,
+  Snowfall
 } from 'containers'
 import { RecoilRoot } from 'recoil'
 import 'dayjs/locale/ko'
@@ -50,6 +51,7 @@ function MyApp({ Component, pageProps }: AppProps<Props>) {
       <Backdrop />
       <Toast />
       <Modal.Image />
+      <Snowfall />
     </Offline>
   )
 }
