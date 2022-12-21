@@ -35,7 +35,7 @@ const PostsPage: NextPage = () => {
         <main className="flex-1">
           {Array.from({ length: 24 }).map((_, key) => (
             <Link href="/" key={key}>
-              <a></a>
+              post
             </Link>
           ))}
         </main>

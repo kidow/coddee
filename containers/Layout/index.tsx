@@ -308,9 +308,7 @@ const Layout: FC<Props> = ({ children }) => {
           >
             <header className="flex h-12 items-center justify-between px-5">
               <Link href="/">
-                <a>
-                  <Logo />
-                </a>
+                <Logo />
               </Link>
               {user ? (
                 <button onClick={() => setState({ isMyInfoOpen: true })}>
@@ -333,55 +331,54 @@ const Layout: FC<Props> = ({ children }) => {
               <ul>
                 {roomList.map((item, key) => (
                   <li key={item.id}>
-                    <Link href={`/room/${item.id}`}>
-                      <a
-                        className={classnames(
-                          'flex h-16 items-center justify-between gap-4 px-5',
-                          query.id === item.id
-                            ? 'bg-blue-100 dark:bg-neutral-700'
-                            : 'hover:bg-blue-50 dark:hover:bg-neutral-700',
-                          { 'pointer-events-none': query.id === item.id }
-                        )}
-                        onClick={() => {
-                          if (item.newCount > 0)
-                            setState({
-                              roomList: [
-                                ...roomList.slice(0, key),
-                                { ...item, newCount: 0 },
-                                ...roomList.slice(key + 1)
-                              ]
-                            })
-                        }}
-                      >
-                        <img src={item.logo_url} alt="" className="h-8 w-8" />
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center justify-between">
-                            <div
-                              className={classnames({
-                                'font-semibold': query.id === item.id
-                              })}
-                            >
-                              {item.name}
-                            </div>
-                            <div className="text-xs text-neutral-500 dark:text-neutral-400">
-                              {!!item.newDate &&
-                                dayjs(item.newDate).locale('ko').fromNow()}
-                            </div>
+                    <Link
+                      href={`/room/${item.id}`}
+                      className={classnames(
+                        'flex h-16 items-center justify-between gap-4 px-5',
+                        query.id === item.id
+                          ? 'bg-blue-100 dark:bg-neutral-700'
+                          : 'hover:bg-blue-50 dark:hover:bg-neutral-700',
+                        { 'pointer-events-none': query.id === item.id }
+                      )}
+                      onClick={() => {
+                        if (item.newCount > 0)
+                          setState({
+                            roomList: [
+                              ...roomList.slice(0, key),
+                              { ...item, newCount: 0 },
+                              ...roomList.slice(key + 1)
+                            ]
+                          })
+                      }}
+                    >
+                      <img src={item.logo_url} alt="" className="h-8 w-8" />
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <div
+                            className={classnames({
+                              'font-semibold': query.id === item.id
+                            })}
+                          >
+                            {item.name}
                           </div>
-                          <div className="flex items-center justify-between">
-                            <div className="w-56 truncate text-xs text-neutral-500 dark:text-neutral-400 sm:w-40">
-                              {item.newChat}
-                            </div>
-                            <div className="flex h-4 justify-end">
-                              {item.newCount > 0 && (
-                                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-2xs text-white">
-                                  {item.newCount}
-                                </div>
-                              )}
-                            </div>
+                          <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                            {!!item.newDate &&
+                              dayjs(item.newDate).locale('ko').fromNow()}
                           </div>
                         </div>
-                      </a>
+                        <div className="flex items-center justify-between">
+                          <div className="w-56 truncate text-xs text-neutral-500 dark:text-neutral-400 sm:w-40">
+                            {item.newChat}
+                          </div>
+                          <div className="flex h-4 justify-end">
+                            {item.newCount > 0 && (
+                              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-2xs text-white">
+                                {item.newCount}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </Link>
                   </li>
                 ))}
@@ -390,96 +387,93 @@ const Layout: FC<Props> = ({ children }) => {
             <footer className="sticky bottom-0 flex h-[59px]">
               <ul className="flex w-full">
                 <li className="flex-1">
-                  <Link href="/mentions">
-                    <a
-                      className={classnames(
-                        'flex h-full w-full items-center justify-center text-neutral-600 dark:text-neutral-400',
-                        pathname === '/mentions'
-                          ? 'bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-200'
-                          : 'hover:bg-neutral-50 active:bg-neutral-100 dark:hover:bg-neutral-700 dark:active:bg-neutral-600'
-                      )}
-                    >
-                      <div>
-                        <div className="flex justify-center">
-                          <AtSymbolIcon className="h-5 w-5" />
-                        </div>
-                        <div className="relative text-xs">
-                          <span
-                            className={classnames({
-                              'font-bold': pathname === '/mentions'
-                            })}
-                          >
-                            멘션
-                          </span>
-                          {isNewMentionCreated && (
-                            <span className="absolute right-0 top-0 -mr-2 -mt-1 flex h-2 w-2">
-                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400/75"></span>
-                              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
-                            </span>
-                          )}
-                        </div>
+                  <Link
+                    href="/mentions"
+                    className={classnames(
+                      'flex h-full w-full items-center justify-center text-neutral-600 dark:text-neutral-400',
+                      pathname === '/mentions'
+                        ? 'bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-200'
+                        : 'hover:bg-neutral-50 active:bg-neutral-100 dark:hover:bg-neutral-700 dark:active:bg-neutral-600'
+                    )}
+                  >
+                    <div>
+                      <div className="flex justify-center">
+                        <AtSymbolIcon className="h-5 w-5" />
                       </div>
-                    </a>
+                      <div className="relative text-xs">
+                        <span
+                          className={classnames({
+                            'font-bold': pathname === '/mentions'
+                          })}
+                        >
+                          멘션
+                        </span>
+                        {isNewMentionCreated && (
+                          <span className="absolute right-0 top-0 -mr-2 -mt-1 flex h-2 w-2">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400/75"></span>
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </Link>
                 </li>
                 <li className="flex-1">
-                  <Link href="/threads">
-                    <a
-                      className={classnames(
-                        'flex h-full w-full items-center justify-center text-neutral-600 dark:text-neutral-400',
-                        pathname === '/threads'
-                          ? 'bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-200'
-                          : 'hover:bg-neutral-50 active:bg-neutral-100 dark:hover:bg-neutral-700 dark:active:bg-neutral-600'
-                      )}
-                    >
-                      <div>
-                        <div className="flex justify-center">
-                          <ChatBubbleBottomCenterTextIcon className="h-5 w-5" />
-                        </div>
-                        <div className="relative text-xs">
-                          <span
-                            className={classnames({
-                              'font-bold': pathname === '/threads'
-                            })}
-                          >
-                            스레드
-                          </span>
-                          {isNewThreadCreated && (
-                            <span className="absolute right-0 top-0 -mr-2 -mt-1 flex h-2 w-2">
-                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400/75"></span>
-                              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
-                            </span>
-                          )}
-                        </div>
+                  <Link
+                    href="/threads"
+                    className={classnames(
+                      'flex h-full w-full items-center justify-center text-neutral-600 dark:text-neutral-400',
+                      pathname === '/threads'
+                        ? 'bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-200'
+                        : 'hover:bg-neutral-50 active:bg-neutral-100 dark:hover:bg-neutral-700 dark:active:bg-neutral-600'
+                    )}
+                  >
+                    <div>
+                      <div className="flex justify-center">
+                        <ChatBubbleBottomCenterTextIcon className="h-5 w-5" />
                       </div>
-                    </a>
+                      <div className="relative text-xs">
+                        <span
+                          className={classnames({
+                            'font-bold': pathname === '/threads'
+                          })}
+                        >
+                          스레드
+                        </span>
+                        {isNewThreadCreated && (
+                          <span className="absolute right-0 top-0 -mr-2 -mt-1 flex h-2 w-2">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400/75"></span>
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </Link>
                 </li>
                 <li className="flex-1">
-                  <Link href="/saves">
-                    <a
-                      className={classnames(
-                        'flex h-full w-full items-center justify-center text-neutral-600 dark:text-neutral-400',
-                        pathname === '/saves'
-                          ? 'bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-200'
-                          : 'hover:bg-neutral-50 active:bg-neutral-100 dark:hover:bg-neutral-700 dark:active:bg-neutral-600'
-                      )}
-                    >
-                      <div>
-                        <div className="flex justify-center">
-                          <BookmarkIcon className="h-5 w-5" />
-                        </div>
-                        <div className="relative text-xs">
-                          <span
-                            className={classnames({
-                              'font-bold': pathname === '/saves'
-                            })}
-                          >
-                            저장
-                          </span>
-                        </div>
+                  <Link
+                    href="/saves"
+                    className={classnames(
+                      'flex h-full w-full items-center justify-center text-neutral-600 dark:text-neutral-400',
+                      pathname === '/saves'
+                        ? 'bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-200'
+                        : 'hover:bg-neutral-50 active:bg-neutral-100 dark:hover:bg-neutral-700 dark:active:bg-neutral-600'
+                    )}
+                  >
+                    <div>
+                      <div className="flex justify-center">
+                        <BookmarkIcon className="h-5 w-5" />
                       </div>
-                    </a>
+                      <div className="relative text-xs">
+                        <span
+                          className={classnames({
+                            'font-bold': pathname === '/saves'
+                          })}
+                        >
+                          저장
+                        </span>
+                      </div>
+                    </div>
                   </Link>
                 </li>
                 {/* <li className="flex-1">
@@ -575,56 +569,55 @@ const Layout: FC<Props> = ({ children }) => {
           <ul>
             {roomList.map((item, key) => (
               <li key={item.id}>
-                <Link href={`/room/${item.id}`}>
-                  <a
-                    className={classnames(
-                      'flex h-16 items-center justify-between gap-4 px-5',
-                      query.id === item.id
-                        ? 'bg-blue-100 dark:bg-neutral-700'
-                        : 'hover:bg-blue-50 dark:hover:bg-neutral-700',
-                      { 'pointer-events-none': query.id === item.id }
-                    )}
-                    onClick={() => {
-                      if (item.newCount > 0)
-                        setState({
-                          roomList: [
-                            ...roomList.slice(0, key),
-                            { ...item, newCount: 0 },
-                            ...roomList.slice(key + 1)
-                          ]
-                        })
-                      setState({ isListOpen: false })
-                    }}
-                  >
-                    <img src={item.logo_url} alt="" className="h-8 w-8" />
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <div
-                          className={classnames({
-                            'font-semibold': query.id === item.id
-                          })}
-                        >
-                          {item.name}
-                        </div>
-                        <div className="text-xs text-neutral-500 dark:text-neutral-400">
-                          {!!item.newDate &&
-                            dayjs(item.newDate).locale('ko').fromNow()}
-                        </div>
+                <Link
+                  href={`/room/${item.id}`}
+                  className={classnames(
+                    'flex h-16 items-center justify-between gap-4 px-5',
+                    query.id === item.id
+                      ? 'bg-blue-100 dark:bg-neutral-700'
+                      : 'hover:bg-blue-50 dark:hover:bg-neutral-700',
+                    { 'pointer-events-none': query.id === item.id }
+                  )}
+                  onClick={() => {
+                    if (item.newCount > 0)
+                      setState({
+                        roomList: [
+                          ...roomList.slice(0, key),
+                          { ...item, newCount: 0 },
+                          ...roomList.slice(key + 1)
+                        ]
+                      })
+                    setState({ isListOpen: false })
+                  }}
+                >
+                  <img src={item.logo_url} alt="" className="h-8 w-8" />
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div
+                        className={classnames({
+                          'font-semibold': query.id === item.id
+                        })}
+                      >
+                        {item.name}
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="w-56 truncate text-xs text-neutral-500 dark:text-neutral-400 sm:w-40">
-                          {item.newChat}
-                        </div>
-                        <div className="flex h-4 justify-end">
-                          {item.newCount > 0 && (
-                            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-2xs text-white">
-                              {item.newCount}
-                            </div>
-                          )}
-                        </div>
+                      <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                        {!!item.newDate &&
+                          dayjs(item.newDate).locale('ko').fromNow()}
                       </div>
                     </div>
-                  </a>
+                    <div className="flex items-center justify-between">
+                      <div className="w-56 truncate text-xs text-neutral-500 dark:text-neutral-400 sm:w-40">
+                        {item.newChat}
+                      </div>
+                      <div className="flex h-4 justify-end">
+                        {item.newCount > 0 && (
+                          <div className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-2xs text-white">
+                            {item.newCount}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </Link>
               </li>
             ))}
