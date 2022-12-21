@@ -54,17 +54,11 @@ const HomePage: NextPage = () => {
         </p>
       </article>
       <div className="mt-4 flex gap-2 px-4 text-sm text-neutral-400">
-        <Link href="/terms">
-          <a>이용약관</a>
-        </Link>
+        <Link href="/terms">이용약관</Link>
         <div className="w-px bg-neutral-200 dark:bg-neutral-700" />
-        <Link href="/privacy">
-          <a>개인정보처리방침</a>
-        </Link>
+        <Link href="/privacy">개인정보처리방침</Link>
         <div className="w-px bg-neutral-200 dark:bg-neutral-700" />
-        <Link href="/release">
-          <a>업데이트 내역</a>
-        </Link>
+        <Link href="/release">업데이트 내역</Link>
       </div>
       <div className="mt-4 px-4">
         <a

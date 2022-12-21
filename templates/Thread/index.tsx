@@ -178,10 +178,11 @@ const Thread: FC<Props> = ({ index }) => {
             <span>
               <HashtagIcon className="h-4 w-4" />
             </span>
-            <Link href={`/room/${chat.room_id}`}>
-              <a className="text-sm font-bold hover:underline">
-                {chat.room.name}
-              </a>
+            <Link
+              href={`/room/${chat.room_id}`}
+              className="text-sm font-bold hover:underline"
+            >
+              {chat.room.name}
             </Link>
           </div>
           <div className="text-xs text-neutral-400">
