@@ -21,7 +21,7 @@ const SEO: FC<Props> = ({
   keywords = 'chatting, developers, programmers'
 }) => {
   const { asPath } = useRouter()
-  const TITLE = title ? `${title} - 커디` : '개발자들만의 채팅방 플랫폼 - 커디'
+  const TITLE = title ? `${title} - 커디` : '개발자 채팅방 - 커디'
   const URL = 'https://coddee.dev' + decodeURI(asPath)
   if (ldJson) ldJson['@context'] = 'https://schema.org'
   if (noSEO)

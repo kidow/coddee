@@ -10,10 +10,7 @@ interface State {
 
 const Offline: FC<Props> = ({ children }) => {
   const [{ isOnline }, setState] = useObjectState<State>({
-    isOnline:
-      typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean'
-        ? window.navigator.onLine
-        : true
+    isOnline: true
   })
 
   const onOnline = useCallback(() => setState({ isOnline: true }), [])
@@ -82,7 +79,4 @@ const Offline: FC<Props> = ({ children }) => {
   return <>{children}</>
 }
 
-export default dynamic<Props>(
-  () => Promise.resolve((props) => <Offline {...props} />),
-  { ssr: false }
-)
+export default Offline
