@@ -8,7 +8,7 @@ interface State {}
 const HomePage: NextPage = () => {
   return (
     <>
-      <SEO />
+      <SEO title="개발자들만의 채팅방 플랫폼" />
       <article className="prose prose-neutral p-4 dark:prose-invert">
         <h2>안녕하세요! 커디입니다.</h2>
         <p>

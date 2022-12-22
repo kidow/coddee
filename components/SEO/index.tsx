@@ -14,14 +14,14 @@ interface Props {
 
 const SEO: FC<Props> = ({
   title,
-  description = '개발자들끼리만 모여서 수다 떠는 곳',
-  image = 'https://awdvlzcobnxhjxpwrvlo.supabase.co/storage/v1/object/public/public/coddee.png',
+  description = '개발자들만의 채팅방에 어서 오세요. 깃허브 로그인을 통해 가입 후 코드를 채팅과 함께 첨부할 수 있습니다.',
+  image = 'https://files.kidow.me/image/coddee.png',
   ldJson,
   noSEO = false,
-  keywords
+  keywords = 'chatting, developers, programmers'
 }) => {
   const { asPath } = useRouter()
-  const TITLE = title ? `${title} - 커디` : '개발자 채팅방 - 커디'
+  const TITLE = title ? `${title} - 커디` : '개발자들만의 채팅방 플랫폼 - 커디'
   const URL = 'https://coddee.dev' + decodeURI(asPath)
   if (ldJson) ldJson['@context'] = 'https://schema.org'
   if (noSEO)
