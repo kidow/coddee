@@ -17,11 +17,6 @@ export default class MyDocument extends Document {
           <meta charSet="utf-8" />
           <meta name="theme-color" content="#000" />
           <meta name="robots" content="index, follow" />
-          {/* <link
-            rel="apple-touch-icon"
-            sizes="180x180"
-            href="favicons/apple-icon-180x180.png"
-          /> */}
           <meta
             name="google-site-verification"
             content="2R36y2-YBmRBsTj17QAXtE7GdzPcvmtoJN3_nyC3-cY"

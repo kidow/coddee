@@ -30,6 +30,7 @@
     "react-copy-to-clipboard": "^5.1.0",
     "react-detect-offline": "^2.4.5",
     "react-dom": "^18.2.0",
+    "react-github-btn": "^1.4.0",
     "react-quill": "^2.0.0",
     "recoil": "^0.7.6",
     "url-metadata": "^2.5.0"
