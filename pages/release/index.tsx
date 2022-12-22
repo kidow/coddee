@@ -11,6 +11,10 @@ const ReleasePage: NextPage = () => {
         <h2>업데이트 내역</h2>
         <h3>2022년 12월</h3>
         <ul>
+          <li>12월 22일</li>
+          <ul>
+            <li>깃허브 contributions를 프로필 모달에 추가했습니다.</li>
+          </ul>
           <li>12월 18일</li>
           <ul>
             <li>

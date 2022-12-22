@@ -1,7 +1,7 @@
 import { Fragment, memo, useCallback, useEffect } from 'react'
 import type { FC } from 'react'
 import { Modal } from 'containers'
-import { captureException, toast, useObjectState } from 'services'
+import { captureException, toast, useObjectState, useTheme } from 'services'
 import { Divider, Form } from 'components'
 import {
   ArrowTopRightOnSquareIcon,
@@ -13,6 +13,9 @@ import {
 } from '@heroicons/react/24/outline'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
+import ActivityCalendar from 'react-activity-calendar'
+import type { Day } from 'react-activity-calendar'
+import ReactTooltip from 'react-tooltip'
 
 export interface Props extends ModalProps {
   userId: string
@@ -31,6 +34,7 @@ interface State {
   company: string
   repository: number
   isLoading: boolean
+  activityList: Day[]
 }
 
 const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
@@ -48,7 +52,8 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       githubUrl,
       company,
       repository,
-      isLoading
+      isLoading,
+      activityList
     },
     setState
   ] = useObjectState<State>({
@@ -64,11 +69,13 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
     githubUrl: '',
     company: '',
     repository: 0,
-    isLoading: true
+    isLoading: true,
+    activityList: []
   })
   const supabase = useSupabaseClient<Database>()
+  const theme = useTheme()
 
-  const get = useCallback(async () => {
+  const getProfile = useCallback(async () => {
     setState({ isLoading: true })
     const { data: user, error } = await supabase
       .from('users')
@@ -80,8 +87,16 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       setState({ isLoading: false })
       return
     }
-    const res = await fetch(`https://api.github.com/users/${user.nickname}`)
-    const data = await res.json()
+    const [profile, contribution] = await Promise.all([
+      fetch(`https://api.github.com/users/${user.nickname}`),
+      fetch(
+        `https://github-contributions-api.jogruber.de/v4/${user.nickname}?y=last`
+      )
+    ])
+    const [data, data2] = await Promise.all([
+      profile.json(),
+      contribution.json()
+    ])
     setState({
       avatarUrl: data.avatar_url || '',
       nickname: user.nickname || '',
@@ -95,17 +110,23 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       githubUrl: data.html_url || '',
       company: data.company || '',
       repository: data.public_repos || 0,
-      isLoading: false
+      isLoading: false,
+      activityList: data2?.contributions || []
     })
   }, [userId])
 
   useEffect(() => {
     if (!isOpen) return
-    get()
+    getProfile()
   }, [isOpen])
   if (!isOpen) return null
   return (
-    <Modal isOpen={isOpen} onClose={onClose} padding={false}>
+    <Modal
+      maxWidth="max-w-3xl"
+      isOpen={isOpen}
+      onClose={onClose}
+      padding={false}
+    >
       <div className="relative h-16 bg-neutral-800 dark:bg-black">
         <div className="absolute left-4 top-4 rounded-full bg-white p-2 dark:bg-black">
           {isLoading ? (
@@ -210,6 +231,48 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
           <Divider />
           <Form.Item label="직무 및 분야">{jobCategory}</Form.Item>
         </div>
+        {!!activityList.length && (
+          <>
+            <Divider />
+            <div>
+              <ActivityCalendar
+                data={activityList}
+                labels={{
+                  months: [
+                    'Jan',
+                    'Feb',
+                    'Mar',
+                    'Apr',
+                    'May',
+                    'Jun',
+                    'Jul',
+                    'Aug',
+                    'Sep',
+                    'Oct',
+                    'Nov',
+                    'Dec'
+                  ],
+                  weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                  totalCount: '{{count}} contributions in {{year}}',
+                  tooltip:
+                    '<strong>{{count}} contributions</strong> on {{date}}',
+                  legend: {
+                    less: 'Less',
+                    more: 'More'
+                  }
+                }}
+                theme={{
+                  level0: theme === 'dark' ? '#161b22' : '#ebedf0',
+                  level1: theme === 'dark' ? '#0e4429' : '#9be9a8',
+                  level2: theme === 'dark' ? '#006d32' : '#40c463',
+                  level3: theme === 'dark' ? '#26a641' : '#30a14e',
+                  level4: theme === 'dark' ? '#39d353' : '#216e39'
+                }}
+                children={<ReactTooltip html type={theme} />}
+              />
+            </div>
+          </>
+        )}
       </div>
     </Modal>
   )
