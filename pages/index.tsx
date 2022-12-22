@@ -1,7 +1,7 @@
 import { SEO } from 'components'
 import type { NextPage } from 'next'
 import Link from 'next/link'
-import Script from 'next/script'
+import GitHubButton from 'react-github-btn'
 
 interface State {}
 
@@ -60,19 +60,16 @@ const HomePage: NextPage = () => {
         <div className="w-px bg-neutral-200 dark:bg-neutral-700" />
         <Link href="/release">업데이트 내역</Link>
       </div>
-      <div className="mt-4 px-4">
-        <a
-          className="github-button"
+      <div className="mt-4 px-4 pb-20">
+        <GitHubButton
           href="https://github.com/kidow/coddee"
-          data-color-scheme="no-preference: light; light: light; dark: light;"
           data-size="large"
           data-show-count="true"
           aria-label="Star kidow/coddee on GitHub"
         >
           Star
-        </a>
+        </GitHubButton>
       </div>
-      <Script src="https://buttons.github.io/buttons.js" async defer />
     </>
   )
 }
