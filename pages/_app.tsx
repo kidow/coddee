@@ -15,7 +15,8 @@ import {
 import { RecoilRoot } from 'recoil'
 import 'dayjs/locale/ko'
 import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import { SessionContextProvider, Session } from '@supabase/auth-helpers-react'
+import { SessionContextProvider } from '@supabase/auth-helpers-react'
+import type { Session } from '@supabase/auth-helpers-react'
 
 interface Props {
   initialSession: Session
