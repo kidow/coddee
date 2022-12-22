@@ -76,7 +76,7 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
   const theme = useTheme()
 
   const getProfile = useCallback(async () => {
-    setState({ isLoading: true })
+    setState({ isLoading: true, activityList: [] })
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
