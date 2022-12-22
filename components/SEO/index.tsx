@@ -15,7 +15,7 @@ interface Props {
 const SEO: FC<Props> = ({
   title,
   description = '개발자들끼리만 모여서 수다 떠는 곳',
-  image = 'https://files.kidow.me/image/coddee.png',
+  image = 'https://awdvlzcobnxhjxpwrvlo.supabase.co/storage/v1/object/public/public/coddee.png',
   ldJson,
   noSEO = false,
   keywords
