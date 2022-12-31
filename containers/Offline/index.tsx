@@ -1,7 +1,6 @@
 import { useCallback, useEffect } from 'react'
 import type { FC } from 'react'
 import { useObjectState } from 'services'
-import dynamic from 'next/dynamic'
 
 export interface Props extends ReactProps {}
 interface State {

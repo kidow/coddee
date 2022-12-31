@@ -87,16 +87,9 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       setState({ isLoading: false })
       return
     }
-    const [profile, contribution] = await Promise.all([
-      fetch(`https://api.github.com/users/${user.nickname}`),
-      fetch(
-        `https://github-contributions-api.jogruber.de/v4/${user.nickname}?y=last`
-      )
-    ])
-    const [data, data2] = await Promise.all([
-      profile.json(),
-      contribution.json()
-    ])
+    getContribution(user.nickname)
+    const res = await fetch(`https://api.github.com/users/${user.nickname}`)
+    const data = await res.json()
     setState({
       avatarUrl: data.avatar_url || '',
       nickname: user.nickname || '',
@@ -110,10 +103,24 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
       githubUrl: data.html_url || '',
       company: data.company || '',
       repository: data.public_repos || 0,
-      isLoading: false,
-      activityList: data2?.contributions || []
+      isLoading: false
     })
   }, [userId])
+
+  const getContribution = useCallback(
+    async (nickname: string) => {
+      try {
+        const res = await fetch(
+          `https://github-contributions-api.jogruber.de/v4/${nickname}?y=last`
+        )
+        const data = await res.json()
+        setState({ activityList: data?.contributions || [] })
+      } catch (err) {
+        captureException(err)
+      }
+    },
+    [userId]
+  )
 
   useEffect(() => {
     if (!isOpen) return
@@ -231,48 +238,43 @@ const ProfileModal: FC<Props> = ({ isOpen, onClose, userId }) => {
           <Divider />
           <Form.Item label="직무 및 분야">{jobCategory}</Form.Item>
         </div>
-        {!!activityList.length && (
-          <>
-            <Divider />
-            <div>
-              <ActivityCalendar
-                data={activityList}
-                labels={{
-                  months: [
-                    'Jan',
-                    'Feb',
-                    'Mar',
-                    'Apr',
-                    'May',
-                    'Jun',
-                    'Jul',
-                    'Aug',
-                    'Sep',
-                    'Oct',
-                    'Nov',
-                    'Dec'
-                  ],
-                  weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-                  totalCount: '{{count}} contributions in {{year}}',
-                  tooltip:
-                    '<strong>{{count}} contributions</strong> on {{date}}',
-                  legend: {
-                    less: 'Less',
-                    more: 'More'
-                  }
-                }}
-                theme={{
-                  level0: theme === 'dark' ? '#161b22' : '#ebedf0',
-                  level1: theme === 'dark' ? '#0e4429' : '#9be9a8',
-                  level2: theme === 'dark' ? '#006d32' : '#40c463',
-                  level3: theme === 'dark' ? '#26a641' : '#30a14e',
-                  level4: theme === 'dark' ? '#39d353' : '#216e39'
-                }}
-                children={<ReactTooltip html type={theme} />}
-              />
-            </div>
-          </>
-        )}
+        <Divider />
+        <div>
+          <ActivityCalendar
+            data={activityList}
+            labels={{
+              months: [
+                'Jan',
+                'Feb',
+                'Mar',
+                'Apr',
+                'May',
+                'Jun',
+                'Jul',
+                'Aug',
+                'Sep',
+                'Oct',
+                'Nov',
+                'Dec'
+              ],
+              weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+              totalCount: '{{count}} contributions in {{year}}',
+              tooltip: '<strong>{{count}} contributions</strong> on {{date}}',
+              legend: {
+                less: 'Less',
+                more: 'More'
+              }
+            }}
+            theme={{
+              level0: theme === 'dark' ? '#161b22' : '#ebedf0',
+              level1: theme === 'dark' ? '#0e4429' : '#9be9a8',
+              level2: theme === 'dark' ? '#006d32' : '#40c463',
+              level3: theme === 'dark' ? '#26a641' : '#30a14e',
+              level4: theme === 'dark' ? '#39d353' : '#216e39'
+            }}
+            children={<ReactTooltip html type={theme} />}
+          />
+        </div>
       </div>
     </Modal>
   )
