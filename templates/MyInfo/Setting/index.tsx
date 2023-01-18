@@ -40,6 +40,7 @@ const MyInfoSetting: FC<Props> = () => {
     let script = document.createElement('script')
     script.src = 'https://cdn.feedbank.app/plugin.js'
     script.defer = true
+    script.async = true
     script.setAttribute('plugin-key', 'fa46598f-aa5e-46fc-be63-2d3e339383c5')
     script.setAttribute('data-fb-position', 'middle-left')
     script.setAttribute(

@@ -17,6 +17,7 @@ import 'dayjs/locale/ko'
 import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { SessionContextProvider } from '@supabase/auth-helpers-react'
 import type { Session } from '@supabase/auth-helpers-react'
+import { ThemeProvider } from 'next-themes'
 
 interface Props {
   initialSession: Session
@@ -41,9 +42,11 @@ function MyApp({ Component, pageProps }: AppProps<Props>) {
             initialSession={pageProps.initialSession}
           >
             <Auth>
-              <Layout>
-                <Component {...pageProps} />
-              </Layout>
+              <ThemeProvider attribute="class">
+                <Layout>
+                  <Component {...pageProps} />
+                </Layout>
+              </ThemeProvider>
             </Auth>
             <SearchBox />
           </SessionContextProvider>

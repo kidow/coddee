@@ -9,6 +9,15 @@ const ReleasePage: NextPage = () => {
       <SEO title="업데이트 내역" />
       <article className="prose prose-neutral p-4 dark:prose-invert">
         <h2>업데이트 내역</h2>
+        <h3>2023년 1월</h3>
+        <ul>
+          <li>1월 18일</li>
+          <ul>
+            <li>
+              다크 모드에서 새로고침 시 배경색이 깜빡이는 문제를 개선했습니다.
+            </li>
+          </ul>
+        </ul>
         <h3>2022년 12월</h3>
         <ul>
           <li>12월 22일</li>
