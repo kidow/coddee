@@ -55,7 +55,7 @@ function MyApp({ Component, pageProps }: AppProps<Props>) {
       <Backdrop />
       <Toast />
       <Modal.Image />
-      <Snowfall />
+      {/* <Snowfall /> */}
     </Offline>
   )
 }
